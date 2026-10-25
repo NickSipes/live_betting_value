@@ -221,8 +221,8 @@ class CFB:
             fair = None if S0 is None else -(margin + ep + (-S0) * rem)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
-            old = next(((gc, sp, mg) for gc, sp, mg in reversed(h["snaps"])
-                        if gc <= now_gc - 600 and sp is not None), None)
+            old = next(((s[0], s[1], s[2]) for s in reversed(h["snaps"])
+                        if s[0] <= now_gc - 600 and s[1] is not None), None)
             dline = dmarg = None
             if old and L is not None:
                 dline, dmarg = round(L - old[1], 1), margin - old[2]

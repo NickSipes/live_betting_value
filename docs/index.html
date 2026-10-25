@@ -242,7 +242,7 @@ const mkt = m => m === "rec" ? "receiving" : "rushing";
 const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
 const P_MIN = 0.5;   // cards below this P(over) are hidden
 const onWatch = (player, market) => (S.watch?.entries || []).some(w => w.player === player && w.market === market);
-const star = (player, market) => onWatch(player, market) ? `<span class="star" title="watchlist matchup">★</span>` : "";
+const star = (player, market) => onWatch(player, market) ? `<span class="star" title="Good Matchup" aria-label="Good Matchup">★</span>` : "";
 
 function notifyIf(id, status, title, body) {
   if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
@@ -357,7 +357,7 @@ function section(key, title, count, legend, cards, empty) {
 }
 const PROP_LEG = `Only props the model gives ≥50% to go over are shown.
   <span class="chip hot">TRIGGER</span> ≥60% &nbsp;·&nbsp; <span class="chip warm">NEAR</span> 50–60%
-  &nbsp;·&nbsp; <span class="star">★</span> watchlist matchup (top player vs bottom-10 defense) &nbsp;·&nbsp; tap a card for line vs production`;
+  &nbsp;·&nbsp; <span class="star">★</span> Good Matchup (top player vs bottom-10 defense) &nbsp;·&nbsp; tap a card for line vs production`;
 const SPREAD_LEG = `<span class="chip hot">EDGE</span> live line ≥4 pts from fair
   &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
   &nbsp;·&nbsp; tap a card for line movement + key plays`;

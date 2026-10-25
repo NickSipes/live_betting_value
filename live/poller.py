@@ -282,7 +282,8 @@ class Monitor:
             self.hist.pop(hkey)
             last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
-                                             "final": last[1], "close": last[3]}
+                                             "final": last[1], "close": last[3],
+                                             "pmax": h.get("pmax", 0), "signal": h.get("signal")}
         for wk, recs in done.items():
             path = f"{DOCS}/archive/props_w{wk}.json"
             d = json.load(open(path)) if os.path.exists(path) else {}
@@ -323,6 +324,10 @@ class Monitor:
                     continue
                 x, cum, nev, drought, opp, hkey = f
                 p = score_row(x)
+                h = self.hist[hkey]
+                h["pmax"] = max(h.get("pmax", 0), round(p, 3))
+                if p >= NEAR and "signal" not in h:   # first time the model liked the over
+                    h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3)}
                 oid = f'{name}|{kind}'
                 pteam = players[name]["team"]
                 logo = game.get("hlogo") if pteam == game["home"] else game.get("alogo")

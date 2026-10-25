@@ -147,6 +147,9 @@
   .card.final:not(.click):hover { transform:none; box-shadow:none; }
   .trow .sc.lose, .trow .ab.lose { color:var(--muted); font-weight:500; }
   .kick { font-size:12.5px; font-weight:600; color:var(--ink-1); }
+  .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
+  .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
+  .star { color:var(--yellow); margin-left:5px; font-size:13px; }
 </style>
 </head>
 <body>
@@ -236,6 +239,10 @@ const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style
 const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLowerCase()}.png` : null;
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
 const mkt = m => m === "rec" ? "receiving" : "rushing";
+const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
+const P_MIN = 0.5;   // cards below this P(over) are hidden
+const onWatch = (player, market) => (S.watch?.entries || []).some(w => w.player === player && w.market === market);
+const star = (player, market) => onWatch(player, market) ? `<span class="star" title="watchlist matchup">★</span>` : "";
 
 function notifyIf(id, status, title, body) {
   if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
@@ -253,12 +260,12 @@ function propLiveCard(o) {
   return `
   <div class="card ${chipCls(o.status)} click" ${on(() => openProp(o.id))}>
     <div class="trow">${logoImg(o.logo)}
-      <span class="ab" style="width:auto;font-size:14px">${o.player}</span>
+      <span class="ab" style="width:auto;font-size:14px">${o.player}${star(o.player, o.market)}</span>
       <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
     </div>
-    <div class="sub"><span>${o.game} · ${o.clock}</span><span>${mkt(o.market)}</span></div>
+    <div class="mk">${MKT(o.market)}<b>O ${o.line}</b></div>
+    <div class="sub"><span>${o.game} · ${o.clock}</span></div>
     <div class="nums">
-      <div><span>line</span><b>O ${o.line}</b></div>
       <div><span>yards</span><b>${o.cum}</b></div>
       <div><span>tgt/car</span><b>${o.events}</b></div>
       <div><span>drought</span><b>${o.drought}m</b></div>
@@ -274,7 +281,8 @@ function propPreCard(w, chip = "PREGAME") {
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       <span class="chip pre" style="margin-left:auto">${chip}</span>
     </div>
-    <div class="sub"><span>${w.pos} #${w.rank} · ${w.ypg} ypg ${mkt(w.market)}</span></div>
+    <div class="mk">${MKT(w.market)}<b>${w.ypg} ypg</b></div>
+    <div class="sub"><span>${w.pos} #${w.rank} at position</span></div>
     <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>
@@ -322,17 +330,19 @@ function finalCard(sport, id, r) {
   </div>`;
 }
 function pastPropCard(wk, key, rec) {
-  const over = rec.l0 !== null && rec.final > rec.l0;
+  const sg = rec.signal, hit = rec.final > sg.line;
   return `
-  <div class="card ${over ? "hot" : ""} click" ${on(() => openProp(key, rec))}>
+  <div class="card ${hit ? "hot" : ""} click" ${on(() => openProp(key, rec))}>
     <div class="trow">${logoImg(rec.logo)}
-      <span class="ab" style="width:auto;font-size:14px">${rec.player}</span>
-      <span class="chip ${over ? "hot" : "watch"}" style="margin-left:auto">${over ? "OVER" : "UNDER"}</span>
+      <span class="ab" style="width:auto;font-size:14px">${rec.player}${star(rec.player, rec.market)}</span>
+      <span class="chip ${hit ? "hot" : "watch"}" style="margin-left:auto">${hit ? "HIT" : "MISS"}</span>
     </div>
-    <div class="sub"><span>${rec.game}</span><span>${mkt(rec.market)}</span></div>
+    <div class="mk">${MKT(rec.market)}<b>O ${sg.line}</b></div>
+    <div class="sub"><span>${rec.game} · flagged ${sg.clock} at ${sg.cum} yds</span></div>
     <div class="nums">
-      <div><span>pregame line</span><b>O ${rec.l0 ?? "—"}</b></div>
+      <div><span>P at flag</span><b>${sg.p.toFixed(2)}</b></div>
       <div><span>final yards</span><b>${rec.final}</b></div>
+      <div><span>pregame</span><b>O ${rec.l0 ?? "—"}</b></div>
     </div>
   </div>`;
 }
@@ -345,9 +355,9 @@ function section(key, title, count, legend, cards, empty) {
     ${cards.length ? `<div class="grid">${cards.join("")}</div>` : `<div class="empty">${empty}</div>`}
   </details>`;
 }
-const PROP_LEG = `<span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line
-  &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50% &nbsp;·&nbsp; <span class="chip watch">LIVE</span> tracked
-  &nbsp;·&nbsp; tap a card for line vs production`;
+const PROP_LEG = `Only props the model gives ≥50% to go over are shown.
+  <span class="chip hot">TRIGGER</span> ≥60% &nbsp;·&nbsp; <span class="chip warm">NEAR</span> 50–60%
+  &nbsp;·&nbsp; <span class="star">★</span> watchlist matchup (top player vs bottom-10 defense) &nbsp;·&nbsp; tap a card for line vs production`;
 const SPREAD_LEG = `<span class="chip hot">EDGE</span> live line ≥4 pts from fair
   &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
   &nbsp;·&nbsp; tap a card for line movement + key plays`;
@@ -358,8 +368,6 @@ const regList = (sport, state) => Object.entries(S.games[sport] || {})
 const pastWeeks = sport => [...new Set(regList(sport, "post").map(([, r]) => r.week))].sort((a, b) => b - a);
 const now = () => Date.now();
 const watchUpcoming = () => (S.watch?.entries || []).filter(w => !w.kick_iso || new Date(w.kick_iso) > now());
-const watchStarted = () => (S.watch?.entries || []).filter(w => w.kick_iso &&
-  new Date(w.kick_iso) <= now() && now() - new Date(w.kick_iso) < 3.75 * 3600e3);
 
 async function loadArchive(sport, wk) {
   const k = `${sport}_w${wk}`;
@@ -377,12 +385,14 @@ function viewLive() {
   const kind = KINDOF[R.sport], games = S.spread[kind]?.games || [];
   let html = "";
   if (R.sport === "nfl") {
-    const opps = [...(S.props?.opps || [])].sort((a, b) => b.p - a.p);
-    const tracked = new Set(opps.map(o => `${o.player}|${o.market}`));
-    const waiting = watchStarted().filter(w => !tracked.has(`${w.player}|${w.market}`));
-    html += section("nfl-live-props", "Player props", `${opps.length} live`, PROP_LEG,
-      [...opps.map(propLiveCard), ...waiting.map(w => propPreCard(w, "NO LINE YET"))],
-      "No player props live right now — see Upcoming for this week's watchlist.");
+    const all = S.props?.opps || [];
+    const opps = all.filter(o => o.p >= P_MIN).sort((a, b) =>
+      (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
+    const hidden = all.length - opps.length;
+    html += section("nfl-live-props", "Player props",
+      `${opps.length} at ≥50%${hidden ? ` · ${hidden} below 50% hidden` : ""}`, PROP_LEG,
+      opps.map(propLiveCard),
+      all.length ? "No live prop is at ≥50% right now." : "No player props live right now — see Upcoming for this week's watchlist.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,
     games.map(g => spreadLiveCard(kind, g)), `No live ${SPORTNAME[R.sport]} games right now.`);
@@ -413,9 +423,11 @@ function viewPast() {
     .sort((a, b) => (b[1].has_hist ? 1 : 0) - (a[1].has_hist ? 1 : 0));   // charted games first
   let html = "";
   if (R.sport === "nfl") {
-    const props = Object.entries(S.parch[wk] || {});
-    html += section("nfl-past-props", "Player props", `${props.length} tracked`, "",
-      props.map(([key, rec]) => pastPropCard(wk, key, rec)), "No player props were tracked live this week.");
+    const props = Object.entries(S.parch[wk] || {}).filter(([, r]) => r.signal);
+    const hits = props.filter(([, r]) => r.final > r.signal.line).length;
+    html += section("nfl-past-props", "Player props flagged ≥50%",
+      props.length ? `${hits}/${props.length} hit` : "", "Each card is the first moment the model gave the over ≥50%: the line then, and whether the over cashed.",
+      props.map(([key, rec]) => pastPropCard(wk, key, rec)), "No props reached the 50% signal this week.");
   }
   html += section(`${R.sport}-past-games`, "Games", `${finals.length} final`,
     "Games with a line chart were tracked live; the rest show the final score only.",
@@ -724,7 +736,7 @@ function openProp(id, rec) {
     rug, events: [],
   });
   showModal(`
-    <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${h.market === "rec" ? "receiving" : "rushing"} · ${h.game}</span></h3>
+    <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${MKT(h.market)} · ${h.game}</span></h3>
     <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock} · `
       : rec ? `final ${rec.final} yds vs pregame O ${rec.l0} · ` : ""}
       blue = book line, green = cumulative yards, ticks on the baseline = ${h.market === "rec" ? "targets" : "carries"}</div>

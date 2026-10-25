@@ -132,7 +132,13 @@ def espn_events(espn_id, home_id):
                     continue
                 side_home = (not off_home) if flip else off_home   # credit the gaining side
                 out.append([gc, kind, "home" if side_home else "away", text[:120], None, None, cls])
-        out.sort(key=lambda e: e[0])
+        # the live drive shows up in both drives.previous and drives.current
+        seen, uniq = set(), []
+        for e in out:
+            if (e[0], e[3]) not in seen:
+                seen.add((e[0], e[3]))
+                uniq.append(e)
+        out = sorted(uniq, key=lambda e: e[0])
     except Exception:
         pass
     return out

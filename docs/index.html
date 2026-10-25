@@ -66,7 +66,34 @@
   #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
              align-items:center; justify-content:center; padding:16px; }
   #modal { background:var(--surface); border:1px solid var(--border); border-radius:16px;
-           max-width:760px; width:100%; max-height:88vh; overflow:auto; padding:20px 22px; }
+           max-width:760px; width:100%; max-height:88vh; overflow:hidden; padding:20px 22px;
+           display:flex; flex-direction:column; position:relative; }
+  .mclose { position:absolute; top:10px; right:12px; border:none; background:transparent;
+            font-size:18px; color:var(--muted); padding:4px 8px; }
+  .mhead { display:flex; align-items:center; justify-content:center; gap:16px; margin:2px 30px 6px; }
+  .mhead .tm { display:flex; align-items:center; gap:8px; font-size:16px; font-weight:700; }
+  .mhead .sc { font-size:21px; }
+  .mhead .mid { text-align:center; color:var(--ink-2); font-size:12px; line-height:1.5; }
+  #mread { display:flex; flex-wrap:wrap; gap:3px 14px; font-size:12px; color:var(--ink-2);
+           min-height:34px; padding:6px 10px; margin-bottom:6px; border-radius:8px; background:var(--surface-2); }
+  #mread .t { color:var(--ink-1); font-weight:650; }
+  #mread .row { display:inline-flex; gap:6px; }
+  #mread .row b { color:var(--ink-1); }
+  #modal > *:not(#evlist) { flex-shrink:0; }
+  #evlist { flex:1 1 auto; min-height:80px; max-height:230px; overflow-y:auto; margin-top:8px; }
+  #evlist .evrow { cursor:pointer; border-radius:6px; padding:7px 6px; }
+  #evlist .evrow:hover, #evlist .evrow.on { background:color-mix(in srgb, var(--orange) 14%, transparent); }
+  @media (max-width: 640px) {
+    #overlay { padding:0; align-items:flex-end; }
+    #modal { max-width:none; height:94vh; max-height:94vh; border-radius:16px 16px 0 0;
+             border-bottom:none; padding:14px 12px 10px; }
+    .mhead { gap:10px; margin:2px 26px 6px; }
+    .mhead .tm { font-size:14px; gap:6px; }
+    .mhead .sc { font-size:19px; }
+    .mhead img { width:26px; height:26px; }
+    #evlist { max-height:none; }
+    #evlist .evrow { padding:9px 6px; }
+  }
   #modal h3 { margin:0 0 2px; font-size:16px; display:flex; align-items:center; gap:8px; }
   #modal h3 img { width:24px; height:24px; }
   .mhead img { width:30px; height:30px; object-fit:contain; }
@@ -278,7 +305,8 @@ async function loadAux() {
 
 // ---------- modal charts ----------
 const GL = 3600;
-const CW = 700, CH = 330, CM = { t: 26, r: 14, b: 34, l: 44 };
+let CW = 700, CH = 330;
+const CM = { t: 26, r: 14, b: 34, l: 58 };
 let MC = null;
 const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)", inj: "#9085e9" };
 
@@ -299,6 +327,8 @@ const stepVal = (pts, gc) => {
 };
 
 function svgChart(cfg) {
+  const mob = innerWidth < 640;
+  CW = mob ? 420 : 700; CH = mob ? 300 : 330;
   const series = cfg.series.map(s => ({ ...s, pts: s.noclean ? s.pts : clean(s.pts) }));
   const all = series.flatMap(s => s.pts.map(p => p[1]));
   if (!all.length) return `<div class="empty">No history captured yet for this one.</div>`;
@@ -353,47 +383,69 @@ function svgChart(cfg) {
   if (cfg.legend) {
     let lx = CW - CM.r - 8;
     for (const item of [...cfg.legend].reverse()) {
-      const tw = item.label.length * 5.6 + 14;
+      const tw = item.label.length * 6.6 + 16;
       lx -= tw;
-      s += `<circle cx="${lx}" cy="${CM.t + 10}" r="4" fill="${item.color}"/>
-            <text class="tick" x="${lx + 7}" y="${CM.t + 13}">${item.label}</text>`;
+      s += `<circle cx="${lx}" cy="${CM.t - 12}" r="4" fill="${item.color}"/>
+            <text class="tick" x="${lx + 7}" y="${CM.t - 9}">${item.label}</text>`;
     }
   }
   // usage rug: one tick per target/carry (approximate timing from poll deltas)
   if (cfg.rug) for (const g of cfg.rug)
     s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--green)" stroke-width="2" opacity="0.8"/>`;
   s += `<line id="mxh" x1="0" x2="0" y1="${CM.t}" y2="${CM.t + ph}" stroke="var(--muted)" stroke-dasharray="2,3" visibility="hidden"/>`;
-  s += `<rect id="mhit" x="${CM.l}" y="${CM.t}" width="${pw}" height="${ph}" fill="transparent"/>`;
+  s += `<rect id="mhit" x="${CM.l}" y="${CM.t}" width="${pw}" height="${ph}" fill="transparent" style="touch-action:pan-y"/>`;
   (cfg.events || []).forEach((ev, i) => {
     const y = stepVal(series[0].pts, ev.gc);
-    s += `<circle class="evdot" data-i="${i}" cx="${X(ev.gc)}" cy="${y === null ? CM.t + ph / 2 : Y(y)}" r="5.5"
+    s += `<circle class="evdot" data-i="${i}" cx="${X(ev.gc)}" cy="${y === null ? CM.t + ph / 2 : Y(y)}" r="${mob ? 7 : 5.5}"
            fill="${EVCOLOR[ev.cls] || "var(--orange)"}" stroke="var(--surface)" stroke-width="1.5" style="cursor:pointer"/>`;
   });
   return s + "</svg>";
 }
 
+let pinnedGc = null;
+function setCursor(gc, pin) {
+  if (!MC || !document.getElementById("mxh")) return;
+  gc = Math.max(0, Math.min(GL, gc));
+  if (pin) pinnedGc = gc;
+  const xh = document.getElementById("mxh");
+  xh.setAttribute("x1", MC.X(gc)); xh.setAttribute("x2", MC.X(gc));
+  xh.setAttribute("visibility", "visible");
+  const rows = MC.tip ? MC.tip(gc) : MC.series.filter(s => !s.dash).map(s => {
+    const v = stepVal(s.pts, gc);
+    return `<div class="row"><span style="color:${s.color}">●</span> ${s.name}<b>${v === null ? "—" : MC.yfmt(v)}</b></div>`;
+  }).join("");
+  const html = `<div class="t">${gcLabel(gc)}</div>${rows}`;
+  const rd = document.getElementById("mread");
+  if (rd) rd.innerHTML = html;
+  return html;
+}
+
 function bindChart() {
   const svg = document.getElementById("mcsvg"), tip = document.getElementById("mtip");
   if (!svg) return;
-  const hit = document.getElementById("mhit"), xh = document.getElementById("mxh");
+  pinnedGc = null;
+  const hit = document.getElementById("mhit");
+  const gcAt = e => {
+    const r = svg.getBoundingClientRect();
+    return (((e.clientX - r.left) * CW / r.width) - CM.l) / (CW - CM.l - CM.r) * GL;
+  };
   const place = e => {
     tip.style.display = "block";
     tip.style.left = Math.min(e.clientX + 14, innerWidth - 240) + "px";
     tip.style.top = (e.clientY + 14) + "px";
   };
-  hit.addEventListener("mousemove", e => {
-    const r = svg.getBoundingClientRect();
-    const gc = (((e.clientX - r.left) * CW / r.width) - CM.l) / (CW - CM.l - CM.r) * GL;
-    xh.setAttribute("x1", MC.X(gc)); xh.setAttribute("x2", MC.X(gc));
-    xh.setAttribute("visibility", "visible");
-    const rows = MC.tip ? MC.tip(gc) : MC.series.filter(s => !s.dash).map(s => {
-      const v = stepVal(s.pts, gc);
-      return `<div class="row"><span style="color:${s.color}">●</span> ${s.name}<b>${v === null ? "—" : MC.yfmt(v)}</b></div>`;
-    }).join("");
-    tip.innerHTML = `<div class="t">${gcLabel(gc)}</div>${rows}`;
-    place(e);
+  hit.addEventListener("pointerdown", e => {
+    if (e.pointerType !== "mouse") { hit.setPointerCapture(e.pointerId); setCursor(gcAt(e), true); }
   });
-  hit.addEventListener("mouseleave", () => { tip.style.display = "none"; xh.setAttribute("visibility", "hidden"); });
+  hit.addEventListener("pointermove", e => {
+    if (e.pointerType === "mouse") { tip.innerHTML = setCursor(gcAt(e)); place(e); }
+    else setCursor(gcAt(e), true);   // finger drag moves the line
+  });
+  hit.addEventListener("pointerleave", e => {
+    if (e.pointerType !== "mouse") return;
+    tip.style.display = "none";
+    if (pinnedGc !== null) setCursor(pinnedGc);
+  });
   svg.querySelectorAll(".evdot").forEach(dot => {
     dot.addEventListener("mousemove", e => {
       const ev = MC.events[+dot.dataset.i];
@@ -402,19 +454,56 @@ function bindChart() {
       place(e);
     });
     dot.addEventListener("mouseleave", () => { tip.style.display = "none"; });
-    dot.addEventListener("click", e => {
-      e.stopPropagation();
-      if (MC.onEvClick) MC.onEvClick(+dot.dataset.i);
-    });
+    dot.addEventListener("click", e => { e.stopPropagation(); evJump(+dot.dataset.i, true); });
   });
+  // start with the line at the latest data point
+  const pts = MC.series[0]?.pts || [];
+  if (pts.length) setCursor(pts[pts.length - 1][0], true);
+}
+
+function evJump(i, fromDot) {
+  const ev = MC?.events?.[i];
+  if (!ev) return;
+  setCursor(ev.gc, true);
+  document.querySelectorAll("#evlist .evrow.on").forEach(r => r.classList.remove("on"));
+  const row = document.getElementById("ev-" + i);
+  if (!row) return;
+  row.classList.add("on");
+  if (fromDot) {
+    const list = document.getElementById("evlist");
+    list.scrollTop = row.offsetTop - list.offsetTop;
+  }
+}
+
+// team colors from ESPN can be near-black or near-white; lift them until they
+// clear 3:1 against the chart surface, and split teams whose colors collide
+const isDark = () => matchMedia("(prefers-color-scheme: dark)").matches;
+const hexRgb = h => { h = h.replace("#", ""); if (h.length === 3) h = [...h].map(c => c + c).join("");
+  const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const rgbHex = c => "#" + c.map(v => Math.round(v).toString(16).padStart(2, "0")).join("");
+const lumi = c => { const f = v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+const contrast = (a, b) => { const x = lumi(a), y = lumi(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function visible(hex) {
+  let c = hexRgb(hex);
+  const bg = isDark() ? [26, 26, 25] : [252, 252, 251], to = isDark() ? [255, 255, 255] : [0, 0, 0];
+  for (let k = 0; k < 12 && contrast(c, bg) < 3; k++) c = c.map((v, j) => v + (to[j] - v) * 0.18);
+  return rgbHex(c);
+}
+function teamColors(hraw, araw) {
+  const blue = isDark() ? "#3987e5" : "#2a78d6", orange = isDark() ? "#d95926" : "#eb6834";
+  const hc = visible(hraw ? "#" + hraw : blue);
+  let ac = visible(araw ? "#" + araw : orange);
+  const dist = (a, b) => Math.hypot(...hexRgb(a).map((v, j) => v - hexRgb(b)[j]));
+  if (dist(hc, ac) < 90) ac = dist(hc, orange) > dist(hc, blue) ? orange : blue;
+  return [hc, ac];
 }
 
 function openSpread(kind, id) {
   const h = S.spreadHist[kind][id], g = (S.spread[kind]?.games || []).find(x => x.id === id);
   if (!h) return;
   const snaps = h.snaps || [], ha = h.meta.habbr, aa = h.meta.aabbr;
-  const hcolor = h.meta.hcolor ? "#" + h.meta.hcolor : "var(--blue)";
-  const acolor = h.meta.acolor ? "#" + h.meta.acolor : "var(--orange)";
+  const [hcolor, acolor] = teamColors(h.meta.hcolor, h.meta.acolor);
   const fav = clean(snaps.map(s => [s[0], s[1] === null || s[1] === undefined ? null : -s[1]]));
   const margins = clean(snaps.map(s => [s[0], s[2]]));
   const yfmt = v => v === 0 ? "EVEN" : v > 0 ? `${ha} -${Math.abs(Math.round(v))}` : `${aa} -${Math.abs(Math.round(v))}`;
@@ -447,31 +536,20 @@ function openSpread(kind, id) {
         <div class="row">margin<b>${m === null || m === 0 ? "tied" : (m > 0 ? ha : aa) + " +" + Math.abs(m)}</b></div>` +
         (sit ? `<div style="color:var(--muted);margin-top:3px">${sit}</div>` : "");
     },
-    onEvClick: i => {
-      const row = document.getElementById("ev-" + i);
-      if (!row) return;
-      const list = document.getElementById("evlist");
-      list.scrollTop = row.offsetTop - list.offsetTop;
-      row.style.background = "color-mix(in srgb, var(--orange) 14%, transparent)";
-      setTimeout(() => row.style.background = "", 1600);
-    },
   });
   const lastScored = [...events].reverse().find(ev => ev.score);
   const finalScore = lastScored ? [h.events.find(e => e[0] === lastScored.gc && e[5] !== null)?.[5], h.events.find(e => e[0] === lastScored.gc && e[4] !== null)?.[4]] : [0, 0];
   const [asc, hsc] = g?.score ? g.score.split("-") : finalScore;
   showModal(`
-    <div class="mhead" style="display:flex;align-items:center;justify-content:center;gap:16px;margin:2px 0 4px">
-      <span style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700">
-        ${logoImg(h.meta.alogo)} ${aa} <span style="font-size:21px">${asc ?? ""}</span></span>
-      <span style="text-align:center;color:var(--ink-2);font-size:12px;line-height:1.5">
-        ${g ? g.clock : "final / not live"}<br>${g?.poss ?? ""}</span>
-      <span style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700">
-        <span style="font-size:21px">${hsc ?? ""}</span> ${ha} ${logoImg(h.meta.hlogo)}</span>
+    <div class="mhead">
+      <span class="tm">${logoImg(h.meta.alogo)} ${aa} <span class="sc">${asc ?? ""}</span></span>
+      <span class="mid">${g ? g.clock : "final / not live"}<br>${g?.poss ?? ""}</span>
+      <span class="tm"><span class="sc">${hsc ?? ""}</span> ${ha} ${logoImg(h.meta.hlogo)}</span>
     </div>
+    <div id="mread"></div>
     ${chart}
-    <div id="evlist" style="max-height:200px;overflow-y:auto;margin-top:10px">
-    ${events.map((ev, i) => `<div class="evrow" id="ev-${i}">
-      <span class="dot" style="background:${EVCOLOR[ev.cls]}"></span>
+    <div id="evlist">
+    ${events.map((ev, i) => `<div class="evrow" id="ev-${i}" onclick="evJump(${i})">
       <span style="color:var(--muted)">${gcLabel(ev.gc)}</span> ${ev.score ? `· <b>${ev.score}</b> ` : ""}
       · <b>${ev.label}</b> — ${ev.text}</div>`).reverse().join("")}</div>`);
   bindChart();
@@ -496,12 +574,13 @@ function openProp(id) {
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${h.market === "rec" ? "receiving" : "rushing"} · ${h.game}</span></h3>
     <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock} · ` : ""}
       blue = book line, green = cumulative yards, ticks on the baseline = ${h.market === "rec" ? "targets" : "carries"}</div>
+    <div id="mread"></div>
     ${chart}`);
   bindChart();
 }
 
 function showModal(html) {
-  document.getElementById("modal").innerHTML = html;
+  document.getElementById("modal").innerHTML = `<button class="mclose" onclick="closeModal()" aria-label="close">✕</button>` + html;
   document.getElementById("overlay").style.display = "flex";
 }
 function closeModal() { document.getElementById("overlay").style.display = "none"; }

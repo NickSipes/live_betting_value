@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bowers Receiving Yards Live</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7;
+    --ink-1: #0b0b0b; --ink-2: #52514e; --ink-muted: #898781;
+    --grid: #e1e0d9; --baseline: #c3c2b7;
+    --s-actual: #1baf7a; --s-dk: #2a78d6; --s-fd: #eb6834;
+    --band: rgba(11,11,11,0.03); --tip-bg: #fcfcfb; --tip-border: rgba(11,11,11,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d;
+      --ink-1: #f0efec; --ink-2: #c3c2b7; --ink-muted: #898781;
+      --grid: #2c2c2a; --baseline: #383835;
+      --s-actual: #199e70; --s-dk: #3987e5; --s-fd: #d95926;
+      --band: rgba(255,255,255,0.03); --tip-bg: #1a1a19; --tip-border: rgba(255,255,255,0.10);
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --page: #0d0d0d;
+    --ink-1: #f0efec; --ink-2: #c3c2b7; --ink-muted: #898781;
+    --grid: #2c2c2a; --baseline: #383835;
+    --s-actual: #199e70; --s-dk: #3987e5; --s-fd: #d95926;
+    --band: rgba(255,255,255,0.03); --tip-bg: #1a1a19; --tip-border: rgba(255,255,255,0.10);
+  }
+  body { margin: 0; background: var(--page); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .viz-root { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  .card { background: var(--surface-1); border: 1px solid var(--tip-border); border-radius: 12px; padding: 20px; }
+  h1 { font-size: 17px; margin: 0 0 2px; color: var(--ink-1); font-weight: 600; }
+  .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 14px; }
+  .legend { display: flex; gap: 18px; font-size: 12.5px; color: var(--ink-2); margin-bottom: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+  .sw.dot { width: 9px; height: 9px; border-radius: 50%; }
+  svg { display: block; width: 100%; height: auto; }
+  svg text { font-family: inherit; }
+  .tick { font-size: 11px; fill: var(--ink-muted); }
+  .qlbl { font-size: 11px; fill: var(--ink-muted); }
+  .dlabel { font-size: 12px; font-weight: 600; }
+  .note { font-size: 12.5px; color: var(--ink-2); margin-top: 12px; line-height: 1.45; }
+  #tip { position: fixed; pointer-events: none; background: var(--tip-bg); border: 1px solid var(--tip-border);
+         border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--ink-1);
+         box-shadow: 0 2px 8px rgba(0,0,0,0.12); display: none; z-index: 10; min-width: 150px; }
+  #tip .t { color: var(--ink-muted); margin-bottom: 4px; }
+  #tip .row { display: flex; justify-content: space-between; gap: 12px; }
+  #tip .row b { font-variant-numeric: tabular-nums; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+  <div class="card">
+    <h1>Brock Bowers receiving yards — live over/under vs. actual</h1>
+    <p class="sub">Bills 33, Raiders 30 &middot; Sun Oct 18, 2026 &middot; 5-minute book snapshots (the-odds-api) &middot; times ET</p>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--s-dk)"></span>DraftKings line</span>
+      <span><span class="sw" style="background:var(--s-fd)"></span>FanDuel line</span>
+      <span><span class="sw dot" style="background:var(--s-actual)"></span>Bowers cumulative yards (dots = catches)</span>
+    </div>
+    <div id="chart"></div>
+    <p class="note">Pregame line ~80. Bowers saw <strong>zero targets before halftime</strong> and the books chased
+      the silence down into the high-40s. His first catch came midway through Q3; a 47-yard burst early in Q4
+      (catches of 18 and 29 on back-to-back snaps) ripped the line back up ~20 yards in ten minutes.
+      He finished at 70 — <strong>under</strong> both books' closing numbers and the pregame 79.5–81.5.</p>
+  </div>
+</div>
+<div id="tip"></div>
+<script>
+const DATA = {"snaps": [{"ts": "2026-10-18T19:25:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:30:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:35:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:40:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:45:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:50:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T19:55:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:00:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:05:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:10:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:15:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:20:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:25:36Z", "draftkings": {"point": 81.5, "over": -111, "under": -113}, "fanduel": {"point": 79.5, "over": -113, "under": -113}}, {"ts": "2026-10-18T20:30:36Z", "draftkings": {"point": 81.5, "over": -120, "under": -115}, "fanduel": {"point": 77.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T20:35:36Z", "draftkings": {"point": 80.5, "over": -115, "under": -115}, "fanduel": {"point": 76.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T20:40:36Z", "draftkings": {"point": 72.5, "over": -115, "under": -115}, "fanduel": {"point": 69.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T20:45:36Z", "draftkings": {"point": 65.5, "over": -115, "under": -115}, "fanduel": {"point": 64.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T20:50:36Z", "draftkings": {"point": 66.5, "over": -115, "under": -115}, "fanduel": {"point": 62.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T20:55:36Z", "draftkings": {"point": 66.5, "over": -115, "under": -120}, "fanduel": {"point": 63.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T21:00:36Z", "draftkings": {"point": 64.5, "over": -115, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T21:05:36Z", "draftkings": {"point": 60.5, "over": -115, "under": -115}, "fanduel": {"point": 58.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:10:36Z", "draftkings": {"point": 60.5, "over": -115, "under": -115}, "fanduel": {"point": 57.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:15:36Z", "draftkings": {"point": 60.5, "over": -115, "under": -115}, "fanduel": {"point": 56.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T21:20:36Z", "draftkings": {"point": 53.5, "over": -115, "under": -120}, "fanduel": {"point": 52.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:25:36Z", "draftkings": {"point": 51.5, "over": -115, "under": -115}, "fanduel": {"point": 49.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:30:36Z", "draftkings": {"point": 53.5, "over": -115, "under": -115}, "fanduel": {"point": 50.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:35:36Z", "draftkings": {"point": 53.5, "over": -115, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T21:40:36Z", "draftkings": {"point": 41.5, "over": -115, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T21:45:36Z", "draftkings": {"point": 40.5, "over": -115, "under": -120}, "fanduel": {"point": 41.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:50:36Z", "draftkings": {"point": 41.5, "over": -115, "under": -120}, "fanduel": {"point": 40.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T21:55:36Z", "draftkings": {"point": 41.5, "over": -115, "under": -120}, "fanduel": {"point": 40.5, "over": -112, "under": -118}}, {"ts": "2026-10-18T22:00:36Z", "draftkings": {"point": 40.5, "over": -115, "under": -120}, "fanduel": null}, {"ts": "2026-10-18T22:05:36Z", "draftkings": {"point": 39.5, "over": -120, "under": -115}, "fanduel": {"point": 37.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T22:10:36Z", "draftkings": {"point": 37.5, "over": -115, "under": -120}, "fanduel": {"point": 35.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T22:15:36Z", "draftkings": {"point": 36.5, "over": -120, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T22:20:36Z", "draftkings": {"point": 37.5, "over": -115, "under": -115}, "fanduel": {"point": 33.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T22:25:36Z", "draftkings": {"point": 37.5, "over": -120, "under": -115}, "fanduel": {"point": 33.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T22:30:36Z", "draftkings": {"point": 35.5, "over": -120, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T22:35:37Z", "draftkings": {"point": 32.5, "over": -120, "under": -115}, "fanduel": null}, {"ts": "2026-10-18T22:40:36Z", "draftkings": {"point": 33.5, "over": -120, "under": -115}, "fanduel": {"point": 30.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T22:45:36Z", "draftkings": {"point": 44.5, "over": -115, "under": -120}, "fanduel": {"point": 42.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T22:50:36Z", "draftkings": {"point": 45.5, "over": -120, "under": -115}, "fanduel": {"point": 42.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T22:55:36Z", "draftkings": {"point": 46.5, "over": -115, "under": -120}, "fanduel": {"point": 46.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T23:00:39Z", "draftkings": {"point": 81.5, "over": -115, "under": -120}, "fanduel": {"point": 81.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T23:05:39Z", "draftkings": {"point": 83.5, "over": -120, "under": -115}, "fanduel": {"point": 82.5, "over": -118, "under": -112}}, {"ts": "2026-10-18T23:10:36Z", "draftkings": {"point": 88.5, "over": -115, "under": -120}, "fanduel": {"point": 84.5, "over": -114, "under": -114}}, {"ts": "2026-10-18T23:15:36Z", "draftkings": {"point": 84.5, "over": -120, "under": -115}, "fanduel": {"point": 70.5, "over": 100, "under": -132}}, {"ts": "2026-10-18T23:20:36Z", "draftkings": {"point": 84.5, "over": -120, "under": -115}, "fanduel": {"point": 70.5, "over": 100, "under": -132}}, {"ts": "2026-10-18T23:25:36Z", "draftkings": {"point": 84.5, "over": -120, "under": -115}, "fanduel": {"point": 70.5, "over": 100, "under": -132}}], "catches": [{"tod": "2026-10-18T21:59:11.157Z", "yds": 0, "cum": 0, "complete": false}, {"tod": "2026-10-18T22:30:26.310Z", "yds": 8, "cum": 8, "complete": true}, {"tod": "2026-10-18T22:39:52.603Z", "yds": 15, "cum": 23, "complete": true}, {"tod": "2026-10-18T22:54:27.640Z", "yds": 0, "cum": 23, "complete": false}, {"tod": "2026-10-18T22:56:39.870Z", "yds": 18, "cum": 41, "complete": true}, {"tod": "2026-10-18T22:57:22.880Z", "yds": 29, "cum": 70, "complete": true}, {"tod": "2026-10-18T22:58:11.597Z", "yds": 0, "cum": 70, "complete": false}, {"tod": "2026-10-18T23:11:31.583Z", "yds": 0, "cum": 70, "complete": false}, {"tod": "2026-10-18T23:12:15.457Z", "yds": 0, "cum": 70, "complete": false}], "quarters": {"1": ["2026-10-18T20:25:15.400Z", "2026-10-18T20:49:28.913Z"], "2": ["2026-10-18T20:53:06.397Z", "2026-10-18T21:44:32Z"], "3": ["2026-10-18T21:58:21.657Z", "2026-10-18T22:39:52.603Z"], "4": ["2026-10-18T22:43:05.010Z", "2026-10-18T23:31:41Z"]}};
+const W = 920, H = 430, M = {t: 18, r: 74, b: 34, l: 40};
+const pw = W - M.l - M.r, ph = H - M.t - M.b;
+const t0 = Date.parse(DATA.snaps[0].ts) - 4*60000;
+const t1 = Date.parse("2026-10-18T23:35:00Z");
+const ymax = 100;
+const x = t => M.l + (t - t0) / (t1 - t0) * pw;
+const y = v => M.t + ph - v / ymax * ph;
+const et = t => new Date(t).toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit", timeZone: "America/New_York"});
+
+let s = [];
+s.push(`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart of Brock Bowers live receiving yards lines and actual cumulative yards">`);
+
+// quarter bands + labels
+const Q = DATA.quarters;
+Object.keys(Q).forEach((q, i) => {
+  const a = x(Date.parse(Q[q][0])), b = x(Date.parse(Q[q][1]));
+  if (i % 2 === 0) s.push(`<rect x="${a}" y="${M.t}" width="${b-a}" height="${ph}" fill="var(--band)"/>`);
+  s.push(`<text class="qlbl" x="${(a+b)/2}" y="${M.t+12}" text-anchor="middle">Q${q}</text>`);
+});
+
+// gridlines + y ticks
+for (let v = 0; v <= ymax; v += 20) {
+  s.push(`<line x1="${M.l}" x2="${M.l+pw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>`);
+  s.push(`<text class="tick" x="${M.l-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`);
+}
+// x ticks hourly
+for (let t = Math.ceil(t0/3600000)*3600000; t < t1; t += 3600000) {
+  s.push(`<text class="tick" x="${x(t)}" y="${H-10}" text-anchor="middle">${et(t)}</text>`);
+}
+s.push(`<line x1="${M.l}" x2="${M.l+pw}" y1="${y(0)}" y2="${y(0)}" stroke="var(--baseline)" stroke-width="1"/>`);
+
+// book step lines (step-after: a quote holds until the next snapshot)
+function stepPath(pts) {
+  let d = `M${x(pts[0].t)},${y(pts[0].v)}`;
+  for (let i = 1; i < pts.length; i++) d += `H${x(pts[i].t)}V${y(pts[i].v)}`;
+  d += `H${x(Date.parse(DATA.snaps[DATA.snaps.length-1].ts)) + 10}`;
+  return d;
+}
+const books = [["draftkings", "--s-dk", "DraftKings"], ["fanduel", "--s-fd", "FanDuel"]];
+const bookPts = {};
+books.forEach(([k, cvar]) => {
+  const pts = DATA.snaps.filter(sn => sn[k]).map(sn => ({t: Date.parse(sn.ts), v: sn[k].point}));
+  bookPts[k] = pts;
+  s.push(`<path d="${stepPath(pts)}" fill="none" stroke="var(${cvar})" stroke-width="2" stroke-linejoin="round"/>`);
+});
+
+// actual cumulative yards: step line + catch markers
+const cat = DATA.catches.map(c => ({t: Date.parse(c.tod), ...c}));
+let ap = `M${x(t0)},${y(0)}`;
+let last = 0;
+cat.forEach(c => { if (c.complete) { ap += `H${x(c.t)}V${y(c.cum)}`; last = c.cum; } });
+ap += `H${x(Date.parse("2026-10-18T23:31:41Z"))}`;
+s.push(`<path d="${ap}" fill="none" stroke="var(--s-actual)" stroke-width="2.5" stroke-linejoin="round"/>`);
+cat.forEach(c => {
+  if (c.complete)
+    s.push(`<circle cx="${x(c.t)}" cy="${y(c.cum)}" r="4.5" fill="var(--s-actual)" stroke="var(--surface-1)" stroke-width="2"/>`);
+  else
+    s.push(`<circle cx="${x(c.t)}" cy="${y(c.cum)}" r="4" fill="none" stroke="var(--s-actual)" stroke-width="1.5" opacity="0.7"/>`);
+});
+
+// direct end labels
+const endX = x(Date.parse(DATA.snaps[DATA.snaps.length-1].ts)) + 14;
+const dkEnd = bookPts.draftkings.at(-1).v, fdEnd = bookPts.fanduel.at(-1).v;
+const labels = [
+  {y: y(dkEnd), text: `DK ${dkEnd}`, c: "--s-dk"},
+  {y: y(fdEnd), text: `FD ${fdEnd}`, c: "--s-fd"},
+  {y: y(70), text: "70 yds", c: "--s-actual"},
+].sort((a, b) => a.y - b.y);
+for (let i = 1; i < labels.length; i++)
+  if (labels[i].y - labels[i-1].y < 16) labels[i].y = labels[i-1].y + 16;
+labels.forEach(l => s.push(`<text class="dlabel" x="${endX}" y="${l.y+4}" fill="var(${l.c})">${l.text}</text>`));
+
+// pregame marker
+s.push(`<line x1="${x(Date.parse("2026-10-18T20:25:00Z"))}" x2="${x(Date.parse("2026-10-18T20:25:00Z"))}" y1="${M.t}" y2="${M.t+ph}" stroke="var(--baseline)" stroke-dasharray="3,3"/>`);
+s.push(`<text class="qlbl" x="${x(Date.parse("2026-10-18T20:25:00Z"))-4}" y="${M.t+12}" text-anchor="end">kickoff</text>`);
+
+// crosshair
+s.push(`<line id="xh" x1="0" x2="0" y1="${M.t}" y2="${M.t+ph}" stroke="var(--ink-muted)" stroke-width="1" stroke-dasharray="2,3" visibility="hidden"/>`);
+s.push(`<rect id="hit" x="${M.l}" y="${M.t}" width="${pw}" height="${ph}" fill="transparent"/>`);
+s.push(`</svg>`);
+document.getElementById("chart").innerHTML = s.join("");
+
+// hover
+const svg = document.querySelector("svg"), tip = document.getElementById("tip"), xh = document.getElementById("xh");
+const snapsT = DATA.snaps.map(sn => ({t: Date.parse(sn.ts), sn}));
+document.getElementById("hit").addEventListener("mousemove", e => {
+  const r = svg.getBoundingClientRect();
+  const mx = (e.clientX - r.left) * W / r.width;
+  const t = t0 + (mx - M.l) / pw * (t1 - t0);
+  let best = snapsT[0];
+  for (const p of snapsT) if (Math.abs(p.t - t) < Math.abs(best.t - t)) best = p;
+  xh.setAttribute("x1", x(best.t)); xh.setAttribute("x2", x(best.t)); xh.setAttribute("visibility", "visible");
+  let cum = 0;
+  for (const c of cat) if (c.complete && c.t <= best.t) cum = c.cum;
+  const fmt = b => b ? `${b.point} <span style="color:var(--ink-muted)">(o${b.over>0?"+":""}${b.over}/u${b.under>0?"+":""}${b.under})</span>` : "—";
+  tip.innerHTML = `<div class="t">${et(best.t)} ET</div>
+    <div class="row"><span>DraftKings</span><b>${fmt(best.sn.draftkings)}</b></div>
+    <div class="row"><span>FanDuel</span><b>${fmt(best.sn.fanduel)}</b></div>
+    <div class="row"><span>Bowers actual</span><b>${cum} yds</b></div>`;
+  tip.style.display = "block";
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 190) + "px";
+  tip.style.top = (e.clientY + 14) + "px";
+});
+document.getElementById("hit").addEventListener("mouseleave", () => { tip.style.display = "none"; xh.setAttribute("visibility", "hidden"); });
+</script>
+</body>
+</html>

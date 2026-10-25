@@ -661,7 +661,7 @@ function openSpread(kind, id) {
   const [hcolor, acolor] = teamColors(h.meta.hcolor, h.meta.acolor);
   const fav = clean(snaps.map(s => [s[0], s[1] === null || s[1] === undefined ? null : -s[1]]));
   const margins = clean(snaps.map(s => [s[0], s[2]]));
-  const yfmt = v => v === 0 ? "EVEN" : v > 0 ? `${ha} -${Math.abs(Math.round(v))}` : `${aa} -${Math.abs(Math.round(v))}`;
+  const yfmt = v => v === 0 ? "EVEN" : `${v > 0 ? ha : aa} -${Math.abs(v)}`;   // exact: lines move in half points
   const events = (h.events || []).map(e => ({
     gc: e[0], label: `${e[2] === "home" ? ha : aa} ${kindTxt(e[1])}`, text: tidy(e[3]), cls: e[6] ?? "score",
     sc: e[4] !== undefined && e[4] !== null ? `${e[5]}–${e[4]}` : "",
@@ -716,7 +716,7 @@ function openProp(id, rec) {
   for (let i = 1; i < snaps.length; i++)
     for (let k = 0; k < (snaps[i][2] - snaps[i - 1][2]); k++) rug.push(snaps[i][0]);
   const chart = svgChart({
-    yfmt: v => Math.round(v),
+    yfmt: v => v,
     series: [
       { pts: snaps.map(s => [s[0], s[3]]), color: "var(--blue)", name: "O/U line" },
       { pts: snaps.map(s => [s[0], s[1]]), color: "var(--green)", name: "yards" },

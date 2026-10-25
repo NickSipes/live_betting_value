@@ -74,8 +74,11 @@ class Monitor:
     def espn_live(self):
         sb = get(f"{ESPN}/scoreboard")
         out = {}
+        self.finished = {}   # espn_id -> week, for archiving props of games that ended
         for ev in sb.get("events", []):
             st = ev["status"]
+            if st["type"]["state"] == "post":
+                self.finished[ev["id"]] = (ev.get("week") or sb.get("week") or {}).get("number")
             if st["type"]["state"] != "in":
                 continue
             comp = ev["competitions"][0]
@@ -169,9 +172,30 @@ class Monitor:
              needed, needed / (pr["ypg"] * rem_frac + 1), L / h["l0"]]
         return x, cum, nev, (gc - h["last_change"]) / 60, opp, hkey
 
+    def archive_finals(self):
+        """Move tracked players from finished games into docs/archive/props_w{week}.json."""
+        done = {}
+        for hkey in list(self.hist):
+            wk = self.finished.get(hkey.split("|")[0])
+            h = self.hist[hkey]
+            if wk is None or not h.get("meta"):
+                continue
+            self.hist.pop(hkey)
+            last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
+            done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
+                                             "final": last[1], "close": last[3]}
+        for wk, recs in done.items():
+            path = f"{HERE}/../docs/archive/props_w{wk}.json"
+            d = json.load(open(path)) if os.path.exists(path) else {}
+            d.update(recs)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            json.dump(d, open(path, "w"))
+            print(f"archived {len(recs)} player props to week {wk}")
+
     def cycle(self):
         opps, games_out, histout = [], [], {}
         live = self.espn_live()
+        self.archive_finals()
         if not live:
             return opps, games_out, histout
         odds_events = get(f"{ODDS}/events?apiKey={KEY}")
@@ -198,9 +222,10 @@ class Monitor:
                 oid = f'{name}|{kind}'
                 pteam = players[name]["team"]
                 logo = game.get("hlogo") if pteam == game["home"] else game.get("alogo")
-                histout[oid] = {"player": name, "market": kind, "logo": logo,
-                                "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
-                                "snaps": self.hist[hkey]["snaps"][-100:]}
+                meta = {"player": name, "market": kind, "logo": logo,
+                        "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
+                self.hist[hkey]["meta"] = meta
+                histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"][-100:]}
                 status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
                 opps.append({"id": oid, "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,
@@ -211,7 +236,7 @@ class Monitor:
                            f'{kind} O{L} | {cum} yds, P={p:.2f} | {game["clock"]}')
                     if status == "TRIGGER":
                         with open(f"{HERE}/paper_log.csv", "a") as lf:
-                            csv.writer(lf).writerow([datetime.datetime.utcnow().isoformat(), name, kind,
+                            csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
         return opps, games_out, histout

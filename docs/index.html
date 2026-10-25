@@ -129,48 +129,42 @@
   .evrow { font-size:12.5px; padding:6px 0; border-top:1px solid var(--grid); color:var(--ink-2); }
   .evrow b { color:var(--ink-1); }
   .dot { display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:-1px; }
+  .nav { position:sticky; top:0; z-index:10; background:var(--page); padding:14px 0 10px;
+         margin:-20px 0 4px; border-bottom:1px solid var(--grid); }
+  .tabs { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  .tabs button { border-radius:999px; padding:6px 14px; font-weight:600; font-size:13px; color:var(--ink-2); }
+  .tabs button.on { background:var(--ink-1); color:var(--page); border-color:var(--ink-1); }
+  .tabs.sport button { font-size:14px; padding:7px 18px; }
+  .tabs .n { font-size:11px; opacity:.7; margin-left:4px; }
+  .tabs .livedot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--red);
+                   margin-right:6px; vertical-align:1px; }
+  .weeks { display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; align-items:center; }
+  .weeks .lbl { font-size:12px; color:var(--muted); margin-right:4px; }
+  .weeks button { padding:4px 11px; font-size:12px; border-radius:8px; }
+  .weeks button.on { background:var(--surface-2); border-color:var(--ink-2); color:var(--ink-1); font-weight:650; }
+  .card.final { cursor:default; }
+  .card.click { cursor:pointer; }
+  .card.final:not(.click):hover { transform:none; box-shadow:none; }
+  .trow .sc.lose, .trow .ab.lose { color:var(--muted); font-weight:500; }
+  .kick { font-size:12.5px; font-weight:600; color:var(--ink-1); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <h1>Live Prop Monitor</h1>
-    <span class="meta">
-      <button id="notifbtn" onclick="askNotif()">enable notifications</button>
-      updated <span id="updated">—</span>
-    </span>
+  <div class="nav">
+    <div class="top">
+      <h1>Live Prop Monitor</h1>
+      <span class="meta">
+        <button id="notifbtn" onclick="askNotif()">enable notifications</button>
+        updated <span id="updated">—</span>
+      </span>
+    </div>
+    <div class="tabs sport" id="sporttabs"></div>
+    <div class="tabs" id="viewtabs"></div>
   </div>
   <div id="stale"></div>
-
-  <details class="sect" open>
-    <summary>Player props <span class="count" id="props-count"></span></summary>
-    <div class="leg">
-      Top-20 WR / top-10 TE / top-15 RB vs a bottom-10 defense at their position — cards go live at kickoff.
-      <span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line
-      &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50% &nbsp;·&nbsp; <span class="chip watch">LIVE</span> tracked
-      &nbsp;·&nbsp; <span class="chip pre">PREGAME</span> waiting &nbsp;·&nbsp; click a live card for line vs production
-    </div>
-    <div class="grid" id="props-grid"></div>
-    <div id="props-empty" class="empty" style="display:none">No qualifying matchups this week.</div>
-  </details>
-
-  <details class="sect" open>
-    <summary>NFL game spreads <span class="count" id="nflsp-count"></span></summary>
-    <div class="leg">
-      <span class="chip hot">EDGE</span> live line ≥4 pts from fair (margin + possession + pregame×remaining)
-      &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
-      &nbsp;·&nbsp; <span class="chip watch">WATCH</span> no signal &nbsp;·&nbsp; click a card for line movement + momentum plays
-    </div>
-    <div class="grid" id="nflsp-grid"></div>
-    <div id="nflsp-empty" class="empty" style="display:none">No live NFL games right now.</div>
-  </details>
-
-  <details class="sect" open>
-    <summary>College football spreads <span class="count" id="cfb-count"></span></summary>
-    <div class="leg">Same signals as NFL spreads. Click a card for the Gamecast-style line chart with scoring and momentum plays.</div>
-    <div class="grid" id="cfb-grid"></div>
-    <div id="cfb-empty" class="empty" style="display:none">No live college games right now.</div>
-  </details>
+  <div class="weeks" id="weeks"></div>
+  <div id="view"></div>
 </div>
 
 <div id="overlay" onclick="if(event.target===this) closeModal()">
@@ -180,11 +174,35 @@
 <script>
 let notifStore = {};
 let lastTs = { props: null, nflsp: null, cfb: null };
-let S = { props: null, watch: null, nflHist: {}, spread: { nflsp: null, cfb: null }, spreadHist: { nflsp: {}, cfb: {} } };
+let S = { props: null, watch: null, watchT: 0, nflHist: {}, spread: { nflsp: null, cfb: null },
+          spreadHist: { nflsp: {}, cfb: {} }, games: { nfl: {}, cfb: {} }, arch: {}, parch: {} };
 const SPREADS = {
   nflsp: { state: "nfl_spreads_state.json", hist: "nfl_spread_history.json" },
   cfb: { state: "cfb_state.json", hist: "cfb_history.json" },
 };
+const KINDOF = { nfl: "nflsp", cfb: "cfb" };
+const SPORTOF = { nflsp: "nfl", cfb: "cfb" };
+const SPORTNAME = { nfl: "NFL", cfb: "NCAAF" };
+
+// ---------- routing: #sport/view[/week] ----------
+let R = { sport: "nfl", view: "live", week: null };
+function readHash() {
+  const [s, v, w] = location.hash.slice(1).split("/");
+  R.sport = s === "cfb" ? "cfb" : "nfl";
+  R.view = ["live", "upcoming", "past"].includes(v) ? v : "live";
+  R.week = w ? +w : null;
+}
+const go = (...parts) => { location.hash = parts.filter(x => x !== null && x !== undefined).join("/"); };
+window.addEventListener("hashchange", () => { readHash(); render(); window.scrollTo(0, 0); });
+readHash();
+
+// collapsed sections survive re-renders (and reloads, when storage works)
+let closed = new Set();
+try { closed = new Set(JSON.parse(localStorage.getItem("closedSections") || "[]")); } catch (e) {}
+function secToggle(key, open) {
+  open ? closed.delete(key) : closed.add(key);
+  try { localStorage.setItem("closedSections", JSON.stringify([...closed])); } catch (e) {}
+}
 
 function askNotif() {
   Notification.requestPermission().then(p => {
@@ -216,6 +234,8 @@ const fmtS = (v, g) => v === null || v === undefined ? "—" :
   v === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
 const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:22px"></span>`;
 const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLowerCase()}.png` : null;
+const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
+const mkt = m => m === "rec" ? "receiving" : "rushing";
 
 function notifyIf(id, status, title, body) {
   if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
@@ -224,101 +244,231 @@ function notifyIf(id, status, title, body) {
   notifStore[id] = status;
 }
 
-// ---------- player props (watchlist cards that go live) ----------
-async function refreshProps() {
-  try { S.props = await (await fetch("state.json?" + Date.now())).json(); } catch (e) {}
-  if (!S.watch) try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); } catch (e) {}
-  if (S.props) { lastTs.props = S.props.ts; renderAges(); }
-  const live = {};
-  for (const o of (S.props?.opps || [])) live[`${o.player}|${o.market}`] = o;
-  const cards = [];
-  const seen = new Set();
-  for (const e of (S.watch?.entries || [])) {
-    const k = `${e.player}|${e.market}`;
-    seen.add(k);
-    cards.push({ w: e, o: live[k] });
-  }
-  for (const [k, o] of Object.entries(live)) if (!seen.has(k)) cards.push({ w: null, o });
-  cards.sort((a, b) => (b.o?.p ?? -1) - (a.o?.p ?? -1));
-  document.getElementById("props-count").textContent =
-    S.watch ? `week ${S.watch.week} · ${cards.length} players · ${(S.props?.games || []).map(g => g.label).join(" · ") || "no live games"}` : "";
-  document.getElementById("props-empty").style.display = cards.length ? "none" : "block";
-  document.getElementById("props-grid").innerHTML = cards.map(c => {
-    const o = c.o, w = c.w;
-    const player = o?.player ?? w.player, market = o?.market ?? w.market;
-    const logo = o?.logo ?? nflLogo(w?.team);
-    if (o) {
-      return `
-      <div class="card ${chipCls(o.status)}" onclick="openProp('${o.id.replace(/'/g, "\\'")}')">
-        <div class="trow">${logoImg(logo)}
-          <span class="ab" style="width:auto;font-size:14px">${player}</span>
-          <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
-        </div>
-        <div class="sub"><span>${o.game} · ${o.clock}</span><span>${market === "rec" ? "receiving" : "rushing"}</span></div>
-        <div class="nums">
-          <div><span>line</span><b>O ${o.line}</b></div>
-          <div><span>yards</span><b>${o.cum}</b></div>
-          <div><span>tgt/car</span><b>${o.events}</b></div>
-          <div><span>drought</span><b>${o.drought}m</b></div>
-          <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
-        </div>
-        <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
-      </div>`;
-    }
-    return `
-    <div class="card">
-      <div class="trow">${logoImg(logo)}
-        <span class="ab" style="width:auto;font-size:14px">${player}</span>
-        <span class="chip pre" style="margin-left:auto">PREGAME</span>
-      </div>
-      <div class="sub"><span>${w.pos} #${w.rank} · ${w.ypg} ypg ${market === "rec" ? "receiving" : "rushing"}</span></div>
-      <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
-        <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
-      </div>
-      <div class="sub"><span>${w.game}</span><span>${w.kick}</span></div>
-    </div>`;
-  }).join("");
-  for (const c of cards) if (c.o)
-    notifyIf(c.o.id, c.o.status,
-      (c.o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + c.o.player,
-      `${c.o.market} O${c.o.line} · ${c.o.cum} yds · P=${c.o.p.toFixed(2)} · ${c.o.clock}`);
+// click handlers are registered per render so names with quotes never break markup
+let H = [];
+const on = fn => `onclick="H[${H.push(fn) - 1}]()"`;
+
+// ---------- cards ----------
+function propLiveCard(o) {
+  return `
+  <div class="card ${chipCls(o.status)} click" ${on(() => openProp(o.id))}>
+    <div class="trow">${logoImg(o.logo)}
+      <span class="ab" style="width:auto;font-size:14px">${o.player}</span>
+      <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
+    </div>
+    <div class="sub"><span>${o.game} · ${o.clock}</span><span>${mkt(o.market)}</span></div>
+    <div class="nums">
+      <div><span>line</span><b>O ${o.line}</b></div>
+      <div><span>yards</span><b>${o.cum}</b></div>
+      <div><span>tgt/car</span><b>${o.events}</b></div>
+      <div><span>drought</span><b>${o.drought}m</b></div>
+      <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
+    </div>
+    <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
+  </div>`;
+}
+function propPreCard(w, chip = "PREGAME") {
+  return `
+  <div class="card final">
+    <div class="trow">${logoImg(nflLogo(w.team))}
+      <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
+      <span class="chip pre" style="margin-left:auto">${chip}</span>
+    </div>
+    <div class="sub"><span>${w.pos} #${w.rank} · ${w.ypg} ypg ${mkt(w.market)}</span></div>
+    <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
+      <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
+    </div>
+    <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso) || w.kick}</span></div>
+  </div>`;
+}
+function spreadLiveCard(kind, g) {
+  const [as, hs] = (g.score || "0-0").split("-");
+  return `
+  <div class="card ${chipCls(g.status)} click" ${on(() => openSpread(kind, g.id))}>
+    <div class="trow">${logoImg(g.alogo)}<span class="ab">${g.aabbr ?? ""}</span>
+      ${g.poss_side === "away" ? "🏈" : ""}<span class="sc">${as}</span></div>
+    <div class="trow">${logoImg(g.hlogo)}<span class="ab">${g.habbr ?? ""}</span>
+      ${g.poss_side === "home" ? "🏈" : ""}<span class="sc">${hs}</span></div>
+    <div class="sub"><span>${g.clock}</span><span>${g.poss ?? ""}</span>
+      <span class="chip ${chipCls(g.status)}">${g.status.toUpperCase()}</span></div>
+    <div class="nums">
+      <div><span>pregame</span><b>${fmtS(g.pregame, g)}</b></div>
+      <div><span>live</span><b>${fmtS(g.line, g)}</b></div>
+      <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
+      <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
+    </div>
+  </div>`;
+}
+function upcomingCard(r) {
+  return `
+  <div class="card final">
+    <div class="trow">${logoImg(r.alogo)}<span class="ab">${r.aabbr}</span></div>
+    <div class="trow">${logoImg(r.hlogo)}<span class="ab">${r.habbr}</span></div>
+    <div class="sub"><span class="kick">${kickTxt(r.date)}</span>
+      <span>${r.pregame === null || r.pregame === undefined ? "no line yet" : "spread " + fmtS(r.pregame, r)}</span></div>
+  </div>`;
+}
+function finalCard(sport, id, r) {
+  const aw = r.as > r.hs, hw = r.hs > r.as, click = r.has_hist;
+  const pg = r.pregame ?? S.arch[`${sport}_w${r.week}`]?.[id]?.pregame;
+  return `
+  <div class="card final ${click ? "click" : ""}" ${click ? on(() => openSpread(KINDOF[sport], id)) : ""}>
+    <div class="trow">${logoImg(r.alogo)}<span class="ab ${hw ? "lose" : ""}">${r.aabbr}</span>
+      <span class="sc ${hw ? "lose" : ""}">${r.as ?? ""}</span></div>
+    <div class="trow">${logoImg(r.hlogo)}<span class="ab ${aw ? "lose" : ""}">${r.habbr}</span>
+      <span class="sc ${aw ? "lose" : ""}">${r.hs ?? ""}</span></div>
+    <div class="sub"><span>${r.detail || "Final"} · ${new Date(r.date).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+      <span>pregame ${fmtS(pg, r)}</span>${click ? `<span style="color:var(--ink-1)">line chart ›</span>` : ""}</div>
+  </div>`;
+}
+function pastPropCard(wk, key, rec) {
+  const over = rec.l0 !== null && rec.final > rec.l0;
+  return `
+  <div class="card ${over ? "hot" : ""} click" ${on(() => openProp(key, rec))}>
+    <div class="trow">${logoImg(rec.logo)}
+      <span class="ab" style="width:auto;font-size:14px">${rec.player}</span>
+      <span class="chip ${over ? "hot" : "watch"}" style="margin-left:auto">${over ? "OVER" : "UNDER"}</span>
+    </div>
+    <div class="sub"><span>${rec.game}</span><span>${mkt(rec.market)}</span></div>
+    <div class="nums">
+      <div><span>pregame line</span><b>O ${rec.l0 ?? "—"}</b></div>
+      <div><span>final yards</span><b>${rec.final}</b></div>
+    </div>
+  </div>`;
 }
 
-// ---------- spreads (NFL + CFB share everything) ----------
+function section(key, title, count, legend, cards, empty) {
+  return `
+  <details class="sect" ${closed.has(key) ? "" : "open"} ontoggle="secToggle('${key}', this.open)">
+    <summary>${title} <span class="count">${count ?? ""}</span></summary>
+    ${legend ? `<div class="leg">${legend}</div>` : ""}
+    ${cards.length ? `<div class="grid">${cards.join("")}</div>` : `<div class="empty">${empty}</div>`}
+  </details>`;
+}
+const PROP_LEG = `<span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line
+  &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50% &nbsp;·&nbsp; <span class="chip watch">LIVE</span> tracked
+  &nbsp;·&nbsp; tap a card for line vs production`;
+const SPREAD_LEG = `<span class="chip hot">EDGE</span> live line ≥4 pts from fair
+  &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
+  &nbsp;·&nbsp; tap a card for line movement + key plays`;
+
+// ---------- data helpers ----------
+const regList = (sport, state) => Object.entries(S.games[sport] || {})
+  .filter(([, r]) => r.state === state).sort((a, b) => a[1].date.localeCompare(b[1].date));
+const pastWeeks = sport => [...new Set(regList(sport, "post").map(([, r]) => r.week))].sort((a, b) => b - a);
+const now = () => Date.now();
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => !w.kick_iso || new Date(w.kick_iso) > now());
+const watchStarted = () => (S.watch?.entries || []).filter(w => w.kick_iso &&
+  new Date(w.kick_iso) <= now() && now() - new Date(w.kick_iso) < 3.75 * 3600e3);
+
+async function loadArchive(sport, wk) {
+  const k = `${sport}_w${wk}`;
+  if (!(k in S.arch)) {
+    S.arch[k] = null;
+    try { S.arch[k] = await (await fetch(`archive/${k}.json?` + Date.now())).json(); } catch (e) { S.arch[k] = {}; }
+    if (sport === "nfl")
+      try { S.parch[wk] = await (await fetch(`archive/props_w${wk}.json?` + Date.now())).json(); } catch (e) { S.parch[wk] = {}; }
+    render();
+  }
+}
+
+// ---------- views ----------
+function viewLive() {
+  const kind = KINDOF[R.sport], games = S.spread[kind]?.games || [];
+  let html = "";
+  if (R.sport === "nfl") {
+    const opps = [...(S.props?.opps || [])].sort((a, b) => b.p - a.p);
+    const tracked = new Set(opps.map(o => `${o.player}|${o.market}`));
+    const waiting = watchStarted().filter(w => !tracked.has(`${w.player}|${w.market}`));
+    html += section("nfl-live-props", "Player props", `${opps.length} live`, PROP_LEG,
+      [...opps.map(propLiveCard), ...waiting.map(w => propPreCard(w, "NO LINE YET"))],
+      "No player props live right now — see Upcoming for this week's watchlist.");
+  }
+  html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,
+    games.map(g => spreadLiveCard(kind, g)), `No live ${SPORTNAME[R.sport]} games right now.`);
+  return html;
+}
+
+function viewUpcoming() {
+  const pre = regList(R.sport, "pre");
+  let html = "";
+  if (R.sport === "nfl") {
+    const w = watchUpcoming();
+    html += section("nfl-up-props", "Player props to watch", `week ${S.watch?.week ?? ""} · ${w.length} players`,
+      "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
+      w.map(x => propPreCard(x)), "No upcoming watchlist matchups.");
+  }
+  html += section(`${R.sport}-up-games`, "Games", `${pre.length} scheduled`, "",
+    pre.map(([, r]) => upcomingCard(r)), "No upcoming games loaded yet — the schedule fills in on the next poll.");
+  return html;
+}
+
+function viewPast() {
+  const weeks = pastWeeks(R.sport);
+  if (!weeks.length) return `<div class="empty">No finished games recorded yet. Games are archived here as they go final.</div>`;
+  const wk = weeks.includes(R.week) ? R.week : weeks[0];
+  const k = `${R.sport}_w${wk}`;
+  if (!(k in S.arch) || S.arch[k] === null) { loadArchive(R.sport, wk); return `<div class="empty">Loading week ${wk}…</div>`; }
+  const finals = regList(R.sport, "post").filter(([, r]) => r.week === wk).reverse()
+    .sort((a, b) => (b[1].has_hist ? 1 : 0) - (a[1].has_hist ? 1 : 0));   // charted games first
+  let html = "";
+  if (R.sport === "nfl") {
+    const props = Object.entries(S.parch[wk] || {});
+    html += section("nfl-past-props", "Player props", `${props.length} tracked`, "",
+      props.map(([key, rec]) => pastPropCard(wk, key, rec)), "No player props were tracked live this week.");
+  }
+  html += section(`${R.sport}-past-games`, "Games", `${finals.length} final`,
+    "Games with a line chart were tracked live; the rest show the final score only.",
+    finals.map(([id, r]) => finalCard(R.sport, id, r)), "No finished games this week.");
+  return html;
+}
+
+function render() {
+  H = [];
+  const liveN = { nfl: (S.spread.nflsp?.games || []).length, cfb: (S.spread.cfb?.games || []).length };
+  document.getElementById("sporttabs").innerHTML = ["nfl", "cfb"].map(s => `
+    <button class="${R.sport === s ? "on" : ""}" ${on(() => go(s, R.view))}>
+      ${liveN[s] ? '<span class="livedot"></span>' : ""}${SPORTNAME[s]}</button>`).join("");
+  const counts = { live: liveN[R.sport], upcoming: regList(R.sport, "pre").length, past: null };
+  document.getElementById("viewtabs").innerHTML = ["live", "upcoming", "past"].map(v => `
+    <button class="${R.view === v ? "on" : ""}" ${on(() => go(R.sport, v))}>
+      ${v[0].toUpperCase() + v.slice(1)}${counts[v] ? `<span class="n">${counts[v]}</span>` : ""}</button>`).join("");
+  const weeks = R.view === "past" ? pastWeeks(R.sport) : [];
+  const cur = weeks.includes(R.week) ? R.week : weeks[0];
+  document.getElementById("weeks").innerHTML = weeks.length ? `<span class="lbl">Week</span>` + weeks.map(w => `
+    <button class="${w === cur ? "on" : ""}" ${on(() => go(R.sport, "past", w))}>${w}</button>`).join("") : "";
+  document.getElementById("view").innerHTML =
+    R.view === "live" ? viewLive() : R.view === "upcoming" ? viewUpcoming() : viewPast();
+}
+
+// ---------- polling ----------
+async function refreshProps() {
+  try { S.props = await (await fetch("state.json?" + Date.now())).json(); } catch (e) {}
+  if (!S.watch || Date.now() - S.watchT > 300e3)
+    try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
+  if (S.props) { lastTs.props = S.props.ts; renderAges(); }
+  for (const o of (S.props?.opps || []))
+    notifyIf(o.id, o.status, (o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + o.player,
+      `${o.market} O${o.line} · ${o.cum} yds · P=${o.p.toFixed(2)} · ${o.clock}`);
+}
 async function refreshSpread(kind) {
   let d;
   try { d = await (await fetch(SPREADS[kind].state + "?" + Date.now())).json(); } catch (e) { return; }
   S.spread[kind] = d; lastTs[kind] = d.ts; renderAges();
-  const games = d.games || [];
-  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-count`).textContent = `${games.length} live`;
-  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-empty`).style.display = games.length ? "none" : "block";
-  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-grid`).innerHTML = games.map(g => {
-    const [as, hs] = (g.score || "0-0").split("-");
-    return `
-    <div class="card ${chipCls(g.status)}" onclick="openSpread('${kind}','${g.id}')">
-      <div class="trow">${logoImg(g.alogo)}<span class="ab">${g.aabbr ?? ""}</span>
-        ${g.poss_side === "away" ? "🏈" : ""}<span class="sc">${as}</span></div>
-      <div class="trow">${logoImg(g.hlogo)}<span class="ab">${g.habbr ?? ""}</span>
-        ${g.poss_side === "home" ? "🏈" : ""}<span class="sc">${hs}</span></div>
-      <div class="sub"><span>${g.clock}</span><span>${g.poss ?? ""}</span>
-        <span class="chip ${chipCls(g.status)}">${g.status.toUpperCase()}</span></div>
-      <div class="nums">
-        <div><span>pregame</span><b>${fmtS(g.pregame, g)}</b></div>
-        <div><span>live</span><b>${fmtS(g.line, g)}</b></div>
-        <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
-        <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
-      </div>
-    </div>`;
-  }).join("");
-  for (const g of games)
+  for (const g of d.games || [])
     notifyIf(kind + g.id, g.status, `${kind === "cfb" ? "CFB" : "NFL"} ${g.status}: ${g.game}`,
       `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}`);
 }
-
 async function loadAux() {
   for (const kind of ["nflsp", "cfb"])
     try { S.spreadHist[kind] = await (await fetch(SPREADS[kind].hist + "?" + Date.now())).json(); } catch (e) {}
   try { S.nflHist = await (await fetch("nfl_history.json?" + Date.now())).json(); } catch (e) {}
+  for (const sport of ["nfl", "cfb"])
+    try { S.games[sport] = await (await fetch(`${sport}_games.json?` + Date.now())).json(); } catch (e) {}
+}
+async function tick() {
+  await Promise.all([refreshProps(), refreshSpread("nflsp"), refreshSpread("cfb")]);
+  render();
 }
 
 // ---------- modal charts ----------
@@ -502,7 +652,10 @@ function teamColors(hraw, araw) {
 }
 
 function openSpread(kind, id) {
-  const h = S.spreadHist[kind][id], g = (S.spread[kind]?.games || []).find(x => x.id === id);
+  const sport = SPORTOF[kind];
+  const h = S.spreadHist[kind][id] || Object.entries(S.arch)
+    .filter(([k, v]) => k.startsWith(sport + "_") && v && v[id]).map(([, v]) => v[id])[0];
+  const g = (S.spread[kind]?.games || []).find(x => x.id === id);
   if (!h) return;
   const snaps = h.snaps || [], ha = h.meta.habbr, aa = h.meta.aabbr;
   const [hcolor, acolor] = teamColors(h.meta.hcolor, h.meta.acolor);
@@ -536,7 +689,8 @@ function openSpread(kind, id) {
     },
   });
   const last = [...events].reverse().find(ev => ev.sc);
-  const [asc, hsc] = g?.score ? g.score.split("-") : (last ? last.sc.split("–") : ["0", "0"]);
+  const [asc, hsc] = g?.score ? g.score.split("-") : h.final ? h.final.split("-")
+    : (last ? last.sc.split("–") : ["0", "0"]);
   const leg = [["var(--orange)", "score"], ["var(--red)", "turnover"], ["var(--yellow)", "momentum"], ["#9085e9", "injury"]];
   showModal(`
     <div class="bug">
@@ -554,8 +708,8 @@ function openSpread(kind, id) {
   bindChart();
 }
 
-function openProp(id) {
-  const h = S.nflHist[id], o = (S.props?.opps || []).find(x => x.id === id);
+function openProp(id, rec) {
+  const h = rec || S.nflHist[id], o = rec ? null : (S.props?.opps || []).find(x => x.id === id);
   if (!h) return;
   const snaps = h.snaps || [];
   const rug = [];
@@ -571,7 +725,8 @@ function openProp(id) {
   });
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${h.market === "rec" ? "receiving" : "rushing"} · ${h.game}</span></h3>
-    <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock} · ` : ""}
+    <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock} · `
+      : rec ? `final ${rec.final} yds vs pregame O ${rec.l0} · ` : ""}
       blue = book line, green = cumulative yards, ticks on the baseline = ${h.market === "rec" ? "targets" : "carries"}</div>
     <div id="mread"></div>
     ${chart}`);
@@ -589,10 +744,9 @@ function closeModal() {
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
-refreshProps(); refreshSpread("nflsp"); refreshSpread("cfb"); loadAux();
-setInterval(refreshProps, 10000);
-setInterval(() => { refreshSpread("nflsp"); refreshSpread("cfb"); }, 10000);
-setInterval(loadAux, 30000);
+loadAux().then(tick);
+setInterval(tick, 10000);
+setInterval(() => loadAux().then(render), 30000);
 </script>
 </body>
 </html>

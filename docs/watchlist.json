@@ -12,46 +12,8 @@
    "def_rank": 1,
    "def_ypg": 116.8,
    "game": "PIT @ NO",
-   "kick": "Sun 09:30 ET"
-  },
-  {
-   "player": "Christian Watson",
-   "pos": "WR",
-   "rank": 8,
-   "ypg": 89.7,
-   "market": "rec",
-   "team": "GB",
-   "opp": "DET",
-   "def_rank": 2,
-   "def_ypg": 194.8,
-   "game": "GB @ DET",
-   "kick": "Sun 16:25 ET"
-  },
-  {
-   "player": "Matthew Golden",
-   "pos": "WR",
-   "rank": 10,
-   "ypg": 83.5,
-   "market": "rec",
-   "team": "GB",
-   "opp": "DET",
-   "def_rank": 2,
-   "def_ypg": 194.8,
-   "game": "GB @ DET",
-   "kick": "Sun 16:25 ET"
-  },
-  {
-   "player": "Kyren Williams",
-   "pos": "RB",
-   "rank": 13,
-   "ypg": 65.5,
-   "market": "rush",
-   "team": "LA",
-   "opp": "LV",
-   "def_rank": 2,
-   "def_ypg": 113.7,
-   "game": "LA @ LV",
-   "kick": "Sun 16:25 ET"
+   "kick": "Sun 09:30 ET",
+   "kick_iso": "2026-10-25T09:30:00-04:00"
   },
   {
    "player": "Malik Nabers",
@@ -64,33 +26,8 @@
    "def_rank": 3,
    "def_ypg": 193.8,
    "game": "NYG @ HOU",
-   "kick": "Sun 13:00 ET"
-  },
-  {
-   "player": "CeeDee Lamb",
-   "pos": "WR",
-   "rank": 4,
-   "ypg": 96.2,
-   "market": "rec",
-   "team": "DAL",
-   "opp": "PHI",
-   "def_rank": 4,
-   "def_ypg": 182.7,
-   "game": "DAL @ PHI",
-   "kick": "Mon 20:15 ET"
-  },
-  {
-   "player": "George Pickens",
-   "pos": "WR",
-   "rank": 17,
-   "ypg": 71.3,
-   "market": "rec",
-   "team": "DAL",
-   "opp": "PHI",
-   "def_rank": 4,
-   "def_ypg": 182.7,
-   "game": "DAL @ PHI",
-   "kick": "Mon 20:15 ET"
+   "kick": "Sun 13:00 ET",
+   "kick_iso": "2026-10-25T13:00:00-04:00"
   },
   {
    "player": "Mike Evans",
@@ -103,7 +40,8 @@
    "def_rank": 5,
    "def_ypg": 180.3,
    "game": "SF @ ATL",
-   "kick": "Sun 13:00 ET"
+   "kick": "Sun 13:00 ET",
+   "kick_iso": "2026-10-25T13:00:00-04:00"
   },
   {
    "player": "Tee Higgins",
@@ -116,7 +54,8 @@
    "def_rank": 6,
    "def_ypg": 175.7,
    "game": "CIN @ BAL",
-   "kick": "Sun 13:00 ET"
+   "kick": "Sun 13:00 ET",
+   "kick_iso": "2026-10-25T13:00:00-04:00"
   },
   {
    "player": "Ollie Gordon II",
@@ -129,33 +68,8 @@
    "def_rank": 6,
    "def_ypg": 105.8,
    "game": "MIA @ NYJ",
-   "kick": "Sun 13:00 ET"
-  },
-  {
-   "player": "DeVonta Smith",
-   "pos": "WR",
-   "rank": 15,
-   "ypg": 77.5,
-   "market": "rec",
-   "team": "PHI",
-   "opp": "DAL",
-   "def_rank": 9,
-   "def_ypg": 168.7,
-   "game": "DAL @ PHI",
-   "kick": "Mon 20:15 ET"
-  },
-  {
-   "player": "Puka Nacua",
-   "pos": "WR",
-   "rank": 2,
-   "ypg": 104.2,
-   "market": "rec",
-   "team": "LA",
-   "opp": "LV",
-   "def_rank": 10,
-   "def_ypg": 161.0,
-   "game": "LA @ LV",
-   "kick": "Sun 16:25 ET"
+   "kick": "Sun 13:00 ET",
+   "kick_iso": "2026-10-25T13:00:00-04:00"
   },
   {
    "player": "Bucky Irving",
@@ -168,7 +82,64 @@
    "def_rank": 10,
    "def_ypg": 103.0,
    "game": "TB @ CAR",
-   "kick": "Sun 13:00 ET"
+   "kick": "Sun 13:00 ET",
+   "kick_iso": "2026-10-25T13:00:00-04:00"
+  },
+  {
+   "player": "Christian Watson",
+   "pos": "WR",
+   "rank": 8,
+   "ypg": 89.7,
+   "market": "rec",
+   "team": "GB",
+   "opp": "DET",
+   "def_rank": 2,
+   "def_ypg": 194.8,
+   "game": "GB @ DET",
+   "kick": "Sun 16:25 ET",
+   "kick_iso": "2026-10-25T16:25:00-04:00"
+  },
+  {
+   "player": "Matthew Golden",
+   "pos": "WR",
+   "rank": 10,
+   "ypg": 83.5,
+   "market": "rec",
+   "team": "GB",
+   "opp": "DET",
+   "def_rank": 2,
+   "def_ypg": 194.8,
+   "game": "GB @ DET",
+   "kick": "Sun 16:25 ET",
+   "kick_iso": "2026-10-25T16:25:00-04:00"
+  },
+  {
+   "player": "Kyren Williams",
+   "pos": "RB",
+   "rank": 13,
+   "ypg": 65.5,
+   "market": "rush",
+   "team": "LA",
+   "opp": "LV",
+   "def_rank": 2,
+   "def_ypg": 113.7,
+   "game": "LA @ LV",
+   "kick": "Sun 16:25 ET",
+   "kick_iso": "2026-10-25T16:25:00-04:00"
+  },
+  {
+   "player": "Puka Nacua",
+   "pos": "WR",
+   "rank": 2,
+   "ypg": 104.2,
+   "market": "rec",
+   "team": "LA",
+   "opp": "LV",
+   "def_rank": 10,
+   "def_ypg": 161.0,
+   "game": "LA @ LV",
+   "kick": "Sun 16:25 ET",
+   "kick_iso": "2026-10-25T16:25:00-04:00"
   },
   {
    "player": "Davante Adams",
@@ -181,7 +152,50 @@
    "def_rank": 10,
    "def_ypg": 161.0,
    "game": "LA @ LV",
-   "kick": "Sun 16:25 ET"
+   "kick": "Sun 16:25 ET",
+   "kick_iso": "2026-10-25T16:25:00-04:00"
+  },
+  {
+   "player": "CeeDee Lamb",
+   "pos": "WR",
+   "rank": 4,
+   "ypg": 96.2,
+   "market": "rec",
+   "team": "DAL",
+   "opp": "PHI",
+   "def_rank": 4,
+   "def_ypg": 182.7,
+   "game": "DAL @ PHI",
+   "kick": "Mon 20:15 ET",
+   "kick_iso": "2026-10-26T20:15:00-04:00"
+  },
+  {
+   "player": "George Pickens",
+   "pos": "WR",
+   "rank": 17,
+   "ypg": 71.3,
+   "market": "rec",
+   "team": "DAL",
+   "opp": "PHI",
+   "def_rank": 4,
+   "def_ypg": 182.7,
+   "game": "DAL @ PHI",
+   "kick": "Mon 20:15 ET",
+   "kick_iso": "2026-10-26T20:15:00-04:00"
+  },
+  {
+   "player": "DeVonta Smith",
+   "pos": "WR",
+   "rank": 15,
+   "ypg": 77.5,
+   "market": "rec",
+   "team": "PHI",
+   "opp": "DAL",
+   "def_rank": 9,
+   "def_ypg": 168.7,
+   "game": "DAL @ PHI",
+   "kick": "Mon 20:15 ET",
+   "kick_iso": "2026-10-26T20:15:00-04:00"
   }
  ]
 }

@@ -11,8 +11,11 @@ ponytail: uncalibrated baseline; replace coefficients with a fitted model once
 we have CFB historical lines. Also flags SWING when the line moved 4+ points in
 ~10 minutes beyond the score change.
 
-Usage: python3 cfb_poller.py [--poll 180] [--once]
-Writes docs/cfb_state.json; appends flags to live/cfb_log.csv.
+Usage: python3 cfb_poller.py [--sport nfl|cfb] [--poll 180] [--once]
+Writes docs/{cfb_state,nfl_spreads_state}.json (live), docs/{sport}_games.json
+(schedule registry: pre/in/post for this week and next), and moves each game's
+line history into docs/archive/{sport}_w{week}.json when it goes final.
+Appends flags to live/{sport}_spread_log.csv.
 """
 import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
 
@@ -27,6 +30,8 @@ ESPN = f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/scor
     ("?groups=80&limit=250" if SPORT == "cfb" else "")
 STATE = {"cfb": "cfb_state.json", "nfl": "nfl_spreads_state.json"}[SPORT]
 PUBHIST = {"cfb": "cfb_history.json", "nfl": "nfl_spread_history.json"}[SPORT]
+REGISTRY = f"{HERE}/../docs/{SPORT}_games.json"
+ARCHIVE = f"{HERE}/../docs/archive"
 EDGE_FLAG = 4.0     # points of edge to flag
 SWING_PTS = 4.0     # line move in ~10 min beyond score move
 
@@ -59,6 +64,24 @@ def parse_pregame(odds_list, home_abbr):
             fav, num = m.group(1), float(m.group(2))
             return num if fav == home_abbr else -num
     return None
+
+def merge_json(path, updates):
+    d = json.load(open(path)) if os.path.exists(path) else {}
+    d.update(updates)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(d, open(path, "w"))
+
+def reg_entry(ev, week):
+    comp = ev["competitions"][0]
+    t = {c["homeAway"]: c for c in comp["competitors"]}
+    st = ev["status"]["type"]["state"]
+    score = lambda side: int(t[side]["score"]) if st != "pre" and t[side].get("score") not in (None, "") else None
+    return {"week": week, "date": ev["date"], "state": st,
+            "detail": ev["status"]["type"].get("shortDetail"),
+            "aabbr": t["away"]["team"]["abbreviation"], "habbr": t["home"]["team"]["abbreviation"],
+            "alogo": t["away"]["team"].get("logo"), "hlogo": t["home"]["team"].get("logo"),
+            "hid": t["home"]["id"], "as": score("away"), "hs": score("home"),
+            "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"])}
 
 def espn_events(espn_id, home_id):
     """Scores + momentum plays as (gc, label, side, text, hs, as, cls).
@@ -159,11 +182,53 @@ class CFB:
         self.poll = poll
         self.hist_path = f"{HERE}/hist_{SPORT}_spreads.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
+        self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
+        self.next_t = 0    # last fetch of next week's schedule
         self.status = {}
+
+    def update_registry(self, sb):
+        """Merge this week's (and, every 30 min, next week's) schedule."""
+        week = (sb.get("week") or {}).get("number")
+        boards = [(sb, week)]
+        if week and time.time() - self.next_t > 1800:
+            self.next_t = time.time()
+            stype = (sb.get("season") or {}).get("type", 2)
+            sep = "&" if "?" in ESPN else "?"
+            try:
+                boards.append((get(f"{ESPN}{sep}week={week + 1}&seasontype={stype}"), week + 1))
+            except Exception as e:
+                print("next-week fetch failed", repr(e))
+        for board, wk in boards:
+            for ev in board.get("events", []):
+                new = reg_entry(ev, (ev.get("week") or {}).get("number") or wk)
+                old = self.reg.get(ev["id"], {})
+                if new["pregame"] is None:
+                    new["pregame"] = old.get("pregame")   # ESPN drops odds once a game starts
+                new["has_hist"] = old.get("has_hist", False)
+                self.reg[ev["id"]] = new
+
+    def archive_finals(self):
+        """Move finished games' line history into the weekly archive."""
+        done = {}
+        for gid in list(self.hist):
+            r = self.reg.get(gid)
+            if not r or r["state"] != "post":
+                continue
+            h = self.hist.pop(gid)
+            events = espn_events(gid, r["hid"]) or h.get("events", [])
+            done.setdefault(r["week"], {})[gid] = {
+                "meta": h.get("meta"), "pregame": h.get("pregame"), "snaps": h.get("snaps", []),
+                "events": events, "final": f'{r["as"]}-{r["hs"]}'}
+            r["has_hist"] = True
+        for wk, recs in done.items():
+            merge_json(f"{ARCHIVE}/{SPORT}_w{wk}.json", recs)
+            print(f"archived {len(recs)} {SPORT} games to week {wk}")
 
     def cycle(self):
         rows = []
         sb = get(ESPN)
+        self.update_registry(sb)
+        self.archive_finals()
         live = {}
         for ev in sb.get("events", []):
             st = ev["status"]
@@ -210,6 +275,8 @@ class CFB:
                          "aabbr": g["aabbr"], "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "hcolor": g.get("hcolor"), "acolor": g.get("acolor")}
             h["events"] = espn_events(gid, g["hid"])
+            if gid in self.reg:
+                self.reg[gid]["has_hist"] = True
             if h["pregame"] is None:
                 h["pregame"] = g["pregame"] if g["pregame"] is not None else pickcenter_pregame(gid)
             S0 = h["pregame"]
@@ -272,10 +339,11 @@ class CFB:
                        "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},
                       open(f"{HERE}/../docs/{STATE}", "w"))
-            # prune games idle >24h, publish slim history for the dashboard charts
-            cut = time.time() - 86400
+            # finals are archived each cycle; this only drops games ESPN stopped listing
+            cut = time.time() - 3 * 86400
             self.hist = {k: v for k, v in self.hist.items() if v.get("t", 0) > cut}
             json.dump(self.hist, open(self.hist_path, "w"))
+            json.dump(self.reg, open(REGISTRY, "w"))
             json.dump({k: {"meta": v.get("meta"), "pregame": v.get("pregame"),
                            "snaps": v.get("snaps", []), "events": v.get("events", [])}
                        for k, v in self.hist.items() if v.get("meta")},

@@ -3,7 +3,8 @@
 live/model_weights.json, live/priors.json (entering next week), live/def_priors.json.
 Run from analysis/: ../.venv/bin/python export_live.py
 """
-import json, os, collections
+import json, os, collections, datetime
+from zoneinfo import ZoneInfo
 
 exec(open(os.path.join(os.path.dirname(__file__), "v2_model.py")).read())
 
@@ -72,15 +73,17 @@ for r in csv.DictReader(open(f"{ROOT}/data/games.csv")):
     if r["season"] == "2026" and r["week"] == str(w_next):
         lbl = f'{r["away_team"]} @ {r["home_team"]}'
         kick = f'{r["weekday"][:3]} {r["gametime"]} ET'
-        sched[r["home_team"]] = (r["away_team"], lbl, kick)
-        sched[r["away_team"]] = (r["home_team"], lbl, kick)
+        kick_iso = datetime.datetime.fromisoformat(f'{r["gameday"]}T{r["gametime"]}') \
+            .replace(tzinfo=ZoneInfo("America/New_York")).isoformat()
+        sched[r["home_team"]] = (r["away_team"], lbl, kick, kick_iso)
+        sched[r["away_team"]] = (r["home_team"], lbl, kick, kick_iso)
 
 watch = []
 for name, kinds in pri.items():
     team = team_by_name.get(name)
     if team not in sched:
         continue
-    opp, lbl, kick = sched[team]
+    opp, lbl, kick, kick_iso = sched[team]
     for kind, st in kinds.items():
         pos = st["pos"]
         prank = ranks.get((kind, pos, name), 999)
@@ -88,7 +91,7 @@ for name, kinds in pri.items():
         if prank <= TOP_N_WL[pos] and drank <= 10:
             watch.append({"player": name, "pos": pos, "rank": prank, "ypg": st["ypg"],
                           "market": kind, "team": team, "opp": opp, "def_rank": drank,
-                          "def_ypg": dpri[f"{kind}|{opp}|{pos}"], "game": lbl, "kick": kick})
-watch.sort(key=lambda w: (w["def_rank"], w["rank"]))
+                          "def_ypg": dpri[f"{kind}|{opp}|{pos}"], "game": lbl, "kick": kick, "kick_iso": kick_iso})
+watch.sort(key=lambda w: (w["kick_iso"], w["def_rank"], w["rank"]))
 json.dump({"week": w_next, "entries": watch}, open(f"{ROOT}/docs/watchlist.json", "w"), indent=1)
 print(f"watchlist: {len(watch)} players for week {w_next}")

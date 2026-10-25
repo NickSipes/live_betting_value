@@ -19,8 +19,14 @@ import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
     open(os.path.join(HERE, "..", ".env")).read().split("ODDS_API_KEY=")[1].strip()
-ODDS = "https://api.the-odds-api.com/v4/sports/americanfootball_ncaaf/odds"
-ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=250"
+SPORT = "nfl" if "--sport" in sys.argv and sys.argv[sys.argv.index("--sport") + 1] == "nfl" else "cfb"
+ODDS_SPORT = {"cfb": "americanfootball_ncaaf", "nfl": "americanfootball_nfl"}[SPORT]
+ESPN_PATH = {"cfb": "college-football", "nfl": "nfl"}[SPORT]
+ODDS = f"https://api.the-odds-api.com/v4/sports/{ODDS_SPORT}/odds"
+ESPN = f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/scoreboard" + \
+    ("?groups=80&limit=250" if SPORT == "cfb" else "")
+STATE = {"cfb": "cfb_state.json", "nfl": "nfl_spreads_state.json"}[SPORT]
+PUBHIST = {"cfb": "cfb_history.json", "nfl": "nfl_spread_history.json"}[SPORT]
 EDGE_FLAG = 4.0     # points of edge to flag
 SWING_PTS = 4.0     # line move in ~10 min beyond score move
 
@@ -55,21 +61,53 @@ def parse_pregame(odds_list, home_abbr):
     return None
 
 def espn_events(espn_id, home_id):
-    """Scoring plays as (gc, label, side, text); defensive/long TDs tagged."""
+    """Scores + momentum plays as (gc, label, side, text, hs, as, cls).
+    cls: 'score' | 'to' (turnover) | 'mom' (4th-down conversion / explosive)."""
     out = []
     try:
-        s = get(f"https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event={espn_id}")
+        s = get(f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/summary?event={espn_id}")
         for p in s.get("scoringPlays", []):
             gc = clock_elapsed(p["period"]["number"], p.get("clock", {}).get("displayValue"))
             text = p.get("text", "")
             kind = p.get("scoringType", {}).get("displayName", "score")
-            low = text.lower()
-            if "interception" in low or "fumble" in low:
-                kind = "DEF TD"
-            elif (m := re.search(r"(\d+)\s*y(ar)?d", low)) and int(m.group(1)) >= 30:
-                kind = f"⚡ {kind}"
+            low = (kind + " " + text).lower()
+            cls = "score"
+            is_td = "touchdown" in low
+            if is_td and ("interception" in low or "fumble" in low):
+                kind, cls = "DEF TD", "to"
+            elif is_td and (m := re.search(r"(\d+)\s*y(ar)?d", low)) and int(m.group(1)) >= 30:
+                kind, cls = f"⚡ {kind}", "mom"   # explosive TD, never a field goal
             side = "home" if str(p.get("team", {}).get("id")) == str(home_id) else "away"
-            out.append([gc, kind, side, text[:120]])
+            out.append([gc, kind, side, text[:120], p.get("homeScore"), p.get("awayScore"), cls])
+        # momentum plays from the drive log (non-scoring)
+        drives = s.get("drives", {})
+        for d in (drives.get("previous", []) + ([drives["current"]] if drives.get("current") else [])):
+            off_home = str(d.get("team", {}).get("id", "")) == str(home_id)
+            for pl in d.get("plays", []):
+                if pl.get("scoringPlay"):
+                    continue
+                t = pl.get("type", {}).get("text", "")
+                text = pl.get("text", "")
+                gc = clock_elapsed(pl.get("period", {}).get("number", 1),
+                                   pl.get("clock", {}).get("displayValue"))
+                yds = pl.get("statYardage", 0) or 0
+                start = pl.get("start", {})
+                kind = cls = None
+                if "Interception" in t or "Fumble Recovery (Opponent)" in t:
+                    kind, cls, flip = "TURNOVER", "to", True
+                elif t == "Turnover on Downs" or "Downs" in t and start.get("down") == 4:
+                    kind, cls, flip = "4th DOWN STOP", "to", True
+                elif start.get("down") == 4 and yds >= (start.get("distance") or 99) \
+                        and "punt" not in t.lower() and "field goal" not in t.lower() \
+                        and "kick" not in t.lower() and ("Pass" in t or "Rush" in t or "Sack" in t):
+                    kind, cls, flip = "4th DOWN CONV", "mom", False
+                elif yds >= 30 and ("Pass" in t or "Rush" in t or "Reception" in t):
+                    kind, cls, flip = f"⚡ {yds} yd play", "mom", False
+                if not kind:
+                    continue
+                side_home = (not off_home) if flip else off_home   # credit the gaining side
+                out.append([gc, kind, "home" if side_home else "away", text[:120], None, None, cls])
+        out.sort(key=lambda e: e[0])
     except Exception:
         pass
     return out
@@ -88,7 +126,7 @@ def pickcenter_pregame(espn_id):
 class CFB:
     def __init__(self, poll):
         self.poll = poll
-        self.hist_path = f"{HERE}/cfb_history.json"
+        self.hist_path = f"{HERE}/hist_{SPORT}_spreads.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.status = {}
 
@@ -109,6 +147,7 @@ class CFB:
                 "yl": sit.get("yardLine"),                      # yards from own goal
                 "poss_text": sit.get("possessionText"),
                 "hlogo": t["home"]["team"].get("logo"), "alogo": t["away"]["team"].get("logo"),
+                "hcolor": t["home"]["team"].get("color"), "acolor": t["away"]["team"].get("color"),
                 "hid": t["home"]["id"],
                 "home": t["home"]["team"]["displayName"], "away": t["away"]["team"]["displayName"],
                 "habbr": t["home"]["team"]["abbreviation"], "aabbr": t["away"]["team"]["abbreviation"],
@@ -136,7 +175,8 @@ class CFB:
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})
             h["t"] = time.time()
             h["meta"] = {"game": f'{g["aabbr"]} @ {g["habbr"]}', "habbr": g["habbr"],
-                         "aabbr": g["aabbr"], "hlogo": g["hlogo"], "alogo": g["alogo"]}
+                         "aabbr": g["aabbr"], "hlogo": g["hlogo"], "alogo": g["alogo"],
+                         "hcolor": g.get("hcolor"), "acolor": g.get("acolor")}
             h["events"] = espn_events(gid, g["hid"])
             if h["pregame"] is None:
                 h["pregame"] = g["pregame"] if g["pregame"] is not None else pickcenter_pregame(gid)
@@ -176,9 +216,9 @@ class CFB:
                          "dline10": dline, "status": status,
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
             if status != self.status.get(gid) and status != "watch":
-                notify(f"CFB {status}: {lbl}",
+                notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
-                with open(f"{HERE}/cfb_log.csv", "a") as lf:
+                with open(f"{HERE}/{SPORT}_spread_log.csv", "a") as lf:
                     csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), lbl, g["clock"],
                                              f'{g["as"]}-{g["hs"]}', S0, L, fair, edge, status])
             self.status[gid] = status
@@ -195,7 +235,7 @@ class CFB:
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},
-                      open(f"{HERE}/../docs/cfb_state.json", "w"))
+                      open(f"{HERE}/../docs/{STATE}", "w"))
             # prune games idle >24h, publish slim history for the dashboard charts
             cut = time.time() - 86400
             self.hist = {k: v for k, v in self.hist.items() if v.get("t", 0) > cut}
@@ -203,8 +243,8 @@ class CFB:
             json.dump({k: {"meta": v.get("meta"), "pregame": v.get("pregame"),
                            "snaps": v.get("snaps", []), "events": v.get("events", [])}
                        for k, v in self.hist.items() if v.get("meta")},
-                      open(f"{HERE}/../docs/cfb_history.json", "w"))
-            print(f'{datetime.datetime.now():%H:%M:%S} {len(rows)} live CFB games, '
+                      open(f"{HERE}/../docs/{PUBHIST}", "w"))
+            print(f'{datetime.datetime.now():%H:%M:%S} {len(rows)} live {SPORT.upper()} games, '
                   f'{sum(1 for r in rows if r["status"]!="watch")} flagged')
             if once:
                 break

@@ -10,14 +10,14 @@
     --surface: #fcfcfb; --surface-2: #f3f3f0; --page: #f9f9f7;
     --ink-1: #0b0b0b; --ink-2: #52514e; --muted: #898781;
     --border: rgba(11,11,11,0.10); --grid: #e1e0d9; --baseline: #c3c2b7;
-    --green: #1baf7a; --orange: #eb6834; --blue: #2a78d6;
+    --green: #1baf7a; --orange: #eb6834; --blue: #2a78d6; --red: #d03b3b; --yellow: #c98500;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --surface: #1a1a19; --surface-2: #232322; --page: #0d0d0d;
       --ink-1: #f0efec; --ink-2: #c3c2b7;
       --border: rgba(255,255,255,0.10); --grid: #2c2c2a; --baseline: #383835;
-      --green: #199e70; --orange: #d95926; --blue: #3987e5;
+      --green: #199e70; --orange: #d95926; --blue: #3987e5; --red: #e66767; --yellow: #eda100;
     }
   }
   * { box-sizing: border-box; }
@@ -43,6 +43,7 @@
   .chip.hot { color:#fff; background:var(--green); }
   .chip.warm { color:#fff; background:var(--orange); }
   .chip.watch { color:var(--muted); border:1px solid var(--baseline); }
+  .chip.pre { color:var(--ink-2); background:var(--surface-2); border:1px solid var(--border); }
   .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:12px; margin-top:12px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:14px;
           padding:13px 15px; cursor:pointer; transition:transform .1s, box-shadow .1s;
@@ -62,12 +63,6 @@
   .pbar i { display:block; height:100%; border-radius:3px; background:var(--blue); }
   .empty { color:var(--muted); padding:26px; text-align:center; background:var(--surface);
            border:1px solid var(--border); border-radius:14px; font-size:13.5px; margin-top:12px; }
-  table { width:100%; border-collapse:collapse; background:var(--surface);
-          border:1px solid var(--border); border-radius:14px; overflow:hidden; font-size:13px; margin-top:12px; }
-  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em;
-       color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--grid); }
-  td { padding:8px 12px; border-bottom:1px solid var(--grid); }
-  tr:last-child td { border-bottom:none; }
   #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
              align-items:center; justify-content:center; padding:16px; }
   #modal { background:var(--surface); border:1px solid var(--border); border-radius:16px;
@@ -80,6 +75,13 @@
   .tick { font-size:10.5px; fill:var(--muted); }
   .evrow { font-size:12.5px; padding:6px 0; border-top:1px solid var(--grid); color:var(--ink-2); }
   .evrow b { color:var(--ink-1); }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:-1px; }
+  #mtip { display:none; position:fixed; z-index:60; pointer-events:none;
+          background:var(--surface); border:1px solid var(--border); border-radius:8px;
+          padding:8px 10px; font-size:12px; box-shadow:0 2px 10px rgba(0,0,0,.2); min-width:160px; }
+  #mtip .t { color:var(--muted); margin-bottom:4px; }
+  #mtip .row { display:flex; justify-content:space-between; gap:12px; }
+  #mtip .row b { font-variant-numeric:tabular-nums; margin-left:auto; }
 </style>
 </head>
 <body>
@@ -93,43 +95,50 @@
   </div>
   <div id="stale"></div>
 
-  <details class="sect" open id="sect-nfl">
-    <summary>NFL player props <span class="count" id="nfl-count"></span></summary>
+  <details class="sect" open>
+    <summary>Player props <span class="count" id="props-count"></span></summary>
     <div class="leg">
-      <span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line — the bet signal (still validating)
-      &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50%, approaching &nbsp;·&nbsp; <span class="chip watch">WATCH</span> tracked, no signal
-      &nbsp;·&nbsp; click a card for the line vs production chart
+      Top-20 WR / top-10 TE / top-15 RB vs a bottom-10 defense at their position — cards go live at kickoff.
+      <span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line
+      &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50% &nbsp;·&nbsp; <span class="chip watch">LIVE</span> tracked
+      &nbsp;·&nbsp; <span class="chip pre">PREGAME</span> waiting &nbsp;·&nbsp; click a live card for line vs production
     </div>
-    <div class="grid" id="nfl-grid"></div>
-    <div id="nfl-empty" class="empty" style="display:none">No live tracked players right now — cards appear as NFL games go live.</div>
+    <div class="grid" id="props-grid"></div>
+    <div id="props-empty" class="empty" style="display:none">No qualifying matchups this week.</div>
   </details>
 
-  <details class="sect" open id="sect-cfb">
-    <summary>College football — live spreads <span class="count" id="cfb-count"></span></summary>
+  <details class="sect" open>
+    <summary>NFL game spreads <span class="count" id="nflsp-count"></span></summary>
     <div class="leg">
-      <span class="chip hot">EDGE</span> live line ≥4 pts from fair (margin + possession + pregame×remaining) — check the game before acting
-      &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score — injury or overreaction
-      &nbsp;·&nbsp; <span class="chip watch">WATCH</span> no signal &nbsp;·&nbsp; click a card for line movement + key plays
+      <span class="chip hot">EDGE</span> live line ≥4 pts from fair (margin + possession + pregame×remaining)
+      &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
+      &nbsp;·&nbsp; <span class="chip watch">WATCH</span> no signal &nbsp;·&nbsp; click a card for line movement + momentum plays
     </div>
+    <div class="grid" id="nflsp-grid"></div>
+    <div id="nflsp-empty" class="empty" style="display:none">No live NFL games right now.</div>
+  </details>
+
+  <details class="sect" open>
+    <summary>College football spreads <span class="count" id="cfb-count"></span></summary>
+    <div class="leg">Same signals as NFL spreads. Click a card for the Gamecast-style line chart with scoring and momentum plays.</div>
     <div class="grid" id="cfb-grid"></div>
     <div id="cfb-empty" class="empty" style="display:none">No live college games right now.</div>
-  </details>
-
-  <details class="sect" id="sect-watch">
-    <summary>Players to watch <span class="count" id="watchtitle"></span></summary>
-    <div class="leg">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week — the matchups the live model hunts in.</div>
-    <div id="watch"></div>
   </details>
 </div>
 
 <div id="overlay" onclick="if(event.target===this) closeModal()">
   <div id="modal"></div>
 </div>
+<div id="mtip"></div>
 
 <script>
-let known = {}, knownCfb = {};
-let lastTs = { nfl: null, cfb: null };
-let S = { nfl: null, cfb: null, nflHist: {}, cfbHist: {} };
+let notifStore = {};
+let lastTs = { props: null, nflsp: null, cfb: null };
+let S = { props: null, watch: null, nflHist: {}, spread: { nflsp: null, cfb: null }, spreadHist: { nflsp: {}, cfb: {} } };
+const SPREADS = {
+  nflsp: { state: "nfl_spreads_state.json", hist: "nfl_spread_history.json" },
+  cfb: { state: "cfb_state.json", hist: "cfb_history.json" },
+};
 
 function askNotif() {
   Notification.requestPermission().then(p => {
@@ -145,10 +154,11 @@ const ageText = ts => {
   return m < 1 ? "just now" : m < 90 ? `${Math.round(m)}m ago` : `${(m / 60).toFixed(1)}h ago`;
 };
 function renderAges() {
-  document.getElementById("updated").textContent = `NFL ${ageText(lastTs.nfl)} · CFB ${ageText(lastTs.cfb)}`;
+  document.getElementById("updated").textContent =
+    `props ${ageText(lastTs.props)} · NFL ${ageText(lastTs.nflsp)} · CFB ${ageText(lastTs.cfb)}`;
   const stale = [];
   for (const [k, ts] of Object.entries(lastTs))
-    if (ts && (Date.now() / 1000 - ts) > 900) stale.push(`${k.toUpperCase()} data is ${ageText(ts).replace(" ago", "")} old`);
+    if (ts && (Date.now() / 1000 - ts) > 900) stale.push(`${k} data is ${ageText(ts).replace(" ago", "")} old`);
   const el = document.getElementById("stale");
   el.style.display = stale.length ? "block" : "none";
   el.textContent = stale.length ? "⚠ " + stale.join(" · ") + " — lines shown are likely outdated." : "";
@@ -159,55 +169,87 @@ const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" || s
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
   v === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
 const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:22px"></span>`;
+const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLowerCase()}.png` : null;
 
-function notifyIf(store, id, status, title, body) {
-  if ((status === "NEAR" || status === "TRIGGER" || status === "EDGE" || status === "SWING")
-      && store[id] !== status && "Notification" in window && Notification.permission === "granted")
+function notifyIf(id, status, title, body) {
+  if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
+      && "Notification" in window && Notification.permission === "granted")
     new Notification(title, { body });
-  store[id] = status;
+  notifStore[id] = status;
 }
 
-async function refreshNfl() {
-  let d;
-  try { d = await (await fetch("state.json?" + Date.now())).json(); } catch (e) { return; }
-  S.nfl = d; lastTs.nfl = d.ts; renderAges();
-  const opps = d.opps || [];
-  document.getElementById("nfl-count").textContent =
-    `${(d.games || []).map(g => g.label).join(" · ") || "no live games"}`;
-  document.getElementById("nfl-empty").style.display = opps.length ? "none" : "block";
-  document.getElementById("nfl-grid").innerHTML = opps.map(o => `
-    <div class="card ${chipCls(o.status)}" onclick="openNfl('${o.id.replace(/'/g, "\\'")}')">
-      <div class="trow">${logoImg(o.logo)}
-        <span class="ab" style="width:auto;font-size:14px">${o.player}</span>
-        <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status.toUpperCase()}</span>
+// ---------- player props (watchlist cards that go live) ----------
+async function refreshProps() {
+  try { S.props = await (await fetch("state.json?" + Date.now())).json(); } catch (e) {}
+  if (!S.watch) try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); } catch (e) {}
+  if (S.props) { lastTs.props = S.props.ts; renderAges(); }
+  const live = {};
+  for (const o of (S.props?.opps || [])) live[`${o.player}|${o.market}`] = o;
+  const cards = [];
+  const seen = new Set();
+  for (const e of (S.watch?.entries || [])) {
+    const k = `${e.player}|${e.market}`;
+    seen.add(k);
+    cards.push({ w: e, o: live[k] });
+  }
+  for (const [k, o] of Object.entries(live)) if (!seen.has(k)) cards.push({ w: null, o });
+  cards.sort((a, b) => (b.o?.p ?? -1) - (a.o?.p ?? -1));
+  document.getElementById("props-count").textContent =
+    S.watch ? `week ${S.watch.week} · ${cards.length} players · ${(S.props?.games || []).map(g => g.label).join(" · ") || "no live games"}` : "";
+  document.getElementById("props-empty").style.display = cards.length ? "none" : "block";
+  document.getElementById("props-grid").innerHTML = cards.map(c => {
+    const o = c.o, w = c.w;
+    const player = o?.player ?? w.player, market = o?.market ?? w.market;
+    const logo = o?.logo ?? nflLogo(w?.team);
+    if (o) {
+      return `
+      <div class="card ${chipCls(o.status)}" onclick="openProp('${o.id.replace(/'/g, "\\'")}')">
+        <div class="trow">${logoImg(logo)}
+          <span class="ab" style="width:auto;font-size:14px">${player}</span>
+          <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
+        </div>
+        <div class="sub"><span>${o.game} · ${o.clock}</span><span>${market === "rec" ? "receiving" : "rushing"}</span></div>
+        <div class="nums">
+          <div><span>line</span><b>O ${o.line}</b></div>
+          <div><span>yards</span><b>${o.cum}</b></div>
+          <div><span>tgt/car</span><b>${o.events}</b></div>
+          <div><span>drought</span><b>${o.drought}m</b></div>
+          <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
+        </div>
+        <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
+      </div>`;
+    }
+    return `
+    <div class="card">
+      <div class="trow">${logoImg(logo)}
+        <span class="ab" style="width:auto;font-size:14px">${player}</span>
+        <span class="chip pre" style="margin-left:auto">PREGAME</span>
       </div>
-      <div class="sub"><span>${o.game} · ${o.clock}</span><span>${o.market === "rec" ? "receiving" : "rushing"}</span></div>
-      <div class="nums">
-        <div><span>line</span><b>O ${o.line}</b></div>
-        <div><span>yards</span><b>${o.cum}</b></div>
-        <div><span>tgt/car</span><b>${o.events}</b></div>
-        <div><span>drought</span><b>${o.drought}m</b></div>
-        <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
+      <div class="sub"><span>${w.pos} #${w.rank} · ${w.ypg} ypg ${market === "rec" ? "receiving" : "rushing"}</span></div>
+      <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
+        <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
       </div>
-      <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
-    </div>`).join("");
-  for (const o of opps)
-    notifyIf(known, o.id, o.status,
-      (o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + o.player,
-      `${o.market} O${o.line} · ${o.cum} yds · P=${o.p.toFixed(2)} · ${o.clock}`);
+      <div class="sub"><span>${w.game}</span><span>${w.kick}</span></div>
+    </div>`;
+  }).join("");
+  for (const c of cards) if (c.o)
+    notifyIf(c.o.id, c.o.status,
+      (c.o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + c.o.player,
+      `${c.o.market} O${c.o.line} · ${c.o.cum} yds · P=${c.o.p.toFixed(2)} · ${c.o.clock}`);
 }
 
-async function refreshCfb() {
+// ---------- spreads (NFL + CFB share everything) ----------
+async function refreshSpread(kind) {
   let d;
-  try { d = await (await fetch("cfb_state.json?" + Date.now())).json(); } catch (e) { return; }
-  S.cfb = d; lastTs.cfb = d.ts; renderAges();
+  try { d = await (await fetch(SPREADS[kind].state + "?" + Date.now())).json(); } catch (e) { return; }
+  S.spread[kind] = d; lastTs[kind] = d.ts; renderAges();
   const games = d.games || [];
-  document.getElementById("cfb-count").textContent = `${games.length} live`;
-  document.getElementById("cfb-empty").style.display = games.length ? "none" : "block";
-  document.getElementById("cfb-grid").innerHTML = games.map(g => {
+  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-count`).textContent = `${games.length} live`;
+  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-empty`).style.display = games.length ? "none" : "block";
+  document.getElementById(`${kind === "cfb" ? "cfb" : "nflsp"}-grid`).innerHTML = games.map(g => {
     const [as, hs] = (g.score || "0-0").split("-");
     return `
-    <div class="card ${chipCls(g.status)}" onclick="openCfb('${g.id}')">
+    <div class="card ${chipCls(g.status)}" onclick="openSpread('${kind}','${g.id}')">
       <div class="trow">${logoImg(g.alogo)}<span class="ab">${g.aabbr ?? ""}</span>
         ${g.poss_side === "away" ? "🏈" : ""}<span class="sc">${as}</span></div>
       <div class="trow">${logoImg(g.hlogo)}<span class="ab">${g.habbr ?? ""}</span>
@@ -223,101 +265,202 @@ async function refreshCfb() {
     </div>`;
   }).join("");
   for (const g of games)
-    notifyIf(knownCfb, g.id, g.status, `CFB ${g.status}: ${g.game}`,
+    notifyIf(kind + g.id, g.status, `${kind === "cfb" ? "CFB" : "NFL"} ${g.status}: ${g.game}`,
       `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}`);
 }
 
 async function loadAux() {
-  try { S.cfbHist = await (await fetch("cfb_history.json?" + Date.now())).json(); } catch (e) {}
+  for (const kind of ["nflsp", "cfb"])
+    try { S.spreadHist[kind] = await (await fetch(SPREADS[kind].hist + "?" + Date.now())).json(); } catch (e) {}
   try { S.nflHist = await (await fetch("nfl_history.json?" + Date.now())).json(); } catch (e) {}
-  try {
-    const d = await (await fetch("watchlist.json?" + Date.now())).json();
-    document.getElementById("watchtitle").textContent = `week ${d.week} · ${d.entries.length} matchups`;
-    document.getElementById("watch").innerHTML = (d.entries || []).length ? `
-      <table><thead><tr><th>player</th><th>market</th><th>season</th><th>game</th><th>matchup</th><th>kickoff</th></tr></thead>
-      <tbody>${d.entries.map(e => `
-        <tr><td><b>${e.player}</b> <span style="color:var(--muted)">${e.pos} #${e.rank}</span></td>
-        <td>${e.market === "rec" ? "receiving" : "rushing"}</td><td>${e.ypg} ypg</td><td>${e.game}</td>
-        <td>vs ${e.opp} <span style="color:var(--muted)">#${e.def_rank} worst vs ${e.pos}, ${e.def_ypg} ypg</span></td>
-        <td>${e.kick}</td></tr>`).join("")}</tbody></table>` : `<div class="empty">No qualifying matchups.</div>`;
-  } catch (e) {}
 }
 
 // ---------- modal charts ----------
 const GL = 3600;
-function svgChart(series, events, yLabelFmt) {
-  // series: [{pts: [[gc, v]...], color, name, dash?}]; events: [[gc, label, text]]
-  const W = 700, H = 320, M = { t: 26, r: 14, b: 30, l: 40 };
-  const pw = W - M.l - M.r, ph = H - M.t - M.b;
-  const all = series.flatMap(s => s.pts.map(p => p[1])).filter(v => v !== null && v !== undefined);
+const CW = 700, CH = 330, CM = { t: 26, r: 14, b: 34, l: 44 };
+let MC = null;
+const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)" };
+
+const clean = pts => {
+  const m = new Map();
+  for (const [g, v] of pts) if (g > 0 && v !== null && v !== undefined) m.set(Math.min(g, GL), v);
+  return [...m.entries()].sort((a, b) => a[0] - b[0]);
+};
+const gcLabel = gc => {
+  const q = Math.min(Math.floor(gc / 900) + 1, 4);
+  const rem = Math.max(0, q * 900 - gc);
+  return `Q${q} ${Math.floor(rem / 60)}:${String(Math.round(rem % 60)).padStart(2, "0")}`;
+};
+const stepVal = (pts, gc) => {
+  let v = null;
+  for (const [g, x] of pts) { if (g > gc) break; v = x; }
+  return v;
+};
+
+function svgChart(cfg) {
+  const series = cfg.series.map(s => ({ ...s, pts: s.noclean ? s.pts : clean(s.pts) }));
+  const all = series.flatMap(s => s.pts.map(p => p[1]));
   if (!all.length) return `<div class="empty">No history captured yet for this one.</div>`;
-  let lo = Math.min(...all), hi = Math.max(...all);
-  const pad = Math.max(3, (hi - lo) * 0.15); lo -= pad; hi += pad;
-  const X = g => M.l + Math.min(g, GL) / GL * pw;
-  const Y = v => M.t + ph - (v - lo) / (hi - lo) * ph;
-  let s = `<svg viewBox="0 0 ${W} ${H}">`;
-  for (let q = 0; q < 4; q++) {
-    if (q % 2 === 0) s += `<rect x="${X(q * 900)}" y="${M.t}" width="${pw / 4}" height="${ph}" fill="rgba(128,128,128,0.05)"/>`;
-    s += `<text class="tick" x="${X(q * 900 + 450)}" y="${M.t - 8}" text-anchor="middle">Q${q + 1}</text>`;
+  const pw = CW - CM.l - CM.r, ph = CH - CM.t - CM.b;
+  let lo, hi;
+  if (cfg.mode === "area") { hi = Math.max(7, ...all.map(Math.abs)) * 1.15; lo = -hi; }
+  else {
+    lo = Math.min(0, ...all); hi = Math.max(...all);
+    const pad = Math.max(3, (hi - lo) * 0.12); hi += pad;
   }
-  const step = (hi - lo) > 40 ? 14 : 7;
+  const X = g => CM.l + Math.min(g, GL) / GL * pw;
+  const Y = v => CM.t + ph - (v - lo) / (hi - lo) * ph;
+  MC = { ...cfg, series, X, Y, lo, hi };
+  let s = `<svg id="mcsvg" viewBox="0 0 ${CW} ${CH}">`;
+  for (let q = 0; q <= 4; q++)
+    s += `<line x1="${X(q * 900)}" x2="${X(q * 900)}" y1="${CM.t}" y2="${CM.t + ph}" stroke="var(--grid)"/>`;
+  for (let q = 0; q < 4; q++)
+    s += `<text class="tick" x="${X(q * 900 + 450)}" y="${CH - 10}" text-anchor="middle">Q${q + 1}</text>`;
+  const step = (hi - lo) > 48 ? 14 : 7;
   for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
-    s += `<line x1="${M.l}" x2="${M.l + pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>`;
-    s += `<text class="tick" x="${M.l - 6}" y="${Y(v) + 3}" text-anchor="end">${yLabelFmt(v)}</text>`;
+    if (cfg.mode !== "area" || v !== 0)
+      s += `<line x1="${CM.l}" x2="${CM.l + pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)" stroke-dasharray="1,3"/>`;
+    s += `<text class="tick" x="${CM.l - 6}" y="${Y(v) + 3}" text-anchor="end">${cfg.yfmt(v)}</text>`;
   }
-  if (lo < 0 && hi > 0) s += `<line x1="${M.l}" x2="${M.l + pw}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--baseline)" stroke-width="1.4"/>`;
-  for (const ser of series) {
-    const pts = ser.pts.filter(p => p[1] !== null && p[1] !== undefined);
-    if (!pts.length) continue;
-    let d = `M${X(pts[0][0])},${Y(pts[0][1])}`;
-    for (let i = 1; i < pts.length; i++) d += `H${X(pts[i][0])}V${Y(pts[i][1])}`;
-    s += `<path d="${d}" fill="none" stroke="${ser.color}" stroke-width="2.2" stroke-linejoin="round" ${ser.dash ? 'stroke-dasharray="5,4"' : ""}/>`;
-    const last = pts[pts.length - 1];
-    s += `<text x="${X(last[0]) + 4}" y="${Y(last[1]) + 4}" fill="${ser.color}" font-size="11" font-weight="600">${ser.name}</text>`;
+  if (cfg.mode === "area") {
+    const pts = series[0].pts;
+    let curve = `M${X(pts[0][0])},${Y(pts[0][1])}`;
+    for (let i = 1; i < pts.length; i++) curve += `H${X(pts[i][0])}V${Y(pts[i][1])}`;
+    const area = curve + `V${Y(0)}H${X(pts[0][0])}Z`;
+    s += `<clipPath id="cTop"><rect x="0" y="0" width="${CW}" height="${Y(0)}"/></clipPath>
+          <clipPath id="cBot"><rect x="0" y="${Y(0)}" width="${CW}" height="${CH - Y(0)}"/></clipPath>
+          <path d="${area}" fill="${cfg.hcolor}" opacity="0.28" clip-path="url(#cTop)"/>
+          <path d="${area}" fill="${cfg.acolor}" opacity="0.28" clip-path="url(#cBot)"/>
+          <path d="${curve}" fill="none" stroke="${cfg.hcolor}" stroke-width="2.4" stroke-linejoin="round" clip-path="url(#cTop)"/>
+          <path d="${curve}" fill="none" stroke="${cfg.acolor}" stroke-width="2.4" stroke-linejoin="round" clip-path="url(#cBot)"/>
+          <line x1="${CM.l}" x2="${CM.l + pw}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--baseline)" stroke-width="1.4"/>`;
+    if (cfg.pregame !== null && cfg.pregame !== undefined)
+      s += `<line x1="${CM.l}" x2="${CM.l + pw}" y1="${Y(cfg.pregame)}" y2="${Y(cfg.pregame)}"
+            stroke="var(--muted)" stroke-dasharray="5,4" opacity="0.7"/>
+            <text class="tick" x="${CM.l + pw - 2}" y="${Y(cfg.pregame) - 4}" text-anchor="end">pregame</text>`;
+    s += `<text x="${CM.l + 8}" y="${CM.t + 15}" fill="${cfg.hcolor}" font-size="12" font-weight="700">${cfg.hname}</text>
+          <text x="${CM.l + 8}" y="${CM.t + ph - 7}" fill="${cfg.acolor}" font-size="12" font-weight="700">${cfg.aname}</text>`;
+  } else {
+    for (const ser of series) {
+      let d = `M${X(ser.pts[0][0])},${Y(ser.pts[0][1])}`;
+      for (let i = 1; i < ser.pts.length; i++) d += `H${X(ser.pts[i][0])}V${Y(ser.pts[i][1])}`;
+      s += `<path d="${d}" fill="none" stroke="${ser.color}" stroke-width="2.2" stroke-linejoin="round" ${ser.dash ? 'stroke-dasharray="5,4"' : ""}/>`;
+      const last = ser.pts[ser.pts.length - 1];
+      s += `<text x="${X(last[0]) + 4}" y="${Y(last[1]) + 4}" fill="${ser.color}" font-size="11" font-weight="600">${ser.name}</text>`;
+    }
   }
-  const spread = series[0].pts;
-  for (const [gc, label, text] of events || []) {
-    const near = spread.filter(p => p[0] <= gc && p[1] !== null);
-    const y = near.length ? Y(near[near.length - 1][1]) : M.t + ph / 2;
-    s += `<circle cx="${X(gc)}" cy="${y}" r="5" fill="var(--orange)" stroke="var(--surface)" stroke-width="1.5"><title>${label}: ${text}</title></circle>`;
-  }
+  // usage rug: one tick per target/carry (approximate timing from poll deltas)
+  if (cfg.rug) for (const g of cfg.rug)
+    s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--green)" stroke-width="2" opacity="0.8"/>`;
+  s += `<line id="mxh" x1="0" x2="0" y1="${CM.t}" y2="${CM.t + ph}" stroke="var(--muted)" stroke-dasharray="2,3" visibility="hidden"/>`;
+  s += `<rect id="mhit" x="${CM.l}" y="${CM.t}" width="${pw}" height="${ph}" fill="transparent"/>`;
+  (cfg.events || []).forEach((ev, i) => {
+    const y = stepVal(series[0].pts, ev.gc);
+    s += `<circle class="evdot" data-i="${i}" cx="${X(ev.gc)}" cy="${y === null ? CM.t + ph / 2 : Y(y)}" r="5.5"
+           fill="${EVCOLOR[ev.cls] || "var(--orange)"}" stroke="var(--surface)" stroke-width="1.5" style="cursor:pointer"/>`;
+  });
   return s + "</svg>";
 }
 
-function openCfb(id) {
-  const h = S.cfbHist[id], g = (S.cfb.games || []).find(x => x.id === id);
-  if (!h) return;
-  const snaps = h.snaps || [];
-  const line = snaps.map(s => [s[0], s[1]]);
-  const margin = snaps.map(s => [s[0], s[2]]);
-  const evs = (h.events || []).map(e => [e[0], (e[2] === "home" ? h.meta.habbr : h.meta.aabbr) + " " + e[1], e[3]]);
-  const chart = svgChart(
-    [{ pts: line, color: "var(--blue)", name: "live spread" },
-     { pts: margin, color: "var(--green)", name: "margin" },
-     { pts: [[0, -(h.pregame ?? 0)], [GL, -(h.pregame ?? 0)]], color: "var(--muted)", name: "pregame pace", dash: 1 }],
-    evs, v => v > 0 ? `${h.meta.habbr}+${v}` : `${h.meta.habbr}${v}`);
-  showModal(`
-    <h3>${logoImg(h.meta.alogo)} ${h.meta.aabbr} @ ${logoImg(h.meta.hlogo)} ${h.meta.habbr}</h3>
-    <div class="meta">${g ? g.score + " · " + g.clock + " · " : ""}pregame ${h.pregame ?? "—"} (home) ·
-      blue = live home spread, green = home margin, dots = scoring plays (hover)</div>
-    ${chart}
-    ${evs.slice().reverse().map(e => `<div class="evrow"><b>${e[1]}</b> — ${e[2]}</div>`).join("")}`);
+function bindChart() {
+  const svg = document.getElementById("mcsvg"), tip = document.getElementById("mtip");
+  if (!svg) return;
+  const hit = document.getElementById("mhit"), xh = document.getElementById("mxh");
+  const place = e => {
+    tip.style.display = "block";
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 240) + "px";
+    tip.style.top = (e.clientY + 14) + "px";
+  };
+  hit.addEventListener("mousemove", e => {
+    const r = svg.getBoundingClientRect();
+    const gc = (((e.clientX - r.left) * CW / r.width) - CM.l) / (CW - CM.l - CM.r) * GL;
+    xh.setAttribute("x1", MC.X(gc)); xh.setAttribute("x2", MC.X(gc));
+    xh.setAttribute("visibility", "visible");
+    const rows = MC.tip ? MC.tip(gc) : MC.series.filter(s => !s.dash).map(s => {
+      const v = stepVal(s.pts, gc);
+      return `<div class="row"><span style="color:${s.color}">●</span> ${s.name}<b>${v === null ? "—" : MC.yfmt(v)}</b></div>`;
+    }).join("");
+    tip.innerHTML = `<div class="t">${gcLabel(gc)}</div>${rows}`;
+    place(e);
+  });
+  hit.addEventListener("mouseleave", () => { tip.style.display = "none"; xh.setAttribute("visibility", "hidden"); });
+  svg.querySelectorAll(".evdot").forEach(dot => {
+    dot.addEventListener("mousemove", e => {
+      const ev = MC.events[+dot.dataset.i];
+      tip.innerHTML = `<div class="t">${gcLabel(ev.gc)}${ev.score ? " · " + ev.score : ""}</div>
+        <div class="row"><b>${ev.label}</b></div><div style="max-width:220px">${ev.text}</div>`;
+      place(e);
+    });
+    dot.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+  });
 }
 
-function openNfl(id) {
-  const h = S.nflHist[id], o = (S.nfl.opps || []).find(x => x.id === id);
+function openSpread(kind, id) {
+  const h = S.spreadHist[kind][id], g = (S.spread[kind]?.games || []).find(x => x.id === id);
+  if (!h) return;
+  const snaps = h.snaps || [], ha = h.meta.habbr, aa = h.meta.aabbr;
+  const hcolor = h.meta.hcolor ? "#" + h.meta.hcolor : "var(--blue)";
+  const acolor = h.meta.acolor ? "#" + h.meta.acolor : "var(--orange)";
+  const fav = clean(snaps.map(s => [s[0], s[1] === null || s[1] === undefined ? null : -s[1]]));
+  const margins = clean(snaps.map(s => [s[0], s[2]]));
+  const yfmt = v => v === 0 ? "EVEN" : v > 0 ? `${ha} -${Math.abs(Math.round(v))}` : `${aa} -${Math.abs(Math.round(v))}`;
+  const events = (h.events || []).map(e => ({
+    gc: e[0], label: `${e[2] === "home" ? ha : aa} ${e[1]}`, text: e[3], cls: e[6] ?? "score",
+    score: e[4] !== undefined && e[4] !== null ? `${aa} ${e[5]} – ${ha} ${e[4]}` : "",
+  }));
+  const scoreAt = gc => {
+    let sc = `${aa} 0 – ${ha} 0`;
+    for (const ev of events) { if (ev.gc > gc) break; if (ev.score) sc = ev.score; }
+    return sc;
+  };
+  const chart = svgChart({
+    mode: "area", yfmt, events,
+    hcolor, acolor, hname: `${ha} favored`, aname: `${aa} favored`,
+    pregame: h.pregame !== null && h.pregame !== undefined ? -h.pregame : null,
+    series: [{ pts: fav, noclean: 1 }],
+    tip: gc => {
+      const f = stepVal(fav, gc), m = stepVal(margins, gc);
+      return `<div class="row">score<b>${scoreAt(gc)}</b></div>
+        <div class="row">live spread<b>${f === null ? "—" : yfmt(f)}</b></div>
+        <div class="row">margin<b>${m === null || m === 0 ? "tied" : (m > 0 ? ha : aa) + " +" + Math.abs(m)}</b></div>`;
+    },
+  });
+  showModal(`
+    <h3>${logoImg(h.meta.alogo)} ${aa} @ ${logoImg(h.meta.hlogo)} ${ha}</h3>
+    <div class="meta">${g ? g.score + " · " + g.clock + " · " : ""}
+      live spread over the game clock — above the line ${ha} is favored ·
+      <span class="dot" style="background:var(--orange)"></span> score
+      <span class="dot" style="background:var(--red)"></span> turnover
+      <span class="dot" style="background:var(--yellow)"></span> momentum (4th down, explosive) · hover anything</div>
+    ${chart}
+    ${events.slice().reverse().map(ev => `<div class="evrow">
+      <span class="dot" style="background:${EVCOLOR[ev.cls]}"></span>
+      <span style="color:var(--muted)">${gcLabel(ev.gc)}</span> ${ev.score ? `· <b>${ev.score}</b> ` : ""}
+      · <b>${ev.label}</b> — ${ev.text}</div>`).join("")}`);
+  bindChart();
+}
+
+function openProp(id) {
+  const h = S.nflHist[id], o = (S.props?.opps || []).find(x => x.id === id);
   if (!h) return;
   const snaps = h.snaps || [];
-  const line = snaps.map(s => [s[0], s[3]]);
-  const cum = snaps.map(s => [s[0], s[1]]);
-  const chart = svgChart(
-    [{ pts: line, color: "var(--blue)", name: "O/U line" },
-     { pts: cum, color: "var(--green)", name: "yards" }],
-    [], v => v);
+  const rug = [];
+  for (let i = 1; i < snaps.length; i++)
+    for (let k = 0; k < (snaps[i][2] - snaps[i - 1][2]); k++) rug.push(snaps[i][0]);
+  const chart = svgChart({
+    yfmt: v => Math.round(v),
+    series: [
+      { pts: snaps.map(s => [s[0], s[3]]), color: "var(--blue)", name: "O/U line" },
+      { pts: snaps.map(s => [s[0], s[1]]), color: "var(--green)", name: "yards" },
+    ],
+    rug, events: [],
+  });
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${h.market === "rec" ? "receiving" : "rushing"} · ${h.game}</span></h3>
-    <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock}` : ""}</div>
+    <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock} · ` : ""}
+      blue = book line, green = cumulative yards, ticks on the baseline = ${h.market === "rec" ? "targets" : "carries"}</div>
     ${chart}`);
+  bindChart();
 }
 
 function showModal(html) {
@@ -327,9 +470,9 @@ function showModal(html) {
 function closeModal() { document.getElementById("overlay").style.display = "none"; }
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
-refreshNfl(); refreshCfb(); loadAux();
-setInterval(refreshNfl, 10000);
-setInterval(refreshCfb, 10000);
+refreshProps(); refreshSpread("nflsp"); refreshSpread("cfb"); loadAux();
+setInterval(refreshProps, 10000);
+setInterval(() => { refreshSpread("nflsp"); refreshSpread("cfb"); }, 10000);
 setInterval(loadAux, 30000);
 </script>
 </body>

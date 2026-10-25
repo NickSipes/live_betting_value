@@ -60,6 +60,9 @@
   </div>
   <div class="games" id="games"></div>
   <div id="content"></div>
+  <h2 style="font-size:15px;margin:26px 0 10px">College football — live spreads vs fair line</h2>
+  <div class="meta" style="margin:-6px 0 10px">Fair = current margin carried forward plus the pregame spread scaled by game remaining. Big edge = the market moved more than score + time justify (uncalibrated v0 baseline).</div>
+  <div id="cfb"></div>
   <h2 id="watchtitle" style="font-size:15px;margin:26px 0 10px">Players to watch</h2>
   <div class="meta" style="margin:-6px 0 10px">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week. These are the matchups the live model hunts in.</div>
   <div id="watch"></div>
@@ -110,6 +113,33 @@ async function refresh() {
     known[o.id] = o.status;
   }
 }
+let knownCfb = {};
+async function refreshCfb() {
+  let d;
+  try { d = await (await fetch("cfb_state.json?" + Date.now())).json(); }
+  catch (e) { return; }
+  const rows = (d.games || []).map(g => `
+    <tr class="${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : ""}">
+      <td><b>${g.game}</b></td><td>${g.clock}</td><td>${g.score}</td>
+      <td>${g.pregame ?? "—"}</td><td>${g.line ?? "—"}</td><td>${g.fair ?? "—"}</td>
+      <td>${g.edge ?? "—"}${g.side ? ` <span style="color:var(--muted)">(${g.side})</span>` : ""}</td>
+      <td>${g.dline10 ?? "—"}</td>
+      <td><span class="chip ${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : "watch"}">${g.status}</span></td>
+    </tr>`).join("");
+  document.getElementById("cfb").innerHTML = rows ? `
+    <table><thead><tr>
+      <th>game</th><th>clock</th><th>score</th><th>pregame</th><th>live (home)</th>
+      <th>fair</th><th>edge</th><th>Δline 10m</th><th>status</th>
+    </tr></thead><tbody>${rows}</tbody></table>`
+    : `<div id="empty">No live college games right now.</div>`;
+  for (const g of d.games || []) {
+    if (g.status !== "watch" && knownCfb[g.id] !== g.status
+        && "Notification" in window && Notification.permission === "granted")
+      new Notification(`CFB ${g.status}: ${g.game}`,
+        { body: `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}` });
+    knownCfb[g.id] = g.status;
+  }
+}
 async function loadWatch() {
   let d;
   try { d = await (await fetch("watchlist.json?" + Date.now())).json(); }
@@ -131,8 +161,10 @@ async function loadWatch() {
     : `<div id="empty">No qualifying matchups this week.</div>`;
 }
 refresh();
+refreshCfb();
 loadWatch();
 setInterval(refresh, 10000);
+setInterval(refreshCfb, 10000);
 </script>
 </body>
 </html>

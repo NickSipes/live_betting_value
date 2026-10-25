@@ -17,8 +17,9 @@ LIVE = f"{ROOT}/live"
 json.dump({"feats": V2_FEATS, "mu": mua.tolist(), "sd": sda.tolist(),
            "w": wa.tolist(), "b": float(ba)}, open(f"{LIVE}/model_weights.json", "w"), indent=1)
 
-# priors entering NEXT week (all data to date)
-w_next = max_week + 1
+# upcoming week = first week in the schedule with unplayed games
+w_next = min(int(r["week"]) for r in csv.DictReader(open(f"{ROOT}/data/games.csv"))
+             if r["season"] == "2026" and r["result"] in ("", "NA"))
 pri, dpri = {}, {}
 for kind, evs in events.items():
     tot, gms, nev = collections.defaultdict(float), collections.defaultdict(set), collections.defaultdict(int)

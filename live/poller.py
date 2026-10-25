@@ -350,7 +350,7 @@ class Monitor:
                     keep = {k: v for k, v in (cur or {}).items() if k in ("result", "won_at", "won_yds")}
                     h[key] = {**keep, "clock": gc_label(out[i][0]), "gc": out[i][0], "line": out[i][3],
                               "cum": out[i][1], "p": out[i][4], "rebuilt": True,
-                              "x": [round(v, 4) for v in xs[i]]}
+                              "x": [round(v, 4) for v in xs[i]], "t": (cur or {}).get("t", time.time())}
                 elif cur and not cur.get("x") and i in xs:   # older record: attach its inputs
                     cur["x"] = [round(v, 4) for v in xs[i]]
                     cur.setdefault("gc", out[i][0])
@@ -452,7 +452,7 @@ class Monitor:
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
                 if p >= CALL and "call" not in h:
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
-                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x],
+                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:

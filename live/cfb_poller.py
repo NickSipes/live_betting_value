@@ -79,6 +79,20 @@ def espn_events(espn_id, home_id):
                 kind, cls = f"⚡ {kind}", "mom"   # explosive TD, never a field goal
             side = "home" if str(p.get("team", {}).get("id")) == str(home_id) else "away"
             out.append([gc, kind, side, text[:120], p.get("homeScore"), p.get("awayScore"), cls])
+        # player stat lines, to grade how meaningful an injured player is
+        stats = {}
+        for tp in s.get("boxscore", {}).get("players", []):
+            for cat in tp.get("statistics", []):
+                labels = [l.upper() for l in cat.get("labels", [])]
+                for a in cat.get("athletes", []):
+                    row = dict(zip(labels, a.get("stats", [])))
+                    nm = a["athlete"]["displayName"]
+                    try:
+                        yds = float(row.get("YDS", 0) or 0)
+                    except ValueError:
+                        yds = 0
+                    e = stats.setdefault(nm, {"yds": 0.0})
+                    e["yds"] += abs(yds)
         # momentum plays from the drive log (non-scoring)
         drives = s.get("drives", {})
         for d in (drives.get("previous", []) + ([drives["current"]] if drives.get("current") else [])):
@@ -103,6 +117,17 @@ def espn_events(espn_id, home_id):
                     kind, cls, flip = "4th DOWN CONV", "mom", False
                 elif yds >= 30 and ("Pass" in t or "Rush" in t or "Reception" in t):
                     kind, cls, flip = f"⚡ {yds} yd play", "mom", False
+                if not kind and "injur" in text.lower():
+                    m = re.search(r"#?\d*\s*([A-Z][\w.'\-]*\.?\s?[A-Z][\w'\-]+)\s+(?:was\s+)?injured", text)
+                    who = m.group(1) if m else None
+                    yds_line = 0
+                    if who:
+                        last = who.split()[-1].lower()
+                        for nm, st in stats.items():
+                            if nm.split()[-1].lower() == last:
+                                yds_line = max(yds_line, st["yds"])
+                    grade = "KEY " if yds_line >= 25 else ""
+                    kind, cls, flip = f"🚑 {grade}INJURY" + (f" ({who}, {yds_line:.0f} yds)" if who else ""), "inj", False
                 if not kind:
                     continue
                 side_home = (not off_home) if flip else off_home   # credit the gaining side
@@ -146,6 +171,7 @@ class CFB:
                 "poss_side": ids.get(sit.get("possession")),   # 'home'/'away'/None
                 "yl": sit.get("yardLine"),                      # yards from own goal
                 "poss_text": sit.get("possessionText"),
+                "dd": sit.get("shortDownDistanceText") or sit.get("downDistanceText"),
                 "hlogo": t["home"]["team"].get("logo"), "alogo": t["away"]["team"].get("logo"),
                 "hcolor": t["home"]["team"].get("color"), "acolor": t["away"]["team"].get("color"),
                 "hid": t["home"]["id"],
@@ -200,7 +226,11 @@ class CFB:
             dline = dmarg = None
             if old and L is not None:
                 dline, dmarg = round(L - old[1], 1), margin - old[2]
-            h["snaps"].append((now_gc, L, margin))
+            sit_now = None
+            if side:
+                ab = g["habbr"] if side == "home" else g["aabbr"]
+                sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {g["dd"]}' if g.get("dd") else "")
+            h["snaps"].append((now_gc, L, margin, sit_now))
             h["snaps"] = h["snaps"][-200:]
             swing = dline is not None and abs(dline) >= SWING_PTS and abs(dline + dmarg) >= SWING_PTS / 2
             status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else \

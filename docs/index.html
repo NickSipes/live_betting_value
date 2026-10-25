@@ -69,6 +69,7 @@
            max-width:760px; width:100%; max-height:88vh; overflow:auto; padding:20px 22px; }
   #modal h3 { margin:0 0 2px; font-size:16px; display:flex; align-items:center; gap:8px; }
   #modal h3 img { width:24px; height:24px; }
+  .mhead img { width:30px; height:30px; object-fit:contain; }
   #modal .meta { margin-bottom:10px; }
   svg { display:block; width:100%; height:auto; }
   svg text { font-family:inherit; }
@@ -279,7 +280,7 @@ async function loadAux() {
 const GL = 3600;
 const CW = 700, CH = 330, CM = { t: 26, r: 14, b: 34, l: 44 };
 let MC = null;
-const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)" };
+const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)", inj: "#9085e9" };
 
 const clean = pts => {
   const m = new Map();
@@ -349,6 +350,15 @@ function svgChart(cfg) {
       s += `<text x="${X(last[0]) + 4}" y="${Y(last[1]) + 4}" fill="${ser.color}" font-size="11" font-weight="600">${ser.name}</text>`;
     }
   }
+  if (cfg.legend) {
+    let lx = CW - CM.r - 8;
+    for (const item of [...cfg.legend].reverse()) {
+      const tw = item.label.length * 5.6 + 14;
+      lx -= tw;
+      s += `<circle cx="${lx}" cy="${CM.t + 10}" r="4" fill="${item.color}"/>
+            <text class="tick" x="${lx + 7}" y="${CM.t + 13}">${item.label}</text>`;
+    }
+  }
   // usage rug: one tick per target/carry (approximate timing from poll deltas)
   if (cfg.rug) for (const g of cfg.rug)
     s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--green)" stroke-width="2" opacity="0.8"/>`;
@@ -392,6 +402,10 @@ function bindChart() {
       place(e);
     });
     dot.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    dot.addEventListener("click", e => {
+      e.stopPropagation();
+      if (MC.onEvClick) MC.onEvClick(+dot.dataset.i);
+    });
   });
 }
 
@@ -413,30 +427,53 @@ function openSpread(kind, id) {
     for (const ev of events) { if (ev.gc > gc) break; if (ev.score) sc = ev.score; }
     return sc;
   };
+  const sits = snaps.filter(s => s[3]).map(s => [s[0], s[3]]);
   const chart = svgChart({
     mode: "area", yfmt, events,
     hcolor, acolor, hname: `${ha} favored`, aname: `${aa} favored`,
     pregame: h.pregame !== null && h.pregame !== undefined ? -h.pregame : null,
     series: [{ pts: fav, noclean: 1 }],
+    legend: [
+      { color: "var(--orange)", label: "score" },
+      { color: "var(--red)", label: "turnover" },
+      { color: "var(--yellow)", label: "momentum" },
+      { color: "#9085e9", label: "injury" },
+    ],
     tip: gc => {
       const f = stepVal(fav, gc), m = stepVal(margins, gc);
+      const sit = stepVal(sits, gc);
       return `<div class="row">score<b>${scoreAt(gc)}</b></div>
         <div class="row">live spread<b>${f === null ? "—" : yfmt(f)}</b></div>
-        <div class="row">margin<b>${m === null || m === 0 ? "tied" : (m > 0 ? ha : aa) + " +" + Math.abs(m)}</b></div>`;
+        <div class="row">margin<b>${m === null || m === 0 ? "tied" : (m > 0 ? ha : aa) + " +" + Math.abs(m)}</b></div>` +
+        (sit ? `<div style="color:var(--muted);margin-top:3px">${sit}</div>` : "");
+    },
+    onEvClick: i => {
+      const row = document.getElementById("ev-" + i);
+      if (!row) return;
+      const list = document.getElementById("evlist");
+      list.scrollTop = row.offsetTop - list.offsetTop;
+      row.style.background = "color-mix(in srgb, var(--orange) 14%, transparent)";
+      setTimeout(() => row.style.background = "", 1600);
     },
   });
+  const lastScored = [...events].reverse().find(ev => ev.score);
+  const finalScore = lastScored ? [h.events.find(e => e[0] === lastScored.gc && e[5] !== null)?.[5], h.events.find(e => e[0] === lastScored.gc && e[4] !== null)?.[4]] : [0, 0];
+  const [asc, hsc] = g?.score ? g.score.split("-") : finalScore;
   showModal(`
-    <h3>${logoImg(h.meta.alogo)} ${aa} @ ${logoImg(h.meta.hlogo)} ${ha}</h3>
-    <div class="meta">${g ? g.score + " · " + g.clock + " · " : ""}
-      live spread over the game clock — above the line ${ha} is favored ·
-      <span class="dot" style="background:var(--orange)"></span> score
-      <span class="dot" style="background:var(--red)"></span> turnover
-      <span class="dot" style="background:var(--yellow)"></span> momentum (4th down, explosive) · hover anything</div>
+    <div class="mhead" style="display:flex;align-items:center;justify-content:center;gap:16px;margin:2px 0 4px">
+      <span style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700">
+        ${logoImg(h.meta.alogo)} ${aa} <span style="font-size:21px">${asc ?? ""}</span></span>
+      <span style="text-align:center;color:var(--ink-2);font-size:12px;line-height:1.5">
+        ${g ? g.clock : "final / not live"}<br>${g?.poss ?? ""}</span>
+      <span style="display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700">
+        <span style="font-size:21px">${hsc ?? ""}</span> ${ha} ${logoImg(h.meta.hlogo)}</span>
+    </div>
     ${chart}
-    ${events.slice().reverse().map(ev => `<div class="evrow">
+    <div id="evlist" style="max-height:200px;overflow-y:auto;margin-top:10px">
+    ${events.map((ev, i) => `<div class="evrow" id="ev-${i}">
       <span class="dot" style="background:${EVCOLOR[ev.cls]}"></span>
       <span style="color:var(--muted)">${gcLabel(ev.gc)}</span> ${ev.score ? `· <b>${ev.score}</b> ` : ""}
-      · <b>${ev.label}</b> — ${ev.text}</div>`).join("")}`);
+      · <b>${ev.label}</b> — ${ev.text}</div>`).reverse().join("")}</div>`);
   bindChart();
 }
 

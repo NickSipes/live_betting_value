@@ -399,7 +399,8 @@ class Monitor:
             final = box[eid].get(name, {}).get(kind, (last[1], 0))[0]   # box score beats a stale snapshot
             c = h.get("call")
             if c:
-                c.setdefault("result", "win" if final > c["line"] else "loss")
+                if "result" not in c:
+                    c.update(result="win" if final > c["line"] else "loss", settled_t=time.time())
                 settled.append({"week": wk, "espn_id": eid, "game": h["meta"]["game"], "player": name,
                                 "market": kind, "pregame_line": h.get("l0"), "final": final,
                                 "settled": datetime.datetime.now(datetime.timezone.utc).isoformat(), **c})
@@ -431,6 +432,7 @@ class Monitor:
             return opps, games_out, histout
         odds_events = get(f"{ODDS}/events?apiKey={KEY}")
         for game in live.values():
+            listed = set()
             oe = next((e for e in odds_events
                        if game["home"] in e["home_team"] or e["home_team"] in game["home"]), None)
             games_out.append({"label": f'{game["away_abbr"]} @ {game["home_abbr"]}',
@@ -469,7 +471,7 @@ class Monitor:
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:
-                    c.update(result="win", won_at=game["clock"], won_yds=cum)
+                    c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
                 h["snaps"][-1] = list(h["snaps"][-1][:4]) + [round(p, 3)]   # (gc, cum, nev, L, P)
                 oid = f'{name}|{kind}'
                 pteam = players[name]["team"]
@@ -479,7 +481,8 @@ class Monitor:
                 self.hist[hkey]["meta"] = meta
                 histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
                 status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
-                opps.append({"id": oid, "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
+                listed.add(oid)
+                opps.append({"id": oid, "eid": game["espn_id"], "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,
                              "drought": round(drought), "p": round(p, 3), "status": status, "vs": opp,
                              "call": h.get("call")})
@@ -492,19 +495,20 @@ class Monitor:
                             csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
-            seen = {f"{n}|{k}" for (n, k) in quotes}
+            # a call stays listed until it settles, even when the prop isn't scored this
+            # cycle (line pulled, within 3 yds of the line, or past the scoring window)
             for hkey, h in self.hist.items():
                 eid, name, kind = hkey.split("|", 2)
                 oid = f"{name}|{kind}"
-                if eid != game["espn_id"] or not h.get("call") or oid in seen or not h.get("meta") or not h["snaps"]:
+                if eid != game["espn_id"] or not h.get("call") or oid in listed or not h.get("meta") or not h["snaps"]:
                     continue
                 last = h["snaps"][-1]
                 cum, nev = players.get(name, {}).get(kind, (last[1], last[2]))
                 c = h["call"]
                 if "result" not in c and cum > c["line"]:
-                    c.update(result="win", won_at=game["clock"], won_yds=cum)
+                    c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
                 histout[oid] = {**h["meta"], "snaps": h["snaps"]}
-                opps.append({"id": oid, **h["meta"], "clock": game["clock"], "line": last[3], "cum": cum,
+                opps.append({"id": oid, "eid": eid, **h["meta"], "clock": game["clock"], "line": last[3], "cum": cum,
                              "events": nev, "drought": round((max(game["gc"], 60) - h.get("last_change", 0)) / 60),
                              "p": last[4] if len(last) > 4 and last[4] is not None else 0,
                              "status": "watch", "vs": "", "call": c, "noline": True})

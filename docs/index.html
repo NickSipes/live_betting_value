@@ -298,17 +298,25 @@ function propLiveCard(o) {
     <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
   </div>`;
 }
-function callRow(o) {
-  const c = o.call, w = won(c, o.cum);
+function callRow(c, open, isNew) {
+  // c: {player, market, line, p, clock, score, cum (yards at call), now, result}
+  const res = c.result === "win" ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
   return `
-  <div class="callrow ${freshCalls.has(o.id) ? "new" : ""}" ${on(() => openProp(o.id))}>
+  <div class="callrow ${isNew ? "new" : ""}" ${on(open)}>
     <div class="cr1">
-      <span class="who">${o.player}${star(o.player, o.market)}</span>
-      <span class="what">${MKT(o.market)} O ${c.line}</span>
-      <span class="res ${w ? "win" : ""}">${w ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending"}</span>
+      <span class="who">${c.player}${star(c.player, c.market)}</span>
+      <span class="what">${MKT(c.market)} O ${c.line}</span>
+      <span class="res ${c.result === "win" ? "win" : ""}">${res}</span>
     </div>
-    <div class="cr2">${c.clock} · ${c.score ?? o.game} · had ${c.cum} → now ${o.cum} yds · ${Math.round(c.p * 100)}%</div>
+    <div class="cr2">${c.clock} · ${c.score ?? ""} · had ${c.cum} → ${c.result === "win" ? "cleared at" : c.result === "loss" ? "finished" : "now"} ${c.now} yds · ${Math.round(c.p * 100)}%</div>
   </div>`;
+}
+const liveCall = o => ({ ...o.call, player: o.player, market: o.market, now: o.call.result === "win" ? o.call.won_yds ?? o.cum : o.cum,
+  key: `${o.eid}|${o.player}|${o.market}`, t: o.call.settled_t || o.call.t });
+async function openLedgerCall(c) {
+  await loadArchive("nfl", c.week);
+  const key = `${c.espn_id}|${c.player}|${c.market}`, rec = S.parch[c.week]?.[key];
+  if (rec) openProp(key, rec);
 }
 function propPreCard(w, chip = "PREGAME") {
   return `
@@ -418,16 +426,30 @@ function viewLive() {
   let html = "";
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
-    const calls = all.filter(o => o.call).sort((a, b) =>
+    const active = all.filter(o => o.call && !o.call.result).sort((a, b) =>
       (b.call.t || 0) - (a.call.t || 0) || (b.call.gc || 0) - (a.call.gc || 0));
-    if (calls.length) {
-      const nw = calls.filter(o => won(o.call, o.cum)).length;
-      html += `
+    html += `
       <details class="sect ${Date.now() < flashUntil ? "flash" : ""}" ${closed.has("nfl-active-calls") ? "" : "open"}
                ontoggle="secToggle('nfl-active-calls', this.open)">
-        <summary>Active calls <span class="count">${nw} won · ${calls.length - nw} pending</span></summary>
-        <div class="leg">The model's ≥70% calls, newest first. A call wins once the player clears the line from that moment. Tap one for its chart.</div>
-        <div class="calls">${calls.map(callRow).join("")}</div>
+        <summary>Active calls <span class="count">${active.length} pending</span></summary>
+        <div class="leg">The model's ≥70% calls that haven't settled, newest first. Each wins once the player clears the called line, or loses at the final. Tap one for its chart.</div>
+        ${active.length ? `<div class="calls">${active.map(o => callRow(liveCall(o), () => openProp(o.id), freshCalls.has(o.id))).join("")}</div>`
+          : `<div class="empty">No open calls right now.</div>`}
+      </details>`;
+    const liveWins = all.filter(o => o.call?.result).map(liveCall);
+    const have = new Set(liveWins.map(c => c.key));
+    const wk = S.watch?.week;
+    const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !have.has(`${c.espn_id}|${c.player}|${c.market}`))
+      .map(c => ({ ...c, now: c.final, t: c.settled_t || Date.parse(c.settled) / 1000 }));
+    const past = [...liveWins.map(c => ({ c, open: () => openProp(`${c.player}|${c.market}`) })),
+                  ...ledger.map(c => ({ c, open: () => openLedgerCall(c) }))]
+      .sort((a, b) => (b.c.t || 0) - (a.c.t || 0));
+    if (past.length) {
+      const pw = past.filter(x => x.c.result === "win").length;
+      html += `
+      <details class="sect" ${closed.has("nfl-past-calls") ? "" : "open"} ontoggle="secToggle('nfl-past-calls', this.open)">
+        <summary>Past calls <span class="count">week ${wk} · ${pw}–${past.length - pw}</span></summary>
+        <div class="calls">${past.map(x => callRow(x.c, x.open, false)).join("")}</div>
       </details>`;
     }
     const opps = all.filter(o => o.p >= P_MIN && !o.noline).sort((a, b) =>
@@ -533,7 +555,7 @@ async function loadAux() {
 }
 let seenCalls = null, freshCalls = new Set(), flashUntil = 0;
 function checkNewCalls() {
-  const calls = (S.props?.opps || []).filter(o => o.call);
+  const calls = (S.props?.opps || []).filter(o => o.call && !o.call.result);
   if (seenCalls === null) { seenCalls = new Set(calls.map(o => o.id)); return; }   // no flash on page load
   if (Date.now() > flashUntil) freshCalls.clear();
   const fresh = calls.filter(o => !seenCalls.has(o.id));

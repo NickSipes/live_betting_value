@@ -1,0 +1,29 @@
+name: live-poll
+on:
+  workflow_dispatch:
+  schedule:
+    # NFL game windows, UTC (ET+4/5). GitHub cron is best-effort (~5-15 min lag).
+    - cron: "*/10 17-23 * * 0"   # Sunday slates
+    - cron: "*/10 0-4 * * 1"     # Sunday night spillover
+    - cron: "*/10 0-4 * * 2"     # Monday night
+    - cron: "*/10 0-4 * * 5"     # Thursday night
+permissions:
+  contents: write
+concurrency:
+  group: live-poll
+  cancel-in-progress: false
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: one polling cycle
+        env:
+          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+        run: python3 live/poller.py --once
+      - name: commit state
+        run: |
+          git config user.name "prop-monitor-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/state.json live/history.json live/paper_log.csv 2>/dev/null || true
+          git diff --cached --quiet || (git commit -m "poll $(date -u +%H:%M)" && git push)

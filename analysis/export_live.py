@@ -43,3 +43,51 @@ for kind, evs in events.items():
 json.dump(pri, open(f"{LIVE}/priors.json", "w"), indent=1)
 json.dump(dpri, open(f"{LIVE}/def_priors.json", "w"), indent=1)
 print(f"exported weights + priors for {len(pri)} players, {len(dpri)} defense cells (entering week {w_next})")
+
+# ---- upcoming-week watchlist: top-N player vs bottom-10 defense -------------
+TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}
+team_by_name = {r["full_name"]: r["team"] for r in csv.DictReader(open(f"{ROOT}/data/roster_2026.csv")) if r["gsis_id"]}
+
+ranks = {}   # (kind,pos) -> name -> rank
+for kind in ("rec", "rush"):
+    bypos = collections.defaultdict(list)
+    for name, kinds in pri.items():
+        if kind in kinds:
+            bypos[kinds[kind]["pos"]].append((name, kinds[kind]["ypg"]))
+    for pos, rows in bypos.items():
+        for i, (name, _) in enumerate(sorted(rows, key=lambda r: -r[1])):
+            ranks[(kind, pos, name)] = i + 1
+dranks = {}   # (kind,pos) -> team -> rank (1 = worst)
+bypos = collections.defaultdict(list)
+for k, v in dpri.items():
+    kind, team, pos = k.split("|")
+    bypos[(kind, pos)].append((team, v))
+for kp, rows in bypos.items():
+    for i, (team, _) in enumerate(sorted(rows, key=lambda r: -r[1])):
+        dranks[(*kp, team)] = i + 1
+
+sched = {}
+for r in csv.DictReader(open(f"{ROOT}/data/games.csv")):
+    if r["season"] == "2026" and r["week"] == str(w_next):
+        lbl = f'{r["away_team"]} @ {r["home_team"]}'
+        kick = f'{r["weekday"][:3]} {r["gametime"]} ET'
+        sched[r["home_team"]] = (r["away_team"], lbl, kick)
+        sched[r["away_team"]] = (r["home_team"], lbl, kick)
+
+watch = []
+for name, kinds in pri.items():
+    team = team_by_name.get(name)
+    if team not in sched:
+        continue
+    opp, lbl, kick = sched[team]
+    for kind, st in kinds.items():
+        pos = st["pos"]
+        prank = ranks.get((kind, pos, name), 999)
+        drank = dranks.get((kind, pos, opp), 999)
+        if prank <= TOP_N_WL[pos] and drank <= 10:
+            watch.append({"player": name, "pos": pos, "rank": prank, "ypg": st["ypg"],
+                          "market": kind, "team": team, "opp": opp, "def_rank": drank,
+                          "def_ypg": dpri[f"{kind}|{opp}|{pos}"], "game": lbl, "kick": kick})
+watch.sort(key=lambda w: (w["def_rank"], w["rank"]))
+json.dump({"week": w_next, "entries": watch}, open(f"{ROOT}/docs/watchlist.json", "w"), indent=1)
+print(f"watchlist: {len(watch)} players for week {w_next}")

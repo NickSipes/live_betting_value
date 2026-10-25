@@ -1,0 +1,2451 @@
+snapshot,book,player,side,point,price
+2026-10-18T12:55:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T12:55:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T12:55:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T12:55:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T12:55:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T12:55:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T12:55:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T12:55:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T12:55:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T12:55:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T12:55:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T12:55:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T12:55:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T12:55:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T12:55:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T12:55:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T12:55:36Z,draftkings,Jaylin Noel,Over,18.5,-108
+2026-10-18T12:55:36Z,draftkings,Jaylin Noel,Under,18.5,-116
+2026-10-18T12:55:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T12:55:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T12:55:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T12:55:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T12:55:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T12:55:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T12:55:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T12:55:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T12:55:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T12:55:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T12:55:36Z,draftkings,Nate Boerkircher,Over,3.5,-115
+2026-10-18T12:55:36Z,draftkings,Nate Boerkircher,Under,3.5,-109
+2026-10-18T12:55:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T12:55:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T12:55:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T12:55:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T12:55:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T12:55:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T12:55:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T12:55:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T12:55:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T12:55:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T12:55:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T12:55:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T12:55:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T12:55:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T12:55:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T12:55:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T12:55:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T12:55:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T12:55:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T12:55:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T12:55:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T12:55:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T12:55:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T12:55:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T12:55:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T12:55:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T12:55:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T12:55:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T12:55:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T12:55:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T12:55:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T12:55:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:00:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:00:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:00:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:00:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:00:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:00:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:00:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:00:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:00:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:00:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:00:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:00:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:00:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:00:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:00:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:00:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:00:36Z,draftkings,Jaylin Noel,Over,18.5,-108
+2026-10-18T13:00:36Z,draftkings,Jaylin Noel,Under,18.5,-116
+2026-10-18T13:00:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:00:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:00:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:00:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:00:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:00:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:00:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:00:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:00:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:00:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:00:36Z,draftkings,Nate Boerkircher,Over,3.5,-115
+2026-10-18T13:00:36Z,draftkings,Nate Boerkircher,Under,3.5,-109
+2026-10-18T13:00:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:00:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:00:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:00:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:00:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:00:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:00:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:00:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:00:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:00:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:00:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:00:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:00:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T13:00:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T13:00:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:00:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:00:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:00:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:00:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:00:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:00:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:00:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:00:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:00:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:00:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:00:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:00:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:00:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:00:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:00:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:00:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:00:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:05:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:05:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:05:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:05:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:05:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:05:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:05:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:05:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:05:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:05:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:05:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:05:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:05:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:05:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:05:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:05:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:05:36Z,draftkings,Jaylin Noel,Over,18.5,-108
+2026-10-18T13:05:36Z,draftkings,Jaylin Noel,Under,18.5,-116
+2026-10-18T13:05:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:05:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:05:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:05:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:05:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:05:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:05:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:05:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:05:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:05:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:05:36Z,draftkings,Nate Boerkircher,Over,3.5,-115
+2026-10-18T13:05:36Z,draftkings,Nate Boerkircher,Under,3.5,-109
+2026-10-18T13:05:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:05:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:05:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:05:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:05:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:05:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:05:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:05:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:05:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:05:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:05:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:05:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:05:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:05:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:05:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T13:05:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T13:05:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:05:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:05:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:05:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:05:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:05:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:05:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:05:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:05:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:05:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:05:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:05:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:05:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:05:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:05:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:05:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:10:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:10:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:10:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:10:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:10:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:10:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:10:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:10:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:10:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:10:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:10:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:10:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:10:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:10:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:10:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:10:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:10:36Z,draftkings,Jaylin Noel,Over,18.5,-108
+2026-10-18T13:10:36Z,draftkings,Jaylin Noel,Under,18.5,-116
+2026-10-18T13:10:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:10:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:10:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:10:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:10:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:10:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:10:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:10:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:10:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:10:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:10:36Z,draftkings,Nate Boerkircher,Over,3.5,-115
+2026-10-18T13:10:36Z,draftkings,Nate Boerkircher,Under,3.5,-109
+2026-10-18T13:10:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:10:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:10:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:10:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:10:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:10:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:10:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:10:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:10:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:10:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:10:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:10:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:10:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T13:10:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T13:10:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:10:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:10:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:10:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:10:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:10:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:10:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:10:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:10:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:10:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:10:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:10:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:10:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:10:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:10:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:10:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:10:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:10:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:15:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:15:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:15:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:15:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:15:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:15:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:15:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:15:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:15:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:15:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:15:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:15:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:15:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:15:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:15:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:15:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:15:36Z,draftkings,Jaylin Noel,Over,18.5,-109
+2026-10-18T13:15:36Z,draftkings,Jaylin Noel,Under,18.5,-115
+2026-10-18T13:15:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:15:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:15:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:15:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:15:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:15:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:15:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:15:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:15:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:15:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:15:36Z,draftkings,Nate Boerkircher,Over,3.5,-115
+2026-10-18T13:15:36Z,draftkings,Nate Boerkircher,Under,3.5,-109
+2026-10-18T13:15:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:15:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:15:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:15:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:15:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:15:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:15:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:15:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:15:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:15:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:15:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:15:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:15:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T13:15:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T13:15:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:15:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:15:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:15:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:15:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:15:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:15:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:15:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:15:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:15:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:15:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:15:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:15:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:15:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:15:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:15:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:15:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:15:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:20:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:20:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:20:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:20:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:20:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:20:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:20:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:20:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:20:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:20:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:20:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:20:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:20:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:20:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:20:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:20:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:20:36Z,draftkings,Jaylin Noel,Over,18.5,-109
+2026-10-18T13:20:36Z,draftkings,Jaylin Noel,Under,18.5,-115
+2026-10-18T13:20:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:20:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:20:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:20:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:20:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:20:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:20:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:20:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:20:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:20:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:20:36Z,draftkings,Nate Boerkircher,Over,4.5,-108
+2026-10-18T13:20:36Z,draftkings,Nate Boerkircher,Under,4.5,-116
+2026-10-18T13:20:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:20:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:20:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:20:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:20:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:20:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:20:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:20:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:20:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:20:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:20:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:20:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:20:36Z,fanduel,Travis Hunter,Over,3.5,118
+2026-10-18T13:20:36Z,fanduel,Travis Hunter,Under,3.5,-150
+2026-10-18T13:20:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:20:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:20:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:20:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:20:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:20:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:20:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:20:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:20:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:20:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:20:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:20:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:20:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:20:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:20:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:20:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:20:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:20:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:25:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:25:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:25:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:25:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:25:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:25:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:25:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:25:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:25:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:25:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:25:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:25:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:25:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:25:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:25:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:25:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:25:36Z,draftkings,Jaylin Noel,Over,18.5,-109
+2026-10-18T13:25:36Z,draftkings,Jaylin Noel,Under,18.5,-115
+2026-10-18T13:25:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:25:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:25:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:25:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:25:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:25:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:25:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:25:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:25:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:25:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:25:36Z,draftkings,Nate Boerkircher,Over,4.5,-108
+2026-10-18T13:25:36Z,draftkings,Nate Boerkircher,Under,4.5,-116
+2026-10-18T13:25:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:25:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:25:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:25:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:25:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:25:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:25:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:25:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:25:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:25:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:25:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:25:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:25:36Z,fanduel,Travis Hunter,Over,3.5,136
+2026-10-18T13:25:36Z,fanduel,Travis Hunter,Under,3.5,-174
+2026-10-18T13:25:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:25:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:25:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:25:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:25:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:25:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:25:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:25:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:25:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:25:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:25:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:25:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:25:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:25:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:25:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:25:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:25:36Z,fanduel,Brian Thomas Jr,Over,17.5,-113
+2026-10-18T13:25:36Z,fanduel,Brian Thomas Jr,Under,17.5,-113
+2026-10-18T13:30:36Z,draftkings,Nico Collins,Over,73.5,-113
+2026-10-18T13:30:36Z,draftkings,Nico Collins,Under,73.5,-111
+2026-10-18T13:30:36Z,draftkings,Parker Washington,Over,63.5,-113
+2026-10-18T13:30:36Z,draftkings,Parker Washington,Under,63.5,-111
+2026-10-18T13:30:36Z,draftkings,Brenton Strange,Over,37.5,-113
+2026-10-18T13:30:36Z,draftkings,Brenton Strange,Under,37.5,-111
+2026-10-18T13:30:36Z,draftkings,Jakobi Meyers,Over,33.5,-114
+2026-10-18T13:30:36Z,draftkings,Jakobi Meyers,Under,33.5,-110
+2026-10-18T13:30:36Z,draftkings,Dalton Schultz,Over,30.5,-110
+2026-10-18T13:30:36Z,draftkings,Dalton Schultz,Under,30.5,-115
+2026-10-18T13:30:36Z,draftkings,Kayshon Boutte,Over,22.5,-112
+2026-10-18T13:30:36Z,draftkings,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:30:36Z,draftkings,Marvin Harrison Jr.,Over,21.5,-114
+2026-10-18T13:30:36Z,draftkings,Marvin Harrison Jr.,Under,21.5,-110
+2026-10-18T13:30:36Z,draftkings,Brian Thomas Jr,Over,18.5,-111
+2026-10-18T13:30:36Z,draftkings,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:30:36Z,draftkings,Jaylin Noel,Over,18.5,-109
+2026-10-18T13:30:36Z,draftkings,Jaylin Noel,Under,18.5,-115
+2026-10-18T13:30:36Z,draftkings,Josh Cameron,Over,16.5,-108
+2026-10-18T13:30:36Z,draftkings,Josh Cameron,Under,16.5,-116
+2026-10-18T13:30:36Z,draftkings,Woody Marks,Over,15.5,-112
+2026-10-18T13:30:36Z,draftkings,Woody Marks,Under,15.5,-112
+2026-10-18T13:30:36Z,draftkings,Xavier Hutchinson,Over,13.5,-117
+2026-10-18T13:30:36Z,draftkings,Xavier Hutchinson,Under,13.5,-108
+2026-10-18T13:30:36Z,draftkings,Bhayshul Tuten,Over,10.5,-113
+2026-10-18T13:30:36Z,draftkings,Bhayshul Tuten,Under,10.5,-111
+2026-10-18T13:30:36Z,draftkings,Foster Moreau,Over,6.5,-110
+2026-10-18T13:30:36Z,draftkings,Foster Moreau,Under,6.5,-114
+2026-10-18T13:30:36Z,draftkings,Nate Boerkircher,Over,4.5,-108
+2026-10-18T13:30:36Z,draftkings,Nate Boerkircher,Under,4.5,-116
+2026-10-18T13:30:36Z,fanduel,Josh Cameron,Over,14.5,-113
+2026-10-18T13:30:36Z,fanduel,Josh Cameron,Under,14.5,-113
+2026-10-18T13:30:36Z,fanduel,Nate Boerkircher,Over,5.5,-113
+2026-10-18T13:30:36Z,fanduel,Nate Boerkircher,Under,5.5,-113
+2026-10-18T13:30:36Z,fanduel,Jakobi Meyers,Over,34.5,-113
+2026-10-18T13:30:36Z,fanduel,Jakobi Meyers,Under,34.5,-113
+2026-10-18T13:30:36Z,fanduel,Kayshon Boutte,Over,23.5,-113
+2026-10-18T13:30:36Z,fanduel,Kayshon Boutte,Under,23.5,-113
+2026-10-18T13:30:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-113
+2026-10-18T13:30:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-113
+2026-10-18T13:30:36Z,fanduel,Dalton Schultz,Over,30.5,-113
+2026-10-18T13:30:36Z,fanduel,Dalton Schultz,Under,30.5,-113
+2026-10-18T13:30:36Z,fanduel,Travis Hunter,Over,3.5,136
+2026-10-18T13:30:36Z,fanduel,Travis Hunter,Under,3.5,-174
+2026-10-18T13:30:36Z,fanduel,Parker Washington,Over,63.5,-113
+2026-10-18T13:30:36Z,fanduel,Parker Washington,Under,63.5,-113
+2026-10-18T13:30:36Z,fanduel,Xavier Hutchinson,Over,16.5,-113
+2026-10-18T13:30:36Z,fanduel,Xavier Hutchinson,Under,16.5,-113
+2026-10-18T13:30:36Z,fanduel,Woody Marks,Over,15.5,-113
+2026-10-18T13:30:36Z,fanduel,Woody Marks,Under,15.5,-113
+2026-10-18T13:30:36Z,fanduel,Nico Collins,Over,73.5,-113
+2026-10-18T13:30:36Z,fanduel,Nico Collins,Under,73.5,-113
+2026-10-18T13:30:36Z,fanduel,Foster Moreau,Over,6.5,-113
+2026-10-18T13:30:36Z,fanduel,Foster Moreau,Under,6.5,-113
+2026-10-18T13:30:36Z,fanduel,Bhayshul Tuten,Over,9.5,-113
+2026-10-18T13:30:36Z,fanduel,Bhayshul Tuten,Under,9.5,-113
+2026-10-18T13:30:36Z,fanduel,Jaylin Noel,Over,18.5,-113
+2026-10-18T13:30:36Z,fanduel,Jaylin Noel,Under,18.5,-113
+2026-10-18T13:30:36Z,fanduel,Brenton Strange,Over,37.5,-113
+2026-10-18T13:30:36Z,fanduel,Brenton Strange,Under,37.5,-113
+2026-10-18T13:30:36Z,fanduel,Brian Thomas Jr,Over,18.5,-113
+2026-10-18T13:30:36Z,fanduel,Brian Thomas Jr,Under,18.5,-113
+2026-10-18T13:35:36Z,draftkings,Nico Collins,Over,74.5,-115
+2026-10-18T13:35:36Z,draftkings,Nico Collins,Under,74.5,-120
+2026-10-18T13:35:36Z,draftkings,Parker Washington,Over,59.5,-115
+2026-10-18T13:35:36Z,draftkings,Parker Washington,Under,59.5,-120
+2026-10-18T13:35:36Z,draftkings,Brenton Strange,Over,58.5,-120
+2026-10-18T13:35:36Z,draftkings,Brenton Strange,Under,58.5,-115
+2026-10-18T13:35:36Z,draftkings,Jakobi Meyers,Over,31.5,-120
+2026-10-18T13:35:36Z,draftkings,Jakobi Meyers,Under,31.5,-115
+2026-10-18T13:35:36Z,draftkings,Dalton Schultz,Over,30.5,-115
+2026-10-18T13:35:36Z,draftkings,Dalton Schultz,Under,30.5,-120
+2026-10-18T13:35:36Z,draftkings,Kayshon Boutte,Over,22.5,-115
+2026-10-18T13:35:36Z,draftkings,Kayshon Boutte,Under,22.5,-120
+2026-10-18T13:35:36Z,draftkings,Marvin Harrison Jr.,Over,22.5,-115
+2026-10-18T13:35:36Z,draftkings,Marvin Harrison Jr.,Under,22.5,-115
+2026-10-18T13:35:36Z,draftkings,Jaylin Noel,Over,17.5,-115
+2026-10-18T13:35:36Z,draftkings,Jaylin Noel,Under,17.5,-120
+2026-10-18T13:35:36Z,draftkings,Brian Thomas Jr,Over,16.5,-120
+2026-10-18T13:35:36Z,draftkings,Brian Thomas Jr,Under,16.5,-115
+2026-10-18T13:35:36Z,draftkings,Woody Marks,Over,15.5,-115
+2026-10-18T13:35:36Z,draftkings,Woody Marks,Under,15.5,-115
+2026-10-18T13:35:36Z,draftkings,Josh Cameron,Over,14.5,-120
+2026-10-18T13:35:36Z,draftkings,Josh Cameron,Under,14.5,-115
+2026-10-18T13:35:36Z,draftkings,Xavier Hutchinson,Over,13.5,-120
+2026-10-18T13:35:36Z,draftkings,Xavier Hutchinson,Under,13.5,-115
+2026-10-18T13:35:36Z,draftkings,Bhayshul Tuten,Over,9.5,-120
+2026-10-18T13:35:36Z,draftkings,Bhayshul Tuten,Under,9.5,-110
+2026-10-18T13:35:36Z,draftkings,Foster Moreau,Over,6.5,-120
+2026-10-18T13:35:36Z,draftkings,Foster Moreau,Under,6.5,-115
+2026-10-18T13:35:36Z,draftkings,Nate Boerkircher,Over,2.5,-115
+2026-10-18T13:35:36Z,draftkings,Nate Boerkircher,Under,2.5,-115
+2026-10-18T13:35:36Z,fanduel,Kayshon Boutte,Over,23.5,-114
+2026-10-18T13:35:36Z,fanduel,Kayshon Boutte,Under,23.5,-114
+2026-10-18T13:35:36Z,fanduel,Marvin Harrison Jr.,Over,20.5,-112
+2026-10-18T13:35:36Z,fanduel,Marvin Harrison Jr.,Under,20.5,-118
+2026-10-18T13:35:36Z,fanduel,Dalton Schultz,Over,30.5,-114
+2026-10-18T13:35:36Z,fanduel,Dalton Schultz,Under,30.5,-114
+2026-10-18T13:35:36Z,fanduel,Xavier Hutchinson,Over,16.5,-112
+2026-10-18T13:35:36Z,fanduel,Xavier Hutchinson,Under,16.5,-118
+2026-10-18T13:35:36Z,fanduel,Woody Marks,Over,15.5,-114
+2026-10-18T13:35:36Z,fanduel,Woody Marks,Under,15.5,-114
+2026-10-18T13:35:36Z,fanduel,Nico Collins,Over,72.5,-112
+2026-10-18T13:35:36Z,fanduel,Nico Collins,Under,72.5,-118
+2026-10-18T13:35:36Z,fanduel,Foster Moreau,Over,6.5,-114
+2026-10-18T13:35:36Z,fanduel,Foster Moreau,Under,6.5,-114
+2026-10-18T13:35:36Z,fanduel,Jaylin Noel,Over,18.5,-114
+2026-10-18T13:35:36Z,fanduel,Jaylin Noel,Under,18.5,-114
+2026-10-18T13:40:36Z,draftkings,Nico Collins,Over,73.5,-115
+2026-10-18T13:40:36Z,draftkings,Nico Collins,Under,73.5,-115
+2026-10-18T13:40:36Z,draftkings,Brenton Strange,Over,58.5,-120
+2026-10-18T13:40:36Z,draftkings,Brenton Strange,Under,58.5,-115
+2026-10-18T13:40:36Z,draftkings,Parker Washington,Over,57.5,-120
+2026-10-18T13:40:36Z,draftkings,Parker Washington,Under,57.5,-115
+2026-10-18T13:40:36Z,draftkings,Dalton Schultz,Over,30.5,-115
+2026-10-18T13:40:36Z,draftkings,Dalton Schultz,Under,30.5,-120
+2026-10-18T13:40:36Z,draftkings,Jakobi Meyers,Over,30.5,-115
+2026-10-18T13:40:36Z,draftkings,Jakobi Meyers,Under,30.5,-120
+2026-10-18T13:40:36Z,draftkings,Kayshon Boutte,Over,22.5,-115
+2026-10-18T13:40:36Z,draftkings,Kayshon Boutte,Under,22.5,-120
+2026-10-18T13:40:36Z,draftkings,Marvin Harrison Jr.,Over,20.5,-120
+2026-10-18T13:40:36Z,draftkings,Marvin Harrison Jr.,Under,20.5,-115
+2026-10-18T13:40:36Z,draftkings,Jaylin Noel,Over,18.5,-120
+2026-10-18T13:40:36Z,draftkings,Jaylin Noel,Under,18.5,-110
+2026-10-18T13:40:36Z,draftkings,Brian Thomas Jr,Over,16.5,-115
+2026-10-18T13:40:36Z,draftkings,Brian Thomas Jr,Under,16.5,-120
+2026-10-18T13:40:36Z,draftkings,Woody Marks,Over,15.5,-115
+2026-10-18T13:40:36Z,draftkings,Woody Marks,Under,15.5,-115
+2026-10-18T13:40:36Z,draftkings,Xavier Hutchinson,Over,15.5,-115
+2026-10-18T13:40:36Z,draftkings,Xavier Hutchinson,Under,15.5,-120
+2026-10-18T13:40:36Z,draftkings,Josh Cameron,Over,14.5,-120
+2026-10-18T13:40:36Z,draftkings,Josh Cameron,Under,14.5,-115
+2026-10-18T13:40:36Z,draftkings,Bhayshul Tuten,Over,9.5,-115
+2026-10-18T13:40:36Z,draftkings,Bhayshul Tuten,Under,9.5,-120
+2026-10-18T13:40:36Z,draftkings,Foster Moreau,Over,6.5,-120
+2026-10-18T13:40:36Z,draftkings,Foster Moreau,Under,6.5,-115
+2026-10-18T13:40:36Z,draftkings,Nate Boerkircher,Over,2.5,-120
+2026-10-18T13:40:36Z,draftkings,Nate Boerkircher,Under,2.5,-115
+2026-10-18T13:40:36Z,fanduel,Josh Cameron,Over,13.5,-110
+2026-10-18T13:40:36Z,fanduel,Josh Cameron,Under,13.5,-120
+2026-10-18T13:40:36Z,fanduel,Nate Boerkircher,Over,4.5,-114
+2026-10-18T13:40:36Z,fanduel,Nate Boerkircher,Under,4.5,-114
+2026-10-18T13:40:36Z,fanduel,Jakobi Meyers,Over,31.5,-114
+2026-10-18T13:40:36Z,fanduel,Jakobi Meyers,Under,31.5,-114
+2026-10-18T13:40:36Z,fanduel,Kayshon Boutte,Over,22.5,-118
+2026-10-18T13:40:36Z,fanduel,Kayshon Boutte,Under,22.5,-112
+2026-10-18T13:40:36Z,fanduel,Marvin Harrison Jr.,Over,19.5,-118
+2026-10-18T13:40:36Z,fanduel,Marvin Harrison Jr.,Under,19.5,-112
+2026-10-18T13:40:36Z,fanduel,Dalton Schultz,Over,30.5,-112
+2026-10-18T13:40:36Z,fanduel,Dalton Schultz,Under,30.5,-118
+2026-10-18T13:40:36Z,fanduel,Travis Hunter,Over,0.5,144
+2026-10-18T13:40:36Z,fanduel,Travis Hunter,Under,0.5,-194
+2026-10-18T13:40:36Z,fanduel,Parker Washington,Over,58.5,-118
+2026-10-18T13:40:36Z,fanduel,Parker Washington,Under,58.5,-112
+2026-10-18T13:40:36Z,fanduel,Xavier Hutchinson,Over,16.5,-114
+2026-10-18T13:40:36Z,fanduel,Xavier Hutchinson,Under,16.5,-114
+2026-10-18T13:40:36Z,fanduel,Woody Marks,Over,15.5,-112
+2026-10-18T13:40:36Z,fanduel,Woody Marks,Under,15.5,-118
+2026-10-18T13:40:36Z,fanduel,Nico Collins,Over,72.5,-114
+2026-10-18T13:40:36Z,fanduel,Nico Collins,Under,72.5,-114
+2026-10-18T13:40:36Z,fanduel,Foster Moreau,Over,6.5,-114
+2026-10-18T13:40:36Z,fanduel,Foster Moreau,Under,6.5,-114
+2026-10-18T13:40:36Z,fanduel,Bhayshul Tuten,Over,8.5,-118
+2026-10-18T13:40:36Z,fanduel,Bhayshul Tuten,Under,8.5,-112
+2026-10-18T13:40:36Z,fanduel,Jaylin Noel,Over,18.5,-110
+2026-10-18T13:40:36Z,fanduel,Jaylin Noel,Under,18.5,-120
+2026-10-18T13:40:36Z,fanduel,Brenton Strange,Over,58.5,-114
+2026-10-18T13:40:36Z,fanduel,Brenton Strange,Under,58.5,-114
+2026-10-18T13:40:36Z,fanduel,Brian Thomas Jr,Over,15.5,-118
+2026-10-18T13:40:36Z,fanduel,Brian Thomas Jr,Under,15.5,-112
+2026-10-18T13:45:36Z,draftkings,Nico Collins,Over,68.5,-115
+2026-10-18T13:45:36Z,draftkings,Nico Collins,Under,68.5,-115
+2026-10-18T13:45:36Z,draftkings,Parker Washington,Over,58.5,-120
+2026-10-18T13:45:36Z,draftkings,Parker Washington,Under,58.5,-115
+2026-10-18T13:45:36Z,draftkings,Brenton Strange,Over,58.5,-115
+2026-10-18T13:45:36Z,draftkings,Brenton Strange,Under,58.5,-120
+2026-10-18T13:45:36Z,draftkings,Jakobi Meyers,Over,30.5,-115
+2026-10-18T13:45:36Z,draftkings,Jakobi Meyers,Under,30.5,-115
+2026-10-18T13:45:36Z,draftkings,Dalton Schultz,Over,28.5,-120
+2026-10-18T13:45:36Z,draftkings,Dalton Schultz,Under,28.5,-115
+2026-10-18T13:45:36Z,draftkings,Kayshon Boutte,Over,21.5,-115
+2026-10-18T13:45:36Z,draftkings,Kayshon Boutte,Under,21.5,-120
+2026-10-18T13:45:36Z,draftkings,Marvin Harrison Jr.,Over,19.5,-115
+2026-10-18T13:45:36Z,draftkings,Marvin Harrison Jr.,Under,19.5,-120
+2026-10-18T13:45:36Z,draftkings,Jaylin Noel,Over,17.5,-120
+2026-10-18T13:45:36Z,draftkings,Jaylin Noel,Under,17.5,-110
+2026-10-18T13:45:36Z,draftkings,Brian Thomas Jr,Over,15.5,-115
+2026-10-18T13:45:36Z,draftkings,Brian Thomas Jr,Under,15.5,-115
+2026-10-18T13:45:36Z,draftkings,Josh Cameron,Over,14.5,-120
+2026-10-18T13:45:36Z,draftkings,Josh Cameron,Under,14.5,-115
+2026-10-18T13:45:36Z,draftkings,Xavier Hutchinson,Over,14.5,-115
+2026-10-18T13:45:36Z,draftkings,Xavier Hutchinson,Under,14.5,-120
+2026-10-18T13:45:36Z,draftkings,Woody Marks,Over,13.5,-125
+2026-10-18T13:45:36Z,draftkings,Woody Marks,Under,13.5,-110
+2026-10-18T13:45:36Z,draftkings,Bhayshul Tuten,Over,8.5,-125
+2026-10-18T13:45:36Z,draftkings,Bhayshul Tuten,Under,8.5,-110
+2026-10-18T13:45:36Z,draftkings,Foster Moreau,Over,7.5,-115
+2026-10-18T13:45:36Z,draftkings,Foster Moreau,Under,7.5,-115
+2026-10-18T13:45:36Z,draftkings,Nate Boerkircher,Over,3.5,-120
+2026-10-18T13:45:36Z,draftkings,Nate Boerkircher,Under,3.5,-115
+2026-10-18T13:45:36Z,fanduel,Josh Cameron,Over,12.5,-118
+2026-10-18T13:45:36Z,fanduel,Josh Cameron,Under,12.5,-112
+2026-10-18T13:45:36Z,fanduel,Nate Boerkircher,Over,4.5,-112
+2026-10-18T13:45:36Z,fanduel,Nate Boerkircher,Under,4.5,-118
+2026-10-18T13:45:36Z,fanduel,Jakobi Meyers,Over,30.5,-114
+2026-10-18T13:45:36Z,fanduel,Jakobi Meyers,Under,30.5,-114
+2026-10-18T13:45:36Z,fanduel,Kayshon Boutte,Over,21.5,-114
+2026-10-18T13:45:36Z,fanduel,Kayshon Boutte,Under,21.5,-114
+2026-10-18T13:45:36Z,fanduel,Marvin Harrison Jr.,Over,17.5,-112
+2026-10-18T13:45:36Z,fanduel,Marvin Harrison Jr.,Under,17.5,-118
+2026-10-18T13:45:36Z,fanduel,Dalton Schultz,Over,29.5,-120
+2026-10-18T13:45:36Z,fanduel,Dalton Schultz,Under,29.5,-110
+2026-10-18T13:45:36Z,fanduel,Travis Hunter,Over,0.5,152
+2026-10-18T13:45:36Z,fanduel,Travis Hunter,Under,0.5,-205
+2026-10-18T13:45:36Z,fanduel,Parker Washington,Over,58.5,-114
+2026-10-18T13:45:36Z,fanduel,Parker Washington,Under,58.5,-114
+2026-10-18T13:45:36Z,fanduel,Xavier Hutchinson,Over,15.5,-110
+2026-10-18T13:45:36Z,fanduel,Xavier Hutchinson,Under,15.5,-120
+2026-10-18T13:45:36Z,fanduel,Woody Marks,Over,13.5,-122
+2026-10-18T13:45:36Z,fanduel,Woody Marks,Under,13.5,-108
+2026-10-18T13:45:36Z,fanduel,Nico Collins,Over,67.5,-114
+2026-10-18T13:45:36Z,fanduel,Nico Collins,Under,67.5,-114
+2026-10-18T13:45:36Z,fanduel,Foster Moreau,Over,5.5,-125
+2026-10-18T13:45:36Z,fanduel,Foster Moreau,Under,5.5,-106
+2026-10-18T13:45:36Z,fanduel,Bhayshul Tuten,Over,8.5,-120
+2026-10-18T13:45:36Z,fanduel,Bhayshul Tuten,Under,8.5,-110
+2026-10-18T13:45:36Z,fanduel,Jaylin Noel,Over,17.5,-110
+2026-10-18T13:45:36Z,fanduel,Jaylin Noel,Under,17.5,-118
+2026-10-18T13:45:36Z,fanduel,Brenton Strange,Over,58.5,-114
+2026-10-18T13:45:36Z,fanduel,Brenton Strange,Under,58.5,-114
+2026-10-18T13:45:36Z,fanduel,Brian Thomas Jr,Over,15.5,-114
+2026-10-18T13:45:36Z,fanduel,Brian Thomas Jr,Under,15.5,-114
+2026-10-18T13:50:36Z,draftkings,Nico Collins,Over,66.5,-115
+2026-10-18T13:50:36Z,draftkings,Nico Collins,Under,66.5,-115
+2026-10-18T13:50:36Z,draftkings,Brenton Strange,Over,57.5,-115
+2026-10-18T13:50:36Z,draftkings,Brenton Strange,Under,57.5,-120
+2026-10-18T13:50:36Z,draftkings,Parker Washington,Over,55.5,-120
+2026-10-18T13:50:36Z,draftkings,Parker Washington,Under,55.5,-115
+2026-10-18T13:50:36Z,draftkings,Dalton Schultz,Over,27.5,-120
+2026-10-18T13:50:36Z,draftkings,Dalton Schultz,Under,27.5,-115
+2026-10-18T13:50:36Z,draftkings,Jakobi Meyers,Over,27.5,-120
+2026-10-18T13:50:36Z,draftkings,Jakobi Meyers,Under,27.5,-110
+2026-10-18T13:50:36Z,draftkings,Kayshon Boutte,Over,20.5,-115
+2026-10-18T13:50:36Z,draftkings,Kayshon Boutte,Under,20.5,-120
+2026-10-18T13:50:36Z,draftkings,Marvin Harrison Jr.,Over,18.5,-115
+2026-10-18T13:50:36Z,draftkings,Marvin Harrison Jr.,Under,18.5,-120
+2026-10-18T13:50:36Z,draftkings,Jaylin Noel,Over,17.5,-115
+2026-10-18T13:50:36Z,draftkings,Jaylin Noel,Under,17.5,-115
+2026-10-18T13:50:36Z,draftkings,Brian Thomas Jr,Over,14.5,-120
+2026-10-18T13:50:36Z,draftkings,Brian Thomas Jr,Under,14.5,-115
+2026-10-18T13:50:36Z,draftkings,Woody Marks,Over,13.5,-120
+2026-10-18T13:50:36Z,draftkings,Woody Marks,Under,13.5,-110
+2026-10-18T13:50:36Z,draftkings,Xavier Hutchinson,Over,13.5,-120
+2026-10-18T13:50:36Z,draftkings,Xavier Hutchinson,Under,13.5,-115
+2026-10-18T13:50:36Z,draftkings,Josh Cameron,Over,13.5,-115
+2026-10-18T13:50:36Z,draftkings,Josh Cameron,Under,13.5,-115
+2026-10-18T13:50:36Z,draftkings,Bhayshul Tuten,Over,8.5,-115
+2026-10-18T13:50:36Z,draftkings,Bhayshul Tuten,Under,8.5,-120
+2026-10-18T13:50:36Z,draftkings,Nate Boerkircher,Over,7.5,-115
+2026-10-18T13:50:36Z,draftkings,Nate Boerkircher,Under,7.5,-120
+2026-10-18T13:50:36Z,draftkings,Foster Moreau,Over,6.5,-125
+2026-10-18T13:50:36Z,draftkings,Foster Moreau,Under,6.5,-110
+2026-10-18T13:50:36Z,fanduel,Kayshon Boutte,Over,20.5,-114
+2026-10-18T13:50:36Z,fanduel,Kayshon Boutte,Under,20.5,-114
+2026-10-18T13:50:36Z,fanduel,Marvin Harrison Jr.,Over,17.5,-112
+2026-10-18T13:50:36Z,fanduel,Marvin Harrison Jr.,Under,17.5,-118
+2026-10-18T13:50:36Z,fanduel,Dalton Schultz,Over,29.5,-114
+2026-10-18T13:50:36Z,fanduel,Dalton Schultz,Under,29.5,-114
+2026-10-18T13:50:36Z,fanduel,Xavier Hutchinson,Over,14.5,-118
+2026-10-18T13:50:36Z,fanduel,Xavier Hutchinson,Under,14.5,-112
+2026-10-18T13:50:36Z,fanduel,Woody Marks,Over,13.5,-122
+2026-10-18T13:50:36Z,fanduel,Woody Marks,Under,13.5,-110
+2026-10-18T13:50:36Z,fanduel,Nico Collins,Over,66.5,-114
+2026-10-18T13:50:36Z,fanduel,Nico Collins,Under,66.5,-114
+2026-10-18T13:50:36Z,fanduel,Foster Moreau,Over,5.5,-122
+2026-10-18T13:50:36Z,fanduel,Foster Moreau,Under,5.5,-108
+2026-10-18T13:50:36Z,fanduel,Jaylin Noel,Over,16.5,-118
+2026-10-18T13:50:36Z,fanduel,Jaylin Noel,Under,16.5,-112
+2026-10-18T13:55:36Z,draftkings,Nico Collins,Over,65.5,-115
+2026-10-18T13:55:36Z,draftkings,Nico Collins,Under,65.5,-115
+2026-10-18T13:55:36Z,draftkings,Brenton Strange,Over,57.5,-115
+2026-10-18T13:55:36Z,draftkings,Brenton Strange,Under,57.5,-120
+2026-10-18T13:55:36Z,draftkings,Parker Washington,Over,56.5,-115
+2026-10-18T13:55:36Z,draftkings,Parker Washington,Under,56.5,-115
+2026-10-18T13:55:36Z,draftkings,Jakobi Meyers,Over,28.5,-115
+2026-10-18T13:55:36Z,draftkings,Jakobi Meyers,Under,28.5,-115
+2026-10-18T13:55:36Z,draftkings,Dalton Schultz,Over,27.5,-115
+2026-10-18T13:55:36Z,draftkings,Dalton Schultz,Under,27.5,-115
+2026-10-18T13:55:36Z,draftkings,Kayshon Boutte,Over,20.5,-115
+2026-10-18T13:55:36Z,draftkings,Kayshon Boutte,Under,20.5,-120
+2026-10-18T13:55:36Z,draftkings,Marvin Harrison Jr.,Over,17.5,-120
+2026-10-18T13:55:36Z,draftkings,Marvin Harrison Jr.,Under,17.5,-115
+2026-10-18T13:55:36Z,draftkings,Jaylin Noel,Over,17.5,-110
+2026-10-18T13:55:36Z,draftkings,Jaylin Noel,Under,17.5,-120
+2026-10-18T13:55:36Z,draftkings,Brian Thomas Jr,Over,15.5,-110
+2026-10-18T13:55:36Z,draftkings,Brian Thomas Jr,Under,15.5,-120
+2026-10-18T13:55:36Z,draftkings,Josh Cameron,Over,13.5,-115
+2026-10-18T13:55:36Z,draftkings,Josh Cameron,Under,13.5,-120
+2026-10-18T13:55:36Z,draftkings,Woody Marks,Over,13.5,-115
+2026-10-18T13:55:36Z,draftkings,Woody Marks,Under,13.5,-120
+2026-10-18T13:55:36Z,draftkings,Xavier Hutchinson,Over,13.5,-115
+2026-10-18T13:55:36Z,draftkings,Xavier Hutchinson,Under,13.5,-120
+2026-10-18T13:55:36Z,draftkings,Bhayshul Tuten,Over,8.5,-120
+2026-10-18T13:55:36Z,draftkings,Bhayshul Tuten,Under,8.5,-115
+2026-10-18T13:55:36Z,draftkings,Nate Boerkircher,Over,7.5,-115
+2026-10-18T13:55:36Z,draftkings,Nate Boerkircher,Under,7.5,-120
+2026-10-18T13:55:36Z,draftkings,Foster Moreau,Over,6.5,-125
+2026-10-18T13:55:36Z,draftkings,Foster Moreau,Under,6.5,-110
+2026-10-18T13:55:36Z,fanduel,Josh Cameron,Over,11.5,-120
+2026-10-18T13:55:36Z,fanduel,Josh Cameron,Under,11.5,-110
+2026-10-18T13:55:36Z,fanduel,Nate Boerkircher,Over,11.5,-112
+2026-10-18T13:55:36Z,fanduel,Nate Boerkircher,Under,11.5,-118
+2026-10-18T13:55:36Z,fanduel,Jakobi Meyers,Over,28.5,-118
+2026-10-18T13:55:36Z,fanduel,Jakobi Meyers,Under,28.5,-112
+2026-10-18T13:55:36Z,fanduel,Kayshon Boutte,Over,20.5,-114
+2026-10-18T13:55:36Z,fanduel,Kayshon Boutte,Under,20.5,-114
+2026-10-18T13:55:36Z,fanduel,Marvin Harrison Jr.,Over,16.5,-114
+2026-10-18T13:55:36Z,fanduel,Marvin Harrison Jr.,Under,16.5,-114
+2026-10-18T13:55:36Z,fanduel,Dalton Schultz,Over,28.5,-114
+2026-10-18T13:55:36Z,fanduel,Dalton Schultz,Under,28.5,-114
+2026-10-18T13:55:36Z,fanduel,Travis Hunter,Over,0.5,162
+2026-10-18T13:55:36Z,fanduel,Travis Hunter,Under,0.5,-220
+2026-10-18T13:55:36Z,fanduel,Parker Washington,Over,55.5,-114
+2026-10-18T13:55:36Z,fanduel,Parker Washington,Under,55.5,-114
+2026-10-18T13:55:36Z,fanduel,Xavier Hutchinson,Over,14.5,-118
+2026-10-18T13:55:36Z,fanduel,Xavier Hutchinson,Under,14.5,-112
+2026-10-18T13:55:36Z,fanduel,Woody Marks,Over,13.5,-114
+2026-10-18T13:55:36Z,fanduel,Woody Marks,Under,13.5,-114
+2026-10-18T13:55:36Z,fanduel,Nico Collins,Over,65.5,-112
+2026-10-18T13:55:36Z,fanduel,Nico Collins,Under,65.5,-118
+2026-10-18T13:55:36Z,fanduel,Foster Moreau,Over,5.5,-120
+2026-10-18T13:55:36Z,fanduel,Foster Moreau,Under,5.5,-110
+2026-10-18T13:55:36Z,fanduel,Bhayshul Tuten,Over,8.5,-106
+2026-10-18T13:55:36Z,fanduel,Bhayshul Tuten,Under,8.5,-125
+2026-10-18T13:55:36Z,fanduel,Jaylin Noel,Over,16.5,-118
+2026-10-18T13:55:36Z,fanduel,Jaylin Noel,Under,16.5,-112
+2026-10-18T13:55:36Z,fanduel,Brenton Strange,Over,56.5,-118
+2026-10-18T13:55:36Z,fanduel,Brenton Strange,Under,56.5,-112
+2026-10-18T13:55:36Z,fanduel,Brian Thomas Jr,Over,14.5,-114
+2026-10-18T13:55:36Z,fanduel,Brian Thomas Jr,Under,14.5,-114
+2026-10-18T14:00:36Z,draftkings,Nico Collins,Over,97.5,-115
+2026-10-18T14:00:36Z,draftkings,Nico Collins,Under,97.5,-120
+2026-10-18T14:00:36Z,draftkings,Brenton Strange,Over,60.5,-115
+2026-10-18T14:00:36Z,draftkings,Brenton Strange,Under,60.5,-120
+2026-10-18T14:00:36Z,draftkings,Parker Washington,Over,60.5,-115
+2026-10-18T14:00:36Z,draftkings,Parker Washington,Under,60.5,-120
+2026-10-18T14:00:36Z,draftkings,Jakobi Meyers,Over,30.5,-120
+2026-10-18T14:00:36Z,draftkings,Jakobi Meyers,Under,30.5,-115
+2026-10-18T14:00:36Z,draftkings,Dalton Schultz,Over,21.5,-120
+2026-10-18T14:00:36Z,draftkings,Dalton Schultz,Under,21.5,-115
+2026-10-18T14:00:36Z,draftkings,Brian Thomas Jr,Over,16.5,-115
+2026-10-18T14:00:36Z,draftkings,Brian Thomas Jr,Under,16.5,-115
+2026-10-18T14:00:36Z,draftkings,Kayshon Boutte,Over,16.5,-115
+2026-10-18T14:00:36Z,draftkings,Kayshon Boutte,Under,16.5,-120
+2026-10-18T14:00:36Z,draftkings,Xavier Hutchinson,Over,15.5,-120
+2026-10-18T14:00:36Z,draftkings,Xavier Hutchinson,Under,15.5,-110
+2026-10-18T14:00:36Z,draftkings,Josh Cameron,Over,14.5,-120
+2026-10-18T14:00:36Z,draftkings,Josh Cameron,Under,14.5,-115
+2026-10-18T14:00:36Z,draftkings,Jaylin Noel,Over,13.5,-120
+2026-10-18T14:00:36Z,draftkings,Jaylin Noel,Under,13.5,-115
+2026-10-18T14:00:36Z,draftkings,Marvin Harrison Jr.,Over,12.5,-120
+2026-10-18T14:00:36Z,draftkings,Marvin Harrison Jr.,Under,12.5,-115
+2026-10-18T14:00:36Z,draftkings,Nate Boerkircher,Over,12.5,-120
+2026-10-18T14:00:36Z,draftkings,Nate Boerkircher,Under,12.5,-115
+2026-10-18T14:00:36Z,draftkings,Foster Moreau,Over,12.5,-110
+2026-10-18T14:00:36Z,draftkings,Foster Moreau,Under,12.5,-125
+2026-10-18T14:00:36Z,draftkings,Woody Marks,Over,10.5,-115
+2026-10-18T14:00:36Z,draftkings,Woody Marks,Under,10.5,-115
+2026-10-18T14:00:36Z,draftkings,Bhayshul Tuten,Over,9.5,-115
+2026-10-18T14:00:36Z,draftkings,Bhayshul Tuten,Under,9.5,-120
+2026-10-18T14:00:36Z,fanduel,Josh Cameron,Over,13.5,-112
+2026-10-18T14:00:36Z,fanduel,Josh Cameron,Under,13.5,-118
+2026-10-18T14:00:36Z,fanduel,Nate Boerkircher,Over,12.5,-108
+2026-10-18T14:00:36Z,fanduel,Nate Boerkircher,Under,12.5,-122
+2026-10-18T14:00:36Z,fanduel,Jakobi Meyers,Over,31.5,-114
+2026-10-18T14:00:36Z,fanduel,Jakobi Meyers,Under,31.5,-114
+2026-10-18T14:00:36Z,fanduel,Kayshon Boutte,Over,17.5,-112
+2026-10-18T14:00:36Z,fanduel,Kayshon Boutte,Under,17.5,-118
+2026-10-18T14:00:36Z,fanduel,Marvin Harrison Jr.,Over,11.5,-114
+2026-10-18T14:00:36Z,fanduel,Marvin Harrison Jr.,Under,11.5,-114
+2026-10-18T14:00:36Z,fanduel,Dalton Schultz,Over,23.5,-120
+2026-10-18T14:00:36Z,fanduel,Dalton Schultz,Under,23.5,-110
+2026-10-18T14:00:36Z,fanduel,Travis Hunter,Over,0.5,146
+2026-10-18T14:00:36Z,fanduel,Travis Hunter,Under,0.5,-198
+2026-10-18T14:00:36Z,fanduel,Parker Washington,Over,58.5,-114
+2026-10-18T14:00:36Z,fanduel,Parker Washington,Under,58.5,-114
+2026-10-18T14:00:36Z,fanduel,Xavier Hutchinson,Over,16.5,-114
+2026-10-18T14:00:36Z,fanduel,Xavier Hutchinson,Under,16.5,-114
+2026-10-18T14:00:36Z,fanduel,Woody Marks,Over,10.5,-114
+2026-10-18T14:00:36Z,fanduel,Woody Marks,Under,10.5,-114
+2026-10-18T14:00:36Z,fanduel,Nico Collins,Over,98.5,-112
+2026-10-18T14:00:36Z,fanduel,Nico Collins,Under,98.5,-118
+2026-10-18T14:00:36Z,fanduel,Foster Moreau,Over,9.5,-120
+2026-10-18T14:00:36Z,fanduel,Foster Moreau,Under,9.5,-110
+2026-10-18T14:00:36Z,fanduel,Bhayshul Tuten,Over,8.5,-122
+2026-10-18T14:00:36Z,fanduel,Bhayshul Tuten,Under,8.5,-108
+2026-10-18T14:00:36Z,fanduel,Jaylin Noel,Over,13.5,-114
+2026-10-18T14:00:36Z,fanduel,Jaylin Noel,Under,13.5,-114
+2026-10-18T14:00:36Z,fanduel,Brenton Strange,Over,58.5,-118
+2026-10-18T14:00:36Z,fanduel,Brenton Strange,Under,58.5,-112
+2026-10-18T14:00:36Z,fanduel,Brian Thomas Jr,Over,15.5,-118
+2026-10-18T14:00:36Z,fanduel,Brian Thomas Jr,Under,15.5,-112
+2026-10-18T14:05:36Z,draftkings,Nico Collins,Over,99.5,-115
+2026-10-18T14:05:36Z,draftkings,Nico Collins,Under,99.5,-120
+2026-10-18T14:05:36Z,draftkings,Parker Washington,Over,57.5,-120
+2026-10-18T14:05:36Z,draftkings,Parker Washington,Under,57.5,-115
+2026-10-18T14:05:36Z,draftkings,Brenton Strange,Over,57.5,-115
+2026-10-18T14:05:36Z,draftkings,Brenton Strange,Under,57.5,-120
+2026-10-18T14:05:36Z,draftkings,Jakobi Meyers,Over,30.5,-115
+2026-10-18T14:05:36Z,draftkings,Jakobi Meyers,Under,30.5,-120
+2026-10-18T14:05:36Z,draftkings,Dalton Schultz,Over,21.5,-115
+2026-10-18T14:05:36Z,draftkings,Dalton Schultz,Under,21.5,-115
+2026-10-18T14:05:36Z,draftkings,Xavier Hutchinson,Over,15.5,-115
+2026-10-18T14:05:36Z,draftkings,Xavier Hutchinson,Under,15.5,-120
+2026-10-18T14:05:36Z,draftkings,Kayshon Boutte,Over,14.5,-120
+2026-10-18T14:05:36Z,draftkings,Kayshon Boutte,Under,14.5,-115
+2026-10-18T14:05:36Z,draftkings,Brian Thomas Jr,Over,14.5,-115
+2026-10-18T14:05:36Z,draftkings,Brian Thomas Jr,Under,14.5,-115
+2026-10-18T14:05:36Z,draftkings,Josh Cameron,Over,13.5,-120
+2026-10-18T14:05:36Z,draftkings,Josh Cameron,Under,13.5,-110
+2026-10-18T14:05:36Z,draftkings,Jaylin Noel,Over,12.5,-120
+2026-10-18T14:05:36Z,draftkings,Jaylin Noel,Under,12.5,-110
+2026-10-18T14:05:36Z,draftkings,Marvin Harrison Jr.,Over,12.5,-115
+2026-10-18T14:05:36Z,draftkings,Marvin Harrison Jr.,Under,12.5,-120
+2026-10-18T14:05:36Z,draftkings,Foster Moreau,Over,11.5,-115
+2026-10-18T14:05:36Z,draftkings,Foster Moreau,Under,11.5,-115
+2026-10-18T14:05:36Z,draftkings,Nate Boerkircher,Over,10.5,-120
+2026-10-18T14:05:36Z,draftkings,Nate Boerkircher,Under,10.5,-115
+2026-10-18T14:05:36Z,draftkings,Woody Marks,Over,10.5,-110
+2026-10-18T14:05:36Z,draftkings,Woody Marks,Under,10.5,-125
+2026-10-18T14:05:36Z,draftkings,Bhayshul Tuten,Over,8.5,-125
+2026-10-18T14:05:36Z,draftkings,Bhayshul Tuten,Under,8.5,-110
+2026-10-18T14:05:36Z,fanduel,Josh Cameron,Over,12.5,-114
+2026-10-18T14:05:36Z,fanduel,Josh Cameron,Under,12.5,-114
+2026-10-18T14:05:36Z,fanduel,Nate Boerkircher,Over,11.5,-114
+2026-10-18T14:05:36Z,fanduel,Nate Boerkircher,Under,11.5,-114
+2026-10-18T14:05:36Z,fanduel,Jakobi Meyers,Over,30.5,-114
+2026-10-18T14:05:36Z,fanduel,Jakobi Meyers,Under,30.5,-114
+2026-10-18T14:05:36Z,fanduel,Kayshon Boutte,Over,15.5,-114
+2026-10-18T14:05:36Z,fanduel,Kayshon Boutte,Under,15.5,-114
+2026-10-18T14:05:36Z,fanduel,Marvin Harrison Jr.,Over,12.5,-112
+2026-10-18T14:05:36Z,fanduel,Marvin Harrison Jr.,Under,12.5,-118
+2026-10-18T14:05:36Z,fanduel,Dalton Schultz,Over,24.5,-112
+2026-10-18T14:05:36Z,fanduel,Dalton Schultz,Under,24.5,-118
+2026-10-18T14:05:36Z,fanduel,Travis Hunter,Over,0.5,154
+2026-10-18T14:05:36Z,fanduel,Travis Hunter,Under,0.5,-210
+2026-10-18T14:05:36Z,fanduel,Parker Washington,Over,55.5,-114
+2026-10-18T14:05:36Z,fanduel,Parker Washington,Under,55.5,-114
+2026-10-18T14:05:36Z,fanduel,Xavier Hutchinson,Over,18.5,-120
+2026-10-18T14:05:36Z,fanduel,Xavier Hutchinson,Under,18.5,-110
+2026-10-18T14:05:36Z,fanduel,Woody Marks,Over,10.5,-118
+2026-10-18T14:05:36Z,fanduel,Woody Marks,Under,10.5,-112
+2026-10-18T14:05:36Z,fanduel,Nico Collins,Over,98.5,-114
+2026-10-18T14:05:36Z,fanduel,Nico Collins,Under,98.5,-114
+2026-10-18T14:05:36Z,fanduel,Foster Moreau,Over,9.5,-122
+2026-10-18T14:05:36Z,fanduel,Foster Moreau,Under,9.5,-108
+2026-10-18T14:05:36Z,fanduel,Bhayshul Tuten,Over,8.5,-112
+2026-10-18T14:05:36Z,fanduel,Bhayshul Tuten,Under,8.5,-118
+2026-10-18T14:05:36Z,fanduel,Jaylin Noel,Over,12.5,-112
+2026-10-18T14:05:36Z,fanduel,Jaylin Noel,Under,12.5,-118
+2026-10-18T14:05:36Z,fanduel,Brenton Strange,Over,57.5,-114
+2026-10-18T14:05:36Z,fanduel,Brenton Strange,Under,57.5,-114
+2026-10-18T14:05:36Z,fanduel,Brian Thomas Jr,Over,14.5,-112
+2026-10-18T14:05:36Z,fanduel,Brian Thomas Jr,Under,14.5,-118
+2026-10-18T14:10:36Z,draftkings,Nico Collins,Over,97.5,-120
+2026-10-18T14:10:36Z,draftkings,Nico Collins,Under,97.5,-115
+2026-10-18T14:10:36Z,draftkings,Brenton Strange,Over,62.5,-115
+2026-10-18T14:10:36Z,draftkings,Brenton Strange,Under,62.5,-115
+2026-10-18T14:10:36Z,draftkings,Parker Washington,Over,56.5,-120
+2026-10-18T14:10:36Z,draftkings,Parker Washington,Under,56.5,-115
+2026-10-18T14:10:36Z,draftkings,Jakobi Meyers,Over,24.5,-115
+2026-10-18T14:10:36Z,draftkings,Jakobi Meyers,Under,24.5,-120
+2026-10-18T14:10:36Z,draftkings,Dalton Schultz,Over,22.5,-120
+2026-10-18T14:10:36Z,draftkings,Dalton Schultz,Under,22.5,-110
+2026-10-18T14:10:36Z,draftkings,Kayshon Boutte,Over,14.5,-120
+2026-10-18T14:10:36Z,draftkings,Kayshon Boutte,Under,14.5,-115
+2026-10-18T14:10:36Z,draftkings,Xavier Hutchinson,Over,14.5,-115
+2026-10-18T14:10:36Z,draftkings,Xavier Hutchinson,Under,14.5,-115
+2026-10-18T14:10:36Z,draftkings,Jaylin Noel,Over,12.5,-115
+2026-10-18T14:10:36Z,draftkings,Jaylin Noel,Under,12.5,-115
+2026-10-18T14:10:36Z,draftkings,Brian Thomas Jr,Over,11.5,-115
+2026-10-18T14:10:36Z,draftkings,Brian Thomas Jr,Under,11.5,-120
+2026-10-18T14:10:36Z,draftkings,Marvin Harrison Jr.,Over,11.5,-115
+2026-10-18T14:10:36Z,draftkings,Marvin Harrison Jr.,Under,11.5,-115
+2026-10-18T14:10:36Z,draftkings,Foster Moreau,Over,10.5,-120
+2026-10-18T14:10:36Z,draftkings,Foster Moreau,Under,10.5,-115
+2026-10-18T14:10:36Z,draftkings,Josh Cameron,Over,10.5,-115
+2026-10-18T14:10:36Z,draftkings,Josh Cameron,Under,10.5,-115
+2026-10-18T14:10:36Z,draftkings,Woody Marks,Over,9.5,-125
+2026-10-18T14:10:36Z,draftkings,Woody Marks,Under,9.5,-110
+2026-10-18T14:10:36Z,draftkings,Bhayshul Tuten,Over,7.5,-115
+2026-10-18T14:10:36Z,draftkings,Bhayshul Tuten,Under,7.5,-120
+2026-10-18T14:10:36Z,draftkings,Nate Boerkircher,Over,7.5,-105
+2026-10-18T14:10:36Z,draftkings,Nate Boerkircher,Under,7.5,-130
+2026-10-18T14:10:36Z,fanduel,Josh Cameron,Over,9.5,-118
+2026-10-18T14:10:36Z,fanduel,Josh Cameron,Under,9.5,-112
+2026-10-18T14:10:36Z,fanduel,Nate Boerkircher,Over,8.5,-114
+2026-10-18T14:10:36Z,fanduel,Nate Boerkircher,Under,8.5,-114
+2026-10-18T14:10:36Z,fanduel,Jakobi Meyers,Over,25.5,-112
+2026-10-18T14:10:36Z,fanduel,Jakobi Meyers,Under,25.5,-118
+2026-10-18T14:10:36Z,fanduel,Kayshon Boutte,Over,15.5,-112
+2026-10-18T14:10:36Z,fanduel,Kayshon Boutte,Under,15.5,-118
+2026-10-18T14:10:36Z,fanduel,Marvin Harrison Jr.,Over,10.5,-114
+2026-10-18T14:10:36Z,fanduel,Marvin Harrison Jr.,Under,10.5,-114
+2026-10-18T14:10:36Z,fanduel,Dalton Schultz,Over,24.5,-112
+2026-10-18T14:10:36Z,fanduel,Dalton Schultz,Under,24.5,-118
+2026-10-18T14:10:36Z,fanduel,Travis Hunter,Over,0.5,198
+2026-10-18T14:10:36Z,fanduel,Travis Hunter,Under,0.5,-275
+2026-10-18T14:10:36Z,fanduel,Parker Washington,Over,55.5,-112
+2026-10-18T14:10:36Z,fanduel,Parker Washington,Under,55.5,-118
+2026-10-18T14:10:36Z,fanduel,Xavier Hutchinson,Over,18.5,-120
+2026-10-18T14:10:36Z,fanduel,Xavier Hutchinson,Under,18.5,-110
+2026-10-18T14:10:36Z,fanduel,Woody Marks,Over,10.5,-114
+2026-10-18T14:10:36Z,fanduel,Woody Marks,Under,10.5,-114
+2026-10-18T14:10:36Z,fanduel,Nico Collins,Over,98.5,-112
+2026-10-18T14:10:36Z,fanduel,Nico Collins,Under,98.5,-118
+2026-10-18T14:10:36Z,fanduel,Foster Moreau,Over,9.5,-118
+2026-10-18T14:10:36Z,fanduel,Foster Moreau,Under,9.5,-112
+2026-10-18T14:10:36Z,fanduel,Bhayshul Tuten,Over,6.5,-114
+2026-10-18T14:10:36Z,fanduel,Bhayshul Tuten,Under,6.5,-114
+2026-10-18T14:10:36Z,fanduel,Jaylin Noel,Over,11.5,-114
+2026-10-18T14:10:36Z,fanduel,Jaylin Noel,Under,11.5,-114
+2026-10-18T14:10:36Z,fanduel,Brenton Strange,Over,62.5,-114
+2026-10-18T14:10:36Z,fanduel,Brenton Strange,Under,62.5,-114
+2026-10-18T14:10:36Z,fanduel,Brian Thomas Jr,Over,11.5,-118
+2026-10-18T14:10:36Z,fanduel,Brian Thomas Jr,Under,11.5,-114
+2026-10-18T14:15:36Z,draftkings,Nico Collins,Over,98.5,-115
+2026-10-18T14:15:36Z,draftkings,Nico Collins,Under,98.5,-120
+2026-10-18T14:15:36Z,draftkings,Brenton Strange,Over,61.5,-120
+2026-10-18T14:15:36Z,draftkings,Brenton Strange,Under,61.5,-115
+2026-10-18T14:15:36Z,draftkings,Parker Washington,Over,55.5,-115
+2026-10-18T14:15:36Z,draftkings,Parker Washington,Under,55.5,-115
+2026-10-18T14:15:36Z,draftkings,Jakobi Meyers,Over,23.5,-120
+2026-10-18T14:15:36Z,draftkings,Jakobi Meyers,Under,23.5,-115
+2026-10-18T14:15:36Z,draftkings,Dalton Schultz,Over,23.5,-115
+2026-10-18T14:15:36Z,draftkings,Dalton Schultz,Under,23.5,-120
+2026-10-18T14:15:36Z,draftkings,Kayshon Boutte,Over,14.5,-120
+2026-10-18T14:15:36Z,draftkings,Kayshon Boutte,Under,14.5,-115
+2026-10-18T14:15:36Z,draftkings,Xavier Hutchinson,Over,14.5,-115
+2026-10-18T14:15:36Z,draftkings,Xavier Hutchinson,Under,14.5,-115
+2026-10-18T14:15:36Z,draftkings,Jaylin Noel,Over,12.5,-115
+2026-10-18T14:15:36Z,draftkings,Jaylin Noel,Under,12.5,-115
+2026-10-18T14:15:36Z,draftkings,Marvin Harrison Jr.,Over,11.5,-115
+2026-10-18T14:15:36Z,draftkings,Marvin Harrison Jr.,Under,11.5,-115
+2026-10-18T14:15:36Z,draftkings,Brian Thomas Jr,Over,10.5,-120
+2026-10-18T14:15:36Z,draftkings,Brian Thomas Jr,Under,10.5,-110
+2026-10-18T14:15:36Z,draftkings,Foster Moreau,Over,10.5,-120
+2026-10-18T14:15:36Z,draftkings,Foster Moreau,Under,10.5,-110
+2026-10-18T14:15:36Z,draftkings,Josh Cameron,Over,10.5,-115
+2026-10-18T14:15:36Z,draftkings,Josh Cameron,Under,10.5,-120
+2026-10-18T14:15:36Z,draftkings,Woody Marks,Over,9.5,-120
+2026-10-18T14:15:36Z,draftkings,Woody Marks,Under,9.5,-110
+2026-10-18T14:15:36Z,draftkings,Bhayshul Tuten,Over,7.5,-115
+2026-10-18T14:15:36Z,draftkings,Bhayshul Tuten,Under,7.5,-120
+2026-10-18T14:15:36Z,draftkings,Nate Boerkircher,Over,7.5,-105
+2026-10-18T14:15:36Z,draftkings,Nate Boerkircher,Under,7.5,-125
+2026-10-18T14:15:36Z,fanduel,Josh Cameron,Over,10.5,-112
+2026-10-18T14:15:36Z,fanduel,Josh Cameron,Under,10.5,-118
+2026-10-18T14:15:36Z,fanduel,Nate Boerkircher,Over,9.5,-112
+2026-10-18T14:15:36Z,fanduel,Nate Boerkircher,Under,9.5,-118
+2026-10-18T14:15:36Z,fanduel,Jakobi Meyers,Over,25.5,-118
+2026-10-18T14:15:36Z,fanduel,Jakobi Meyers,Under,25.5,-112
+2026-10-18T14:15:36Z,fanduel,Kayshon Boutte,Over,14.5,-112
+2026-10-18T14:15:36Z,fanduel,Kayshon Boutte,Under,14.5,-118
+2026-10-18T14:15:36Z,fanduel,Marvin Harrison Jr.,Over,11.5,-118
+2026-10-18T14:15:36Z,fanduel,Marvin Harrison Jr.,Under,11.5,-112
+2026-10-18T14:15:36Z,fanduel,Dalton Schultz,Over,22.5,-114
+2026-10-18T14:15:36Z,fanduel,Dalton Schultz,Under,22.5,-114
+2026-10-18T14:15:36Z,fanduel,Travis Hunter,Over,0.5,182
+2026-10-18T14:15:36Z,fanduel,Travis Hunter,Under,0.5,-250
+2026-10-18T14:15:36Z,fanduel,Parker Washington,Over,56.5,-114
+2026-10-18T14:15:36Z,fanduel,Parker Washington,Under,56.5,-114
+2026-10-18T14:15:36Z,fanduel,Xavier Hutchinson,Over,17.5,-118
+2026-10-18T14:15:36Z,fanduel,Xavier Hutchinson,Under,17.5,-112
+2026-10-18T14:15:36Z,fanduel,Woody Marks,Over,10.5,-112
+2026-10-18T14:15:36Z,fanduel,Woody Marks,Under,10.5,-118
+2026-10-18T14:15:36Z,fanduel,Nico Collins,Over,95.5,-114
+2026-10-18T14:15:36Z,fanduel,Nico Collins,Under,95.5,-114
+2026-10-18T14:15:36Z,fanduel,Foster Moreau,Over,8.5,-122
+2026-10-18T14:15:36Z,fanduel,Foster Moreau,Under,8.5,-108
+2026-10-18T14:15:36Z,fanduel,Bhayshul Tuten,Over,6.5,-118
+2026-10-18T14:15:36Z,fanduel,Bhayshul Tuten,Under,6.5,-112
+2026-10-18T14:15:36Z,fanduel,Jaylin Noel,Over,11.5,-112
+2026-10-18T14:15:36Z,fanduel,Jaylin Noel,Under,11.5,-118
+2026-10-18T14:15:36Z,fanduel,Brenton Strange,Over,63.5,-114
+2026-10-18T14:15:36Z,fanduel,Brenton Strange,Under,63.5,-114
+2026-10-18T14:15:36Z,fanduel,Brian Thomas Jr,Over,12.5,-112
+2026-10-18T14:15:36Z,fanduel,Brian Thomas Jr,Under,12.5,-118
+2026-10-18T14:20:36Z,draftkings,Nico Collins,Over,94.5,-115
+2026-10-18T14:20:36Z,draftkings,Nico Collins,Under,94.5,-120
+2026-10-18T14:20:36Z,draftkings,Brenton Strange,Over,63.5,-120
+2026-10-18T14:20:36Z,draftkings,Brenton Strange,Under,63.5,-115
+2026-10-18T14:20:36Z,draftkings,Parker Washington,Over,59.5,-115
+2026-10-18T14:20:36Z,draftkings,Parker Washington,Under,59.5,-115
+2026-10-18T14:20:36Z,draftkings,Jakobi Meyers,Over,25.5,-120
+2026-10-18T14:20:36Z,draftkings,Jakobi Meyers,Under,25.5,-115
+2026-10-18T14:20:36Z,draftkings,Dalton Schultz,Over,21.5,-115
+2026-10-18T14:20:36Z,draftkings,Dalton Schultz,Under,21.5,-115
+2026-10-18T14:20:36Z,draftkings,Xavier Hutchinson,Over,14.5,-110
+2026-10-18T14:20:36Z,draftkings,Xavier Hutchinson,Under,14.5,-125
+2026-10-18T14:20:36Z,draftkings,Kayshon Boutte,Over,13.5,-120
+2026-10-18T14:20:36Z,draftkings,Kayshon Boutte,Under,13.5,-115
+2026-10-18T14:20:36Z,draftkings,Brian Thomas Jr,Over,12.5,-115
+2026-10-18T14:20:36Z,draftkings,Brian Thomas Jr,Under,12.5,-120
+2026-10-18T14:20:36Z,draftkings,Jaylin Noel,Over,11.5,-120
+2026-10-18T14:20:36Z,draftkings,Jaylin Noel,Under,11.5,-115
+2026-10-18T14:20:36Z,draftkings,Josh Cameron,Over,11.5,-115
+2026-10-18T14:20:36Z,draftkings,Josh Cameron,Under,11.5,-120
+2026-10-18T14:20:36Z,draftkings,Foster Moreau,Over,10.5,-120
+2026-10-18T14:20:36Z,draftkings,Foster Moreau,Under,10.5,-115
+2026-10-18T14:20:36Z,draftkings,Marvin Harrison Jr.,Over,9.5,-120
+2026-10-18T14:20:36Z,draftkings,Marvin Harrison Jr.,Under,9.5,-115
+2026-10-18T14:20:36Z,draftkings,Woody Marks,Over,8.5,-120
+2026-10-18T14:20:36Z,draftkings,Woody Marks,Under,8.5,-110
+2026-10-18T14:20:36Z,draftkings,Bhayshul Tuten,Over,7.5,-115
+2026-10-18T14:20:36Z,draftkings,Bhayshul Tuten,Under,7.5,-120
+2026-10-18T14:20:36Z,draftkings,Nate Boerkircher,Over,7.5,100
+2026-10-18T14:20:36Z,draftkings,Nate Boerkircher,Under,7.5,-130
+2026-10-18T14:20:36Z,fanduel,Josh Cameron,Over,10.5,-114
+2026-10-18T14:20:36Z,fanduel,Josh Cameron,Under,10.5,-114
+2026-10-18T14:20:36Z,fanduel,Nate Boerkircher,Over,10.5,-112
+2026-10-18T14:20:36Z,fanduel,Nate Boerkircher,Under,10.5,-118
+2026-10-18T14:20:36Z,fanduel,Jakobi Meyers,Over,25.5,-118
+2026-10-18T14:20:36Z,fanduel,Jakobi Meyers,Under,25.5,-112
+2026-10-18T14:20:36Z,fanduel,Travis Hunter,Over,0.5,188
+2026-10-18T14:20:36Z,fanduel,Travis Hunter,Under,0.5,-260
+2026-10-18T14:20:36Z,fanduel,Parker Washington,Over,56.5,-114
+2026-10-18T14:20:36Z,fanduel,Parker Washington,Under,56.5,-114
+2026-10-18T14:20:36Z,fanduel,Bhayshul Tuten,Over,6.5,-122
+2026-10-18T14:20:36Z,fanduel,Bhayshul Tuten,Under,6.5,-108
+2026-10-18T14:20:36Z,fanduel,Brenton Strange,Over,63.5,-118
+2026-10-18T14:20:36Z,fanduel,Brenton Strange,Under,63.5,-112
+2026-10-18T14:20:36Z,fanduel,Brian Thomas Jr,Over,12.5,-118
+2026-10-18T14:20:36Z,fanduel,Brian Thomas Jr,Under,12.5,-112
+2026-10-18T14:25:36Z,draftkings,Nico Collins,Over,87.5,-115
+2026-10-18T14:25:36Z,draftkings,Nico Collins,Under,87.5,-120
+2026-10-18T14:25:36Z,draftkings,Brenton Strange,Over,65.5,-115
+2026-10-18T14:25:36Z,draftkings,Brenton Strange,Under,65.5,-115
+2026-10-18T14:25:36Z,draftkings,Jakobi Meyers,Over,27.5,-115
+2026-10-18T14:25:36Z,draftkings,Jakobi Meyers,Under,27.5,-115
+2026-10-18T14:25:36Z,draftkings,Dalton Schultz,Over,18.5,-115
+2026-10-18T14:25:36Z,draftkings,Dalton Schultz,Under,18.5,-115
+2026-10-18T14:25:36Z,draftkings,Brian Thomas Jr,Over,13.5,-115
+2026-10-18T14:25:36Z,draftkings,Brian Thomas Jr,Under,13.5,-115
+2026-10-18T14:25:36Z,draftkings,Josh Cameron,Over,12.5,-115
+2026-10-18T14:25:36Z,draftkings,Josh Cameron,Under,12.5,-120
+2026-10-18T14:25:36Z,draftkings,Xavier Hutchinson,Over,12.5,-115
+2026-10-18T14:25:36Z,draftkings,Xavier Hutchinson,Under,12.5,-115
+2026-10-18T14:25:36Z,draftkings,Kayshon Boutte,Over,11.5,-115
+2026-10-18T14:25:36Z,draftkings,Kayshon Boutte,Under,11.5,-115
+2026-10-18T14:25:36Z,draftkings,Jaylin Noel,Over,9.5,-120
+2026-10-18T14:25:36Z,draftkings,Jaylin Noel,Under,9.5,-110
+2026-10-18T14:25:36Z,draftkings,Foster Moreau,Over,8.5,-120
+2026-10-18T14:25:36Z,draftkings,Foster Moreau,Under,8.5,-115
+2026-10-18T14:25:36Z,draftkings,Woody Marks,Over,7.5,-125
+2026-10-18T14:25:36Z,draftkings,Woody Marks,Under,7.5,-110
+2026-10-18T14:25:36Z,draftkings,Bhayshul Tuten,Over,7.5,-115
+2026-10-18T14:25:36Z,draftkings,Bhayshul Tuten,Under,7.5,-120
+2026-10-18T14:25:36Z,draftkings,Marvin Harrison Jr.,Over,7.5,-115
+2026-10-18T14:25:36Z,draftkings,Marvin Harrison Jr.,Under,7.5,-120
+2026-10-18T14:25:36Z,draftkings,Nate Boerkircher,Over,7.5,-110
+2026-10-18T14:25:36Z,draftkings,Nate Boerkircher,Under,7.5,-120
+2026-10-18T14:25:36Z,fanduel,Josh Cameron,Over,11.5,-114
+2026-10-18T14:25:36Z,fanduel,Josh Cameron,Under,11.5,-114
+2026-10-18T14:25:36Z,fanduel,Nate Boerkircher,Over,10.5,-112
+2026-10-18T14:25:36Z,fanduel,Nate Boerkircher,Under,10.5,-118
+2026-10-18T14:25:36Z,fanduel,Jakobi Meyers,Over,27.5,-112
+2026-10-18T14:25:36Z,fanduel,Jakobi Meyers,Under,27.5,-118
+2026-10-18T14:25:36Z,fanduel,Kayshon Boutte,Over,11.5,-114
+2026-10-18T14:25:36Z,fanduel,Kayshon Boutte,Under,11.5,-114
+2026-10-18T14:25:36Z,fanduel,Marvin Harrison Jr.,Over,9.5,-110
+2026-10-18T14:25:36Z,fanduel,Marvin Harrison Jr.,Under,9.5,-120
+2026-10-18T14:25:36Z,fanduel,Dalton Schultz,Over,19.5,-114
+2026-10-18T14:25:36Z,fanduel,Dalton Schultz,Under,19.5,-114
+2026-10-18T14:25:36Z,fanduel,Travis Hunter,Over,0.5,178
+2026-10-18T14:25:36Z,fanduel,Travis Hunter,Under,0.5,-245
+2026-10-18T14:25:36Z,fanduel,Parker Washington,Over,58.5,-112
+2026-10-18T14:25:36Z,fanduel,Parker Washington,Under,58.5,-118
+2026-10-18T14:25:36Z,fanduel,Xavier Hutchinson,Over,15.5,-114
+2026-10-18T14:25:36Z,fanduel,Xavier Hutchinson,Under,15.5,-114
+2026-10-18T14:25:36Z,fanduel,Woody Marks,Over,8.5,-112
+2026-10-18T14:25:36Z,fanduel,Woody Marks,Under,8.5,-118
+2026-10-18T14:25:36Z,fanduel,Nico Collins,Over,87.5,-114
+2026-10-18T14:25:36Z,fanduel,Nico Collins,Under,87.5,-114
+2026-10-18T14:25:36Z,fanduel,Foster Moreau,Over,6.5,-114
+2026-10-18T14:25:36Z,fanduel,Foster Moreau,Under,6.5,-114
+2026-10-18T14:25:36Z,fanduel,Bhayshul Tuten,Over,7.5,-108
+2026-10-18T14:25:36Z,fanduel,Bhayshul Tuten,Under,7.5,-122
+2026-10-18T14:25:36Z,fanduel,Jaylin Noel,Over,8.5,-118
+2026-10-18T14:25:36Z,fanduel,Jaylin Noel,Under,8.5,-112
+2026-10-18T14:25:36Z,fanduel,Brenton Strange,Over,64.5,-118
+2026-10-18T14:25:36Z,fanduel,Brenton Strange,Under,64.5,-112
+2026-10-18T14:25:36Z,fanduel,Brian Thomas Jr,Over,13.5,-112
+2026-10-18T14:25:36Z,fanduel,Brian Thomas Jr,Under,13.5,-118
+2026-10-18T14:30:36Z,draftkings,Parker Washington,Over,99.5,-115
+2026-10-18T14:30:36Z,draftkings,Parker Washington,Under,99.5,-120
+2026-10-18T14:30:36Z,draftkings,Nico Collins,Over,85.5,-115
+2026-10-18T14:30:36Z,draftkings,Nico Collins,Under,85.5,-115
+2026-10-18T14:30:36Z,draftkings,Brenton Strange,Over,61.5,-115
+2026-10-18T14:30:36Z,draftkings,Brenton Strange,Under,61.5,-115
+2026-10-18T14:30:36Z,draftkings,Jakobi Meyers,Over,32.5,-120
+2026-10-18T14:30:36Z,draftkings,Jakobi Meyers,Under,32.5,-115
+2026-10-18T14:30:36Z,draftkings,Dalton Schultz,Over,17.5,-120
+2026-10-18T14:30:36Z,draftkings,Dalton Schultz,Under,17.5,-115
+2026-10-18T14:30:36Z,draftkings,Xavier Hutchinson,Over,12.5,-115
+2026-10-18T14:30:36Z,draftkings,Xavier Hutchinson,Under,12.5,-115
+2026-10-18T14:30:36Z,draftkings,Brian Thomas Jr,Over,10.5,-120
+2026-10-18T14:30:36Z,draftkings,Brian Thomas Jr,Under,10.5,-110
+2026-10-18T14:30:36Z,draftkings,Kayshon Boutte,Over,10.5,-120
+2026-10-18T14:30:36Z,draftkings,Kayshon Boutte,Under,10.5,-115
+2026-10-18T14:30:36Z,draftkings,Josh Cameron,Over,10.5,-115
+2026-10-18T14:30:36Z,draftkings,Josh Cameron,Under,10.5,-120
+2026-10-18T14:30:36Z,draftkings,Jaylin Noel,Over,9.5,-110
+2026-10-18T14:30:36Z,draftkings,Jaylin Noel,Under,9.5,-120
+2026-10-18T14:30:36Z,draftkings,Foster Moreau,Over,7.5,-115
+2026-10-18T14:30:36Z,draftkings,Foster Moreau,Under,7.5,-115
+2026-10-18T14:30:36Z,draftkings,Nate Boerkircher,Over,7.5,100
+2026-10-18T14:30:36Z,draftkings,Nate Boerkircher,Under,7.5,-135
+2026-10-18T14:30:36Z,draftkings,Marvin Harrison Jr.,Over,6.5,-120
+2026-10-18T14:30:36Z,draftkings,Marvin Harrison Jr.,Under,6.5,-115
+2026-10-18T14:30:36Z,draftkings,Bhayshul Tuten,Over,6.5,-115
+2026-10-18T14:30:36Z,draftkings,Bhayshul Tuten,Under,6.5,-115
+2026-10-18T14:30:36Z,fanduel,Kayshon Boutte,Over,11.5,-112
+2026-10-18T14:30:36Z,fanduel,Kayshon Boutte,Under,11.5,-118
+2026-10-18T14:30:36Z,fanduel,Marvin Harrison Jr.,Over,8.5,-118
+2026-10-18T14:30:36Z,fanduel,Marvin Harrison Jr.,Under,8.5,-112
+2026-10-18T14:30:36Z,fanduel,Dalton Schultz,Over,18.5,-118
+2026-10-18T14:30:36Z,fanduel,Dalton Schultz,Under,18.5,-112
+2026-10-18T14:30:36Z,fanduel,Xavier Hutchinson,Over,15.5,-114
+2026-10-18T14:30:36Z,fanduel,Xavier Hutchinson,Under,15.5,-114
+2026-10-18T14:30:36Z,fanduel,Woody Marks,Over,7.5,-122
+2026-10-18T14:30:36Z,fanduel,Woody Marks,Under,7.5,-118
+2026-10-18T14:30:36Z,fanduel,Nico Collins,Over,85.5,-114
+2026-10-18T14:30:36Z,fanduel,Nico Collins,Under,85.5,-114
+2026-10-18T14:30:36Z,fanduel,Foster Moreau,Over,6.5,-114
+2026-10-18T14:30:36Z,fanduel,Foster Moreau,Under,6.5,-114
+2026-10-18T14:30:36Z,fanduel,Jaylin Noel,Over,8.5,-118
+2026-10-18T14:30:36Z,fanduel,Jaylin Noel,Under,8.5,-112
+2026-10-18T14:35:36Z,draftkings,Parker Washington,Over,93.5,-115
+2026-10-18T14:35:36Z,draftkings,Parker Washington,Under,93.5,-120
+2026-10-18T14:35:36Z,draftkings,Nico Collins,Over,88.5,-120
+2026-10-18T14:35:36Z,draftkings,Nico Collins,Under,88.5,-115
+2026-10-18T14:35:36Z,draftkings,Brenton Strange,Over,53.5,-115
+2026-10-18T14:35:36Z,draftkings,Brenton Strange,Under,53.5,-120
+2026-10-18T14:35:36Z,draftkings,Bhayshul Tuten,Over,32.5,-120
+2026-10-18T14:35:36Z,draftkings,Bhayshul Tuten,Under,32.5,-115
+2026-10-18T14:35:36Z,draftkings,Jakobi Meyers,Over,28.5,-115
+2026-10-18T14:35:36Z,draftkings,Jakobi Meyers,Under,28.5,-115
+2026-10-18T14:35:36Z,draftkings,Dalton Schultz,Over,19.5,-120
+2026-10-18T14:35:36Z,draftkings,Dalton Schultz,Under,19.5,-115
+2026-10-18T14:35:36Z,draftkings,Xavier Hutchinson,Over,12.5,-120
+2026-10-18T14:35:36Z,draftkings,Xavier Hutchinson,Under,12.5,-110
+2026-10-18T14:35:36Z,draftkings,Kayshon Boutte,Over,11.5,-115
+2026-10-18T14:35:36Z,draftkings,Kayshon Boutte,Under,11.5,-120
+2026-10-18T14:35:36Z,draftkings,Jaylin Noel,Over,10.5,-115
+2026-10-18T14:35:36Z,draftkings,Jaylin Noel,Under,10.5,-120
+2026-10-18T14:35:36Z,draftkings,Brian Thomas Jr,Over,8.5,-115
+2026-10-18T14:35:36Z,draftkings,Brian Thomas Jr,Under,8.5,-120
+2026-10-18T14:35:36Z,draftkings,Marvin Harrison Jr.,Over,8.5,-115
+2026-10-18T14:35:36Z,draftkings,Marvin Harrison Jr.,Under,8.5,-120
+2026-10-18T14:35:36Z,draftkings,Josh Cameron,Over,7.5,-120
+2026-10-18T14:35:36Z,draftkings,Josh Cameron,Under,7.5,-110
+2026-10-18T14:35:36Z,draftkings,Foster Moreau,Over,7.5,-115
+2026-10-18T14:35:36Z,draftkings,Foster Moreau,Under,7.5,-115
+2026-10-18T14:35:36Z,draftkings,Nate Boerkircher,Over,7.5,120
+2026-10-18T14:35:36Z,draftkings,Nate Boerkircher,Under,7.5,-160
+2026-10-18T14:35:36Z,fanduel,Josh Cameron,Over,7.5,-108
+2026-10-18T14:35:36Z,fanduel,Josh Cameron,Under,7.5,-122
+2026-10-18T14:35:36Z,fanduel,Nate Boerkircher,Over,7.5,112
+2026-10-18T14:35:36Z,fanduel,Nate Boerkircher,Under,7.5,-148
+2026-10-18T14:35:36Z,fanduel,Jakobi Meyers,Over,29.5,-112
+2026-10-18T14:35:36Z,fanduel,Jakobi Meyers,Under,29.5,-118
+2026-10-18T14:35:36Z,fanduel,Kayshon Boutte,Over,12.5,-118
+2026-10-18T14:35:36Z,fanduel,Kayshon Boutte,Under,12.5,-112
+2026-10-18T14:35:36Z,fanduel,Marvin Harrison Jr.,Over,9.5,-118
+2026-10-18T14:35:36Z,fanduel,Marvin Harrison Jr.,Under,9.5,-112
+2026-10-18T14:35:36Z,fanduel,Dalton Schultz,Over,19.5,-120
+2026-10-18T14:35:36Z,fanduel,Dalton Schultz,Under,19.5,-110
+2026-10-18T14:35:36Z,fanduel,Parker Washington,Over,94.5,-112
+2026-10-18T14:35:36Z,fanduel,Parker Washington,Under,94.5,-118
+2026-10-18T14:35:36Z,fanduel,Xavier Hutchinson,Over,16.5,-118
+2026-10-18T14:35:36Z,fanduel,Xavier Hutchinson,Under,16.5,-112
+2026-10-18T14:35:36Z,fanduel,Woody Marks,Over,10.5,-118
+2026-10-18T14:35:36Z,fanduel,Woody Marks,Under,10.5,-112
+2026-10-18T14:35:36Z,fanduel,Nico Collins,Over,90.5,-114
+2026-10-18T14:35:36Z,fanduel,Nico Collins,Under,90.5,-114
+2026-10-18T14:35:36Z,fanduel,Foster Moreau,Over,7.5,-114
+2026-10-18T14:35:36Z,fanduel,Foster Moreau,Under,7.5,-114
+2026-10-18T14:35:36Z,fanduel,Bhayshul Tuten,Over,31.5,-125
+2026-10-18T14:35:36Z,fanduel,Bhayshul Tuten,Under,31.5,-106
+2026-10-18T14:35:36Z,fanduel,Jaylin Noel,Over,9.5,-114
+2026-10-18T14:35:36Z,fanduel,Jaylin Noel,Under,9.5,-114
+2026-10-18T14:35:36Z,fanduel,Brenton Strange,Over,52.5,-114
+2026-10-18T14:35:36Z,fanduel,Brenton Strange,Under,52.5,-114
+2026-10-18T14:35:36Z,fanduel,Brian Thomas Jr,Over,8.5,-118
+2026-10-18T14:35:36Z,fanduel,Brian Thomas Jr,Under,8.5,-112
+2026-10-18T14:40:36Z,draftkings,Parker Washington,Over,95.5,-115
+2026-10-18T14:40:36Z,draftkings,Parker Washington,Under,95.5,-115
+2026-10-18T14:40:36Z,draftkings,Nico Collins,Over,82.5,-115
+2026-10-18T14:40:36Z,draftkings,Nico Collins,Under,82.5,-115
+2026-10-18T14:40:36Z,draftkings,Brenton Strange,Over,54.5,-115
+2026-10-18T14:40:36Z,draftkings,Brenton Strange,Under,54.5,-120
+2026-10-18T14:40:36Z,draftkings,Bhayshul Tuten,Over,32.5,-125
+2026-10-18T14:40:36Z,draftkings,Bhayshul Tuten,Under,32.5,-110
+2026-10-18T14:40:36Z,draftkings,Jakobi Meyers,Over,30.5,-115
+2026-10-18T14:40:36Z,draftkings,Jakobi Meyers,Under,30.5,-120
+2026-10-18T14:40:36Z,draftkings,Marvin Harrison Jr.,Over,22.5,-115
+2026-10-18T14:40:36Z,draftkings,Marvin Harrison Jr.,Under,22.5,-120
+2026-10-18T14:40:36Z,draftkings,Dalton Schultz,Over,17.5,-110
+2026-10-18T14:40:36Z,draftkings,Dalton Schultz,Under,17.5,-120
+2026-10-18T14:40:36Z,draftkings,Xavier Hutchinson,Over,11.5,-120
+2026-10-18T14:40:36Z,draftkings,Xavier Hutchinson,Under,11.5,-115
+2026-10-18T14:40:36Z,draftkings,Kayshon Boutte,Over,9.5,-120
+2026-10-18T14:40:36Z,draftkings,Kayshon Boutte,Under,9.5,-110
+2026-10-18T14:40:36Z,draftkings,Brian Thomas Jr,Over,9.5,-115
+2026-10-18T14:40:36Z,draftkings,Brian Thomas Jr,Under,9.5,-115
+2026-10-18T14:40:36Z,draftkings,Josh Cameron,Over,8.5,-120
+2026-10-18T14:40:36Z,draftkings,Josh Cameron,Under,8.5,-115
+2026-10-18T14:40:36Z,draftkings,Nate Boerkircher,Over,7.5,115
+2026-10-18T14:40:36Z,draftkings,Nate Boerkircher,Under,7.5,-155
+2026-10-18T14:40:36Z,draftkings,Foster Moreau,Over,6.5,-115
+2026-10-18T14:40:36Z,draftkings,Foster Moreau,Under,6.5,-120
+2026-10-18T14:40:36Z,fanduel,Josh Cameron,Over,7.5,-118
+2026-10-18T14:40:36Z,fanduel,Josh Cameron,Under,7.5,-112
+2026-10-18T14:40:36Z,fanduel,Nate Boerkircher,Over,7.5,104
+2026-10-18T14:40:36Z,fanduel,Nate Boerkircher,Under,7.5,-138
+2026-10-18T14:40:36Z,fanduel,Jakobi Meyers,Over,30.5,-114
+2026-10-18T14:40:36Z,fanduel,Jakobi Meyers,Under,30.5,-114
+2026-10-18T14:40:36Z,fanduel,Kayshon Boutte,Over,10.5,-112
+2026-10-18T14:40:36Z,fanduel,Kayshon Boutte,Under,10.5,-118
+2026-10-18T14:40:36Z,fanduel,Marvin Harrison Jr.,Over,26.5,-114
+2026-10-18T14:40:36Z,fanduel,Marvin Harrison Jr.,Under,26.5,-114
+2026-10-18T14:40:36Z,fanduel,Dalton Schultz,Over,17.5,-114
+2026-10-18T14:40:36Z,fanduel,Dalton Schultz,Under,17.5,-114
+2026-10-18T14:40:36Z,fanduel,Parker Washington,Over,94.5,-118
+2026-10-18T14:40:36Z,fanduel,Parker Washington,Under,94.5,-112
+2026-10-18T14:40:36Z,fanduel,Xavier Hutchinson,Over,14.5,-110
+2026-10-18T14:40:36Z,fanduel,Xavier Hutchinson,Under,14.5,-122
+2026-10-18T14:40:36Z,fanduel,Woody Marks,Over,8.5,-122
+2026-10-18T14:40:36Z,fanduel,Woody Marks,Under,8.5,-110
+2026-10-18T14:40:36Z,fanduel,Nico Collins,Over,82.5,-114
+2026-10-18T14:40:36Z,fanduel,Nico Collins,Under,82.5,-114
+2026-10-18T14:40:36Z,fanduel,Foster Moreau,Over,6.5,-102
+2026-10-18T14:40:36Z,fanduel,Foster Moreau,Under,6.5,-130
+2026-10-18T14:40:36Z,fanduel,Bhayshul Tuten,Over,32.5,-112
+2026-10-18T14:40:36Z,fanduel,Bhayshul Tuten,Under,32.5,-118
+2026-10-18T14:40:36Z,fanduel,Jaylin Noel,Over,41.5,-112
+2026-10-18T14:40:36Z,fanduel,Jaylin Noel,Under,41.5,-118
+2026-10-18T14:40:36Z,fanduel,Brenton Strange,Over,54.5,-114
+2026-10-18T14:40:36Z,fanduel,Brenton Strange,Under,54.5,-114
+2026-10-18T14:40:36Z,fanduel,Brian Thomas Jr,Over,9.5,-118
+2026-10-18T14:40:36Z,fanduel,Brian Thomas Jr,Under,9.5,-112
+2026-10-18T14:45:36Z,draftkings,Parker Washington,Over,89.5,-115
+2026-10-18T14:45:36Z,draftkings,Parker Washington,Under,89.5,-120
+2026-10-18T14:45:36Z,draftkings,Nico Collins,Over,81.5,-120
+2026-10-18T14:45:36Z,draftkings,Nico Collins,Under,81.5,-115
+2026-10-18T14:45:36Z,draftkings,Brenton Strange,Over,50.5,-120
+2026-10-18T14:45:36Z,draftkings,Brenton Strange,Under,50.5,-115
+2026-10-18T14:45:36Z,draftkings,Bhayshul Tuten,Over,31.5,-115
+2026-10-18T14:45:36Z,draftkings,Bhayshul Tuten,Under,31.5,-115
+2026-10-18T14:45:36Z,draftkings,Jakobi Meyers,Over,26.5,-120
+2026-10-18T14:45:36Z,draftkings,Jakobi Meyers,Under,26.5,-115
+2026-10-18T14:45:36Z,draftkings,Dalton Schultz,Over,23.5,-120
+2026-10-18T14:45:36Z,draftkings,Dalton Schultz,Under,23.5,-115
+2026-10-18T14:45:36Z,draftkings,Marvin Harrison Jr.,Over,23.5,-120
+2026-10-18T14:45:36Z,draftkings,Marvin Harrison Jr.,Under,23.5,-115
+2026-10-18T14:45:36Z,draftkings,Xavier Hutchinson,Over,11.5,-115
+2026-10-18T14:45:36Z,draftkings,Xavier Hutchinson,Under,11.5,-120
+2026-10-18T14:45:36Z,draftkings,Kayshon Boutte,Over,9.5,-110
+2026-10-18T14:45:36Z,draftkings,Kayshon Boutte,Under,9.5,-120
+2026-10-18T14:45:36Z,draftkings,Nate Boerkircher,Over,7.5,135
+2026-10-18T14:45:36Z,draftkings,Nate Boerkircher,Under,7.5,-180
+2026-10-18T14:45:36Z,draftkings,Brian Thomas Jr,Over,6.5,-120
+2026-10-18T14:45:36Z,draftkings,Brian Thomas Jr,Under,6.5,-115
+2026-10-18T14:45:36Z,draftkings,Josh Cameron,Over,6.5,-120
+2026-10-18T14:45:36Z,draftkings,Josh Cameron,Under,6.5,-115
+2026-10-18T14:45:36Z,draftkings,Foster Moreau,Over,6.5,100
+2026-10-18T14:45:36Z,draftkings,Foster Moreau,Under,6.5,-140
+2026-10-18T14:45:36Z,fanduel,Josh Cameron,Over,6.5,-118
+2026-10-18T14:45:36Z,fanduel,Josh Cameron,Under,6.5,-112
+2026-10-18T14:45:36Z,fanduel,Nate Boerkircher,Over,7.5,118
+2026-10-18T14:45:36Z,fanduel,Nate Boerkircher,Under,7.5,-158
+2026-10-18T14:45:36Z,fanduel,Jakobi Meyers,Over,28.5,-112
+2026-10-18T14:45:36Z,fanduel,Jakobi Meyers,Under,28.5,-118
+2026-10-18T14:45:36Z,fanduel,Kayshon Boutte,Over,9.5,-118
+2026-10-18T14:45:36Z,fanduel,Kayshon Boutte,Under,9.5,-112
+2026-10-18T14:45:36Z,fanduel,Marvin Harrison Jr.,Over,26.5,-114
+2026-10-18T14:45:36Z,fanduel,Marvin Harrison Jr.,Under,26.5,-114
+2026-10-18T14:45:36Z,fanduel,Dalton Schultz,Over,24.5,-118
+2026-10-18T14:45:36Z,fanduel,Dalton Schultz,Under,24.5,-112
+2026-10-18T14:45:36Z,fanduel,Parker Washington,Over,92.5,-114
+2026-10-18T14:45:36Z,fanduel,Parker Washington,Under,92.5,-114
+2026-10-18T14:45:36Z,fanduel,Xavier Hutchinson,Over,14.5,-110
+2026-10-18T14:45:36Z,fanduel,Xavier Hutchinson,Under,14.5,-120
+2026-10-18T14:45:36Z,fanduel,Woody Marks,Over,9.5,-108
+2026-10-18T14:45:36Z,fanduel,Woody Marks,Under,9.5,-122
+2026-10-18T14:45:36Z,fanduel,Nico Collins,Over,83.5,-114
+2026-10-18T14:45:36Z,fanduel,Nico Collins,Under,83.5,-118
+2026-10-18T14:45:36Z,fanduel,Foster Moreau,Over,6.5,-104
+2026-10-18T14:45:36Z,fanduel,Foster Moreau,Under,6.5,-125
+2026-10-18T14:45:36Z,fanduel,Bhayshul Tuten,Over,31.5,-110
+2026-10-18T14:45:36Z,fanduel,Bhayshul Tuten,Under,31.5,-120
+2026-10-18T14:45:36Z,fanduel,Jaylin Noel,Over,41.5,-112
+2026-10-18T14:45:36Z,fanduel,Jaylin Noel,Under,41.5,-118
+2026-10-18T14:45:36Z,fanduel,Brenton Strange,Over,51.5,-112
+2026-10-18T14:45:36Z,fanduel,Brenton Strange,Under,51.5,-118
+2026-10-18T14:45:36Z,fanduel,Brian Thomas Jr,Over,8.5,-114
+2026-10-18T14:45:36Z,fanduel,Brian Thomas Jr,Under,8.5,-114
+2026-10-18T14:50:36Z,draftkings,Parker Washington,Over,88.5,-120
+2026-10-18T14:50:36Z,draftkings,Parker Washington,Under,88.5,-115
+2026-10-18T14:50:36Z,draftkings,Nico Collins,Over,81.5,-120
+2026-10-18T14:50:36Z,draftkings,Nico Collins,Under,81.5,-115
+2026-10-18T14:50:36Z,draftkings,Brenton Strange,Over,49.5,-115
+2026-10-18T14:50:36Z,draftkings,Brenton Strange,Under,49.5,-115
+2026-10-18T14:50:36Z,draftkings,Bhayshul Tuten,Over,31.5,-120
+2026-10-18T14:50:36Z,draftkings,Bhayshul Tuten,Under,31.5,-115
+2026-10-18T14:50:36Z,draftkings,Marvin Harrison Jr.,Over,27.5,-120
+2026-10-18T14:50:36Z,draftkings,Marvin Harrison Jr.,Under,27.5,-115
+2026-10-18T14:50:36Z,draftkings,Jakobi Meyers,Over,25.5,-115
+2026-10-18T14:50:36Z,draftkings,Jakobi Meyers,Under,25.5,-115
+2026-10-18T14:50:36Z,draftkings,Dalton Schultz,Over,23.5,-120
+2026-10-18T14:50:36Z,draftkings,Dalton Schultz,Under,23.5,-115
+2026-10-18T14:50:36Z,draftkings,Xavier Hutchinson,Over,11.5,-115
+2026-10-18T14:50:36Z,draftkings,Xavier Hutchinson,Under,11.5,-120
+2026-10-18T14:50:36Z,draftkings,Kayshon Boutte,Over,8.5,-120
+2026-10-18T14:50:36Z,draftkings,Kayshon Boutte,Under,8.5,-110
+2026-10-18T14:50:36Z,draftkings,Nate Boerkircher,Over,7.5,135
+2026-10-18T14:50:36Z,draftkings,Nate Boerkircher,Under,7.5,-185
+2026-10-18T14:50:36Z,draftkings,Foster Moreau,Over,6.5,-105
+2026-10-18T14:50:36Z,draftkings,Foster Moreau,Under,6.5,-130
+2026-10-18T14:50:36Z,draftkings,Brian Thomas Jr,Over,5.5,-120
+2026-10-18T14:50:36Z,draftkings,Brian Thomas Jr,Under,5.5,-115
+2026-10-18T14:50:36Z,draftkings,Josh Cameron,Over,5.5,-115
+2026-10-18T14:50:36Z,draftkings,Josh Cameron,Under,5.5,-115
+2026-10-18T14:50:36Z,fanduel,Josh Cameron,Over,5.5,-118
+2026-10-18T14:50:36Z,fanduel,Josh Cameron,Under,5.5,-112
+2026-10-18T14:50:36Z,fanduel,Nate Boerkircher,Over,7.5,126
+2026-10-18T14:50:36Z,fanduel,Nate Boerkircher,Under,7.5,-168
+2026-10-18T14:50:36Z,fanduel,Jakobi Meyers,Over,27.5,-112
+2026-10-18T14:50:36Z,fanduel,Jakobi Meyers,Under,27.5,-118
+2026-10-18T14:50:36Z,fanduel,Kayshon Boutte,Over,9.5,-118
+2026-10-18T14:50:36Z,fanduel,Kayshon Boutte,Under,9.5,-112
+2026-10-18T14:50:36Z,fanduel,Marvin Harrison Jr.,Over,27.5,-118
+2026-10-18T14:50:36Z,fanduel,Marvin Harrison Jr.,Under,27.5,-112
+2026-10-18T14:50:36Z,fanduel,Dalton Schultz,Over,23.5,-114
+2026-10-18T14:50:36Z,fanduel,Dalton Schultz,Under,23.5,-114
+2026-10-18T14:50:36Z,fanduel,Parker Washington,Over,89.5,-112
+2026-10-18T14:50:36Z,fanduel,Parker Washington,Under,89.5,-118
+2026-10-18T14:50:36Z,fanduel,Xavier Hutchinson,Over,14.5,-110
+2026-10-18T14:50:36Z,fanduel,Xavier Hutchinson,Under,14.5,-120
+2026-10-18T14:50:36Z,fanduel,Woody Marks,Over,9.5,-106
+2026-10-18T14:50:36Z,fanduel,Woody Marks,Under,9.5,-125
+2026-10-18T14:50:36Z,fanduel,Nico Collins,Over,81.5,-114
+2026-10-18T14:50:36Z,fanduel,Nico Collins,Under,81.5,-114
+2026-10-18T14:50:36Z,fanduel,Foster Moreau,Over,6.5,102
+2026-10-18T14:50:36Z,fanduel,Foster Moreau,Under,6.5,-136
+2026-10-18T14:50:36Z,fanduel,Bhayshul Tuten,Over,30.5,-118
+2026-10-18T14:50:36Z,fanduel,Bhayshul Tuten,Under,30.5,-112
+2026-10-18T14:50:36Z,fanduel,Jaylin Noel,Over,40.5,-118
+2026-10-18T14:50:36Z,fanduel,Jaylin Noel,Under,40.5,-112
+2026-10-18T14:50:36Z,fanduel,Brenton Strange,Over,49.5,-114
+2026-10-18T14:50:36Z,fanduel,Brenton Strange,Under,49.5,-114
+2026-10-18T14:50:36Z,fanduel,Brian Thomas Jr,Over,7.5,-114
+2026-10-18T14:50:36Z,fanduel,Brian Thomas Jr,Under,7.5,-114
+2026-10-18T14:55:36Z,draftkings,Nico Collins,Over,82.5,-115
+2026-10-18T14:55:36Z,draftkings,Nico Collins,Under,82.5,-120
+2026-10-18T14:55:36Z,draftkings,Parker Washington,Over,81.5,-120
+2026-10-18T14:55:36Z,draftkings,Parker Washington,Under,81.5,-115
+2026-10-18T14:55:36Z,draftkings,Brenton Strange,Over,45.5,-115
+2026-10-18T14:55:36Z,draftkings,Brenton Strange,Under,45.5,-120
+2026-10-18T14:55:36Z,draftkings,Jakobi Meyers,Over,32.5,-110
+2026-10-18T14:55:36Z,draftkings,Jakobi Meyers,Under,32.5,-120
+2026-10-18T14:55:36Z,draftkings,Bhayshul Tuten,Over,29.5,-115
+2026-10-18T14:55:36Z,draftkings,Bhayshul Tuten,Under,29.5,-120
+2026-10-18T14:55:36Z,draftkings,Marvin Harrison Jr.,Over,26.5,-120
+2026-10-18T14:55:36Z,draftkings,Marvin Harrison Jr.,Under,26.5,-115
+2026-10-18T14:55:36Z,draftkings,Dalton Schultz,Over,23.5,-110
+2026-10-18T14:55:36Z,draftkings,Dalton Schultz,Under,23.5,-120
+2026-10-18T14:55:36Z,draftkings,Xavier Hutchinson,Over,11.5,-110
+2026-10-18T14:55:36Z,draftkings,Xavier Hutchinson,Under,11.5,-120
+2026-10-18T14:55:36Z,draftkings,Kayshon Boutte,Over,8.5,-120
+2026-10-18T14:55:36Z,draftkings,Kayshon Boutte,Under,8.5,-115
+2026-10-18T14:55:36Z,draftkings,Nate Boerkircher,Over,7.5,155
+2026-10-18T14:55:36Z,draftkings,Nate Boerkircher,Under,7.5,-215
+2026-10-18T14:55:36Z,draftkings,Foster Moreau,Over,6.5,105
+2026-10-18T14:55:36Z,draftkings,Foster Moreau,Under,6.5,-140
+2026-10-18T14:55:36Z,draftkings,Brian Thomas Jr,Over,1.5,-115
+2026-10-18T14:55:36Z,draftkings,Brian Thomas Jr,Under,1.5,-115
+2026-10-18T14:55:36Z,draftkings,Josh Cameron,Over,1.5,-115
+2026-10-18T14:55:36Z,draftkings,Josh Cameron,Under,1.5,-115
+2026-10-18T14:55:36Z,fanduel,Josh Cameron,Over,0.5,-112
+2026-10-18T14:55:36Z,fanduel,Josh Cameron,Under,0.5,-118
+2026-10-18T14:55:36Z,fanduel,Nate Boerkircher,Over,7.5,178
+2026-10-18T14:55:36Z,fanduel,Nate Boerkircher,Under,7.5,-245
+2026-10-18T14:55:36Z,fanduel,Jakobi Meyers,Over,31.5,-112
+2026-10-18T14:55:36Z,fanduel,Jakobi Meyers,Under,31.5,-118
+2026-10-18T14:55:36Z,fanduel,Kayshon Boutte,Over,10.5,-118
+2026-10-18T14:55:36Z,fanduel,Kayshon Boutte,Under,10.5,-114
+2026-10-18T14:55:36Z,fanduel,Marvin Harrison Jr.,Over,28.5,-114
+2026-10-18T14:55:36Z,fanduel,Marvin Harrison Jr.,Under,28.5,-114
+2026-10-18T14:55:36Z,fanduel,Dalton Schultz,Over,25.5,-110
+2026-10-18T14:55:36Z,fanduel,Dalton Schultz,Under,25.5,-120
+2026-10-18T14:55:36Z,fanduel,Parker Washington,Over,82.5,-112
+2026-10-18T14:55:36Z,fanduel,Parker Washington,Under,82.5,-118
+2026-10-18T14:55:36Z,fanduel,Xavier Hutchinson,Over,14.5,-118
+2026-10-18T14:55:36Z,fanduel,Xavier Hutchinson,Under,14.5,-110
+2026-10-18T14:55:36Z,fanduel,Woody Marks,Over,9.5,-122
+2026-10-18T14:55:36Z,fanduel,Woody Marks,Under,9.5,-108
+2026-10-18T14:55:36Z,fanduel,Nico Collins,Over,83.5,-118
+2026-10-18T14:55:36Z,fanduel,Nico Collins,Under,83.5,-112
+2026-10-18T14:55:36Z,fanduel,Foster Moreau,Over,6.5,-110
+2026-10-18T14:55:36Z,fanduel,Foster Moreau,Under,6.5,-120
+2026-10-18T14:55:36Z,fanduel,Bhayshul Tuten,Over,29.5,-114
+2026-10-18T14:55:36Z,fanduel,Bhayshul Tuten,Under,29.5,-114
+2026-10-18T14:55:36Z,fanduel,Jaylin Noel,Over,41.5,-118
+2026-10-18T14:55:36Z,fanduel,Jaylin Noel,Under,41.5,-112
+2026-10-18T14:55:36Z,fanduel,Brenton Strange,Over,44.5,-110
+2026-10-18T14:55:36Z,fanduel,Brenton Strange,Under,44.5,-120
+2026-10-18T14:55:36Z,fanduel,Brian Thomas Jr,Over,1.5,-114
+2026-10-18T14:55:36Z,fanduel,Brian Thomas Jr,Under,1.5,-114
+2026-10-18T15:00:36Z,draftkings,Jaylin Noel,Over,90.5,-115
+2026-10-18T15:00:36Z,draftkings,Jaylin Noel,Under,90.5,-120
+2026-10-18T15:00:36Z,draftkings,Parker Washington,Over,79.5,-120
+2026-10-18T15:00:36Z,draftkings,Parker Washington,Under,79.5,-115
+2026-10-18T15:00:36Z,draftkings,Nico Collins,Over,77.5,-115
+2026-10-18T15:00:36Z,draftkings,Nico Collins,Under,77.5,-115
+2026-10-18T15:00:36Z,draftkings,Brenton Strange,Over,43.5,-120
+2026-10-18T15:00:36Z,draftkings,Brenton Strange,Under,43.5,-110
+2026-10-18T15:00:36Z,draftkings,Bhayshul Tuten,Over,31.5,-115
+2026-10-18T15:00:36Z,draftkings,Bhayshul Tuten,Under,31.5,-115
+2026-10-18T15:00:36Z,draftkings,Jakobi Meyers,Over,30.5,-115
+2026-10-18T15:00:36Z,draftkings,Jakobi Meyers,Under,30.5,-115
+2026-10-18T15:00:36Z,draftkings,Marvin Harrison Jr.,Over,25.5,-115
+2026-10-18T15:00:36Z,draftkings,Marvin Harrison Jr.,Under,25.5,-120
+2026-10-18T15:00:36Z,draftkings,Dalton Schultz,Over,21.5,-110
+2026-10-18T15:00:36Z,draftkings,Dalton Schultz,Under,21.5,-120
+2026-10-18T15:00:36Z,draftkings,Xavier Hutchinson,Over,9.5,-115
+2026-10-18T15:00:36Z,draftkings,Xavier Hutchinson,Under,9.5,-115
+2026-10-18T15:00:36Z,draftkings,Nate Boerkircher,Over,7.5,175
+2026-10-18T15:00:36Z,draftkings,Nate Boerkircher,Under,7.5,-240
+2026-10-18T15:00:36Z,draftkings,Kayshon Boutte,Over,6.5,-120
+2026-10-18T15:00:36Z,draftkings,Kayshon Boutte,Under,6.5,-115
+2026-10-18T15:00:36Z,draftkings,Woody Marks,Over,6.5,-110
+2026-10-18T15:00:36Z,draftkings,Woody Marks,Under,6.5,-120
+2026-10-18T15:00:36Z,draftkings,Foster Moreau,Over,6.5,110
+2026-10-18T15:00:36Z,draftkings,Foster Moreau,Under,6.5,-150
+2026-10-18T15:00:36Z,draftkings,Josh Cameron,Over,0.5,-110
+2026-10-18T15:00:36Z,draftkings,Josh Cameron,Under,0.5,-125
+2026-10-18T15:00:36Z,draftkings,Brian Thomas Jr,Over,0.5,-105
+2026-10-18T15:00:36Z,draftkings,Brian Thomas Jr,Under,0.5,-125
+2026-10-18T15:00:36Z,fanduel,Josh Cameron,Over,1.5,-114
+2026-10-18T15:00:36Z,fanduel,Josh Cameron,Under,1.5,-114
+2026-10-18T15:00:36Z,fanduel,Nate Boerkircher,Over,7.5,162
+2026-10-18T15:00:36Z,fanduel,Nate Boerkircher,Under,7.5,-220
+2026-10-18T15:00:36Z,fanduel,Jakobi Meyers,Over,32.5,-118
+2026-10-18T15:00:36Z,fanduel,Jakobi Meyers,Under,32.5,-112
+2026-10-18T15:00:36Z,fanduel,Parker Washington,Over,84.5,-118
+2026-10-18T15:00:36Z,fanduel,Parker Washington,Under,84.5,-112
+2026-10-18T15:00:36Z,fanduel,Bhayshul Tuten,Over,30.5,-120
+2026-10-18T15:00:36Z,fanduel,Bhayshul Tuten,Under,30.5,-110
+2026-10-18T15:00:36Z,fanduel,Brenton Strange,Over,45.5,-118
+2026-10-18T15:00:36Z,fanduel,Brenton Strange,Under,45.5,-112
+2026-10-18T15:00:36Z,fanduel,Brian Thomas Jr,Over,3.5,-114
+2026-10-18T15:00:36Z,fanduel,Brian Thomas Jr,Under,3.5,-114
+2026-10-18T15:05:36Z,draftkings,Jaylin Noel,Over,88.5,-115
+2026-10-18T15:05:36Z,draftkings,Jaylin Noel,Under,88.5,-115
+2026-10-18T15:05:36Z,draftkings,Parker Washington,Over,87.5,-115
+2026-10-18T15:05:36Z,draftkings,Parker Washington,Under,87.5,-120
+2026-10-18T15:05:36Z,draftkings,Nico Collins,Over,73.5,-115
+2026-10-18T15:05:36Z,draftkings,Nico Collins,Under,73.5,-115
+2026-10-18T15:05:36Z,draftkings,Brenton Strange,Over,48.5,-120
+2026-10-18T15:05:36Z,draftkings,Brenton Strange,Under,48.5,-115
+2026-10-18T15:05:36Z,draftkings,Jakobi Meyers,Over,34.5,-115
+2026-10-18T15:05:36Z,draftkings,Jakobi Meyers,Under,34.5,-120
+2026-10-18T15:05:36Z,draftkings,Bhayshul Tuten,Over,33.5,-115
+2026-10-18T15:05:36Z,draftkings,Bhayshul Tuten,Under,33.5,-120
+2026-10-18T15:05:36Z,draftkings,Marvin Harrison Jr.,Over,20.5,-115
+2026-10-18T15:05:36Z,draftkings,Marvin Harrison Jr.,Under,20.5,-115
+2026-10-18T15:05:36Z,draftkings,Dalton Schultz,Over,20.5,-110
+2026-10-18T15:05:36Z,draftkings,Dalton Schultz,Under,20.5,-120
+2026-10-18T15:05:36Z,draftkings,Xavier Hutchinson,Over,8.5,-115
+2026-10-18T15:05:36Z,draftkings,Xavier Hutchinson,Under,8.5,-120
+2026-10-18T15:05:36Z,draftkings,Foster Moreau,Over,7.5,110
+2026-10-18T15:05:36Z,draftkings,Foster Moreau,Under,7.5,-150
+2026-10-18T15:05:36Z,draftkings,Nate Boerkircher,Over,7.5,150
+2026-10-18T15:05:36Z,draftkings,Nate Boerkircher,Under,7.5,-205
+2026-10-18T15:05:36Z,draftkings,Kayshon Boutte,Over,5.5,-120
+2026-10-18T15:05:36Z,draftkings,Kayshon Boutte,Under,5.5,-115
+2026-10-18T15:05:36Z,draftkings,Woody Marks,Over,5.5,-120
+2026-10-18T15:05:36Z,draftkings,Woody Marks,Under,5.5,-115
+2026-10-18T15:05:36Z,draftkings,Brian Thomas Jr,Over,5.5,-115
+2026-10-18T15:05:36Z,draftkings,Brian Thomas Jr,Under,5.5,-115
+2026-10-18T15:05:36Z,draftkings,Josh Cameron,Over,4.5,-115
+2026-10-18T15:05:36Z,draftkings,Josh Cameron,Under,4.5,-115
+2026-10-18T15:05:36Z,fanduel,Josh Cameron,Over,3.5,-114
+2026-10-18T15:05:36Z,fanduel,Josh Cameron,Under,3.5,-114
+2026-10-18T15:05:36Z,fanduel,Woody Marks,Over,7.5,-120
+2026-10-18T15:05:36Z,fanduel,Woody Marks,Under,7.5,-110
+2026-10-18T15:05:36Z,fanduel,Nate Boerkircher,Over,7.5,148
+2026-10-18T15:05:36Z,fanduel,Nate Boerkircher,Under,7.5,-200
+2026-10-18T15:05:36Z,fanduel,Jakobi Meyers,Over,32.5,-120
+2026-10-18T15:05:36Z,fanduel,Jakobi Meyers,Under,32.5,-110
+2026-10-18T15:05:36Z,fanduel,Nico Collins,Over,74.5,-114
+2026-10-18T15:05:36Z,fanduel,Nico Collins,Under,74.5,-114
+2026-10-18T15:05:36Z,fanduel,Kayshon Boutte,Over,7.5,-112
+2026-10-18T15:05:36Z,fanduel,Kayshon Boutte,Under,7.5,-118
+2026-10-18T15:05:36Z,fanduel,Marvin Harrison Jr.,Over,23.5,-118
+2026-10-18T15:05:36Z,fanduel,Marvin Harrison Jr.,Under,23.5,-112
+2026-10-18T15:05:36Z,fanduel,Bhayshul Tuten,Over,31.5,-112
+2026-10-18T15:05:36Z,fanduel,Bhayshul Tuten,Under,31.5,-118
+2026-10-18T15:05:36Z,fanduel,Jaylin Noel,Over,88.5,-114
+2026-10-18T15:05:36Z,fanduel,Jaylin Noel,Under,88.5,-114
+2026-10-18T15:05:36Z,fanduel,Brenton Strange,Over,46.5,-110
+2026-10-18T15:05:36Z,fanduel,Brenton Strange,Under,46.5,-120
+2026-10-18T15:05:36Z,fanduel,Brian Thomas Jr,Over,4.5,-114
+2026-10-18T15:05:36Z,fanduel,Brian Thomas Jr,Under,4.5,-114
+2026-10-18T15:05:36Z,fanduel,Parker Washington,Over,85.5,-112
+2026-10-18T15:05:36Z,fanduel,Parker Washington,Under,85.5,-118
+2026-10-18T15:05:36Z,fanduel,Xavier Hutchinson,Over,10.5,-120
+2026-10-18T15:05:36Z,fanduel,Xavier Hutchinson,Under,10.5,-110
+2026-10-18T15:10:36Z,draftkings,Jaylin Noel,Over,89.5,-120
+2026-10-18T15:10:36Z,draftkings,Jaylin Noel,Under,89.5,-115
+2026-10-18T15:10:36Z,draftkings,Parker Washington,Over,86.5,-115
+2026-10-18T15:10:36Z,draftkings,Parker Washington,Under,86.5,-120
+2026-10-18T15:10:36Z,draftkings,Nico Collins,Over,75.5,-115
+2026-10-18T15:10:36Z,draftkings,Nico Collins,Under,75.5,-115
+2026-10-18T15:10:36Z,draftkings,Brenton Strange,Over,47.5,-110
+2026-10-18T15:10:36Z,draftkings,Brenton Strange,Under,47.5,-120
+2026-10-18T15:10:36Z,draftkings,Bhayshul Tuten,Over,33.5,-110
+2026-10-18T15:10:36Z,draftkings,Bhayshul Tuten,Under,33.5,-120
+2026-10-18T15:10:36Z,draftkings,Jakobi Meyers,Over,33.5,-110
+2026-10-18T15:10:36Z,draftkings,Jakobi Meyers,Under,33.5,-120
+2026-10-18T15:10:36Z,draftkings,Marvin Harrison Jr.,Over,22.5,-120
+2026-10-18T15:10:36Z,draftkings,Marvin Harrison Jr.,Under,22.5,-115
+2026-10-18T15:10:36Z,draftkings,Dalton Schultz,Over,20.5,-110
+2026-10-18T15:10:36Z,draftkings,Dalton Schultz,Under,20.5,-120
+2026-10-18T15:10:36Z,draftkings,Xavier Hutchinson,Over,9.5,-115
+2026-10-18T15:10:36Z,draftkings,Xavier Hutchinson,Under,9.5,-120
+2026-10-18T15:10:36Z,draftkings,Foster Moreau,Over,7.5,105
+2026-10-18T15:10:36Z,draftkings,Foster Moreau,Under,7.5,-145
+2026-10-18T15:10:36Z,draftkings,Nate Boerkircher,Over,7.5,155
+2026-10-18T15:10:36Z,draftkings,Nate Boerkircher,Under,7.5,-215
+2026-10-18T15:10:36Z,draftkings,Kayshon Boutte,Over,6.5,-115
+2026-10-18T15:10:36Z,draftkings,Kayshon Boutte,Under,6.5,-120
+2026-10-18T15:10:36Z,draftkings,Woody Marks,Over,5.5,-120
+2026-10-18T15:10:36Z,draftkings,Woody Marks,Under,5.5,-110
+2026-10-18T15:10:36Z,draftkings,Brian Thomas Jr,Over,3.5,-115
+2026-10-18T15:10:36Z,draftkings,Brian Thomas Jr,Under,3.5,-115
+2026-10-18T15:10:36Z,draftkings,Josh Cameron,Over,3.5,-115
+2026-10-18T15:10:36Z,draftkings,Josh Cameron,Under,3.5,-115
+2026-10-18T15:10:36Z,fanduel,Josh Cameron,Over,4.5,-114
+2026-10-18T15:10:36Z,fanduel,Josh Cameron,Under,4.5,-114
+2026-10-18T15:10:36Z,fanduel,Nate Boerkircher,Over,7.5,152
+2026-10-18T15:10:36Z,fanduel,Nate Boerkircher,Under,7.5,-205
+2026-10-18T15:10:36Z,fanduel,Jakobi Meyers,Over,33.5,-114
+2026-10-18T15:10:36Z,fanduel,Jakobi Meyers,Under,33.5,-114
+2026-10-18T15:10:36Z,fanduel,Kayshon Boutte,Over,7.5,-112
+2026-10-18T15:10:36Z,fanduel,Kayshon Boutte,Under,7.5,-118
+2026-10-18T15:10:36Z,fanduel,Marvin Harrison Jr.,Over,23.5,-114
+2026-10-18T15:10:36Z,fanduel,Marvin Harrison Jr.,Under,23.5,-114
+2026-10-18T15:10:36Z,fanduel,Parker Washington,Over,86.5,-114
+2026-10-18T15:10:36Z,fanduel,Parker Washington,Under,86.5,-114
+2026-10-18T15:10:36Z,fanduel,Xavier Hutchinson,Over,10.5,-122
+2026-10-18T15:10:36Z,fanduel,Xavier Hutchinson,Under,10.5,-108
+2026-10-18T15:10:36Z,fanduel,Woody Marks,Over,7.5,-122
+2026-10-18T15:10:36Z,fanduel,Woody Marks,Under,7.5,-108
+2026-10-18T15:10:36Z,fanduel,Nico Collins,Over,73.5,-118
+2026-10-18T15:10:36Z,fanduel,Nico Collins,Under,73.5,-114
+2026-10-18T15:10:36Z,fanduel,Foster Moreau,Over,12.5,-106
+2026-10-18T15:10:36Z,fanduel,Foster Moreau,Under,12.5,-125
+2026-10-18T15:10:36Z,fanduel,Bhayshul Tuten,Over,32.5,-110
+2026-10-18T15:10:36Z,fanduel,Bhayshul Tuten,Under,32.5,-120
+2026-10-18T15:10:36Z,fanduel,Jaylin Noel,Over,89.5,-112
+2026-10-18T15:10:36Z,fanduel,Jaylin Noel,Under,89.5,-118
+2026-10-18T15:10:36Z,fanduel,Brenton Strange,Over,47.5,-114
+2026-10-18T15:10:36Z,fanduel,Brenton Strange,Under,47.5,-114
+2026-10-18T15:10:36Z,fanduel,Brian Thomas Jr,Over,4.5,-118
+2026-10-18T15:10:36Z,fanduel,Brian Thomas Jr,Under,4.5,-112
+2026-10-18T15:15:36Z,draftkings,Jaylin Noel,Over,89.5,-120
+2026-10-18T15:15:36Z,draftkings,Jaylin Noel,Under,89.5,-115
+2026-10-18T15:15:36Z,draftkings,Parker Washington,Over,85.5,-115
+2026-10-18T15:15:36Z,draftkings,Parker Washington,Under,85.5,-115
+2026-10-18T15:15:36Z,draftkings,Nico Collins,Over,76.5,-115
+2026-10-18T15:15:36Z,draftkings,Nico Collins,Under,76.5,-120
+2026-10-18T15:15:36Z,draftkings,Brenton Strange,Over,47.5,-120
+2026-10-18T15:15:36Z,draftkings,Brenton Strange,Under,47.5,-115
+2026-10-18T15:15:36Z,draftkings,Bhayshul Tuten,Over,33.5,-115
+2026-10-18T15:15:36Z,draftkings,Bhayshul Tuten,Under,33.5,-115
+2026-10-18T15:15:36Z,draftkings,Jakobi Meyers,Over,33.5,-115
+2026-10-18T15:15:36Z,draftkings,Jakobi Meyers,Under,33.5,-120
+2026-10-18T15:15:36Z,draftkings,Marvin Harrison Jr.,Over,23.5,-115
+2026-10-18T15:15:36Z,draftkings,Marvin Harrison Jr.,Under,23.5,-115
+2026-10-18T15:15:36Z,draftkings,Xavier Hutchinson,Over,9.5,-115
+2026-10-18T15:15:36Z,draftkings,Xavier Hutchinson,Under,9.5,-115
+2026-10-18T15:15:36Z,draftkings,Foster Moreau,Over,7.5,100
+2026-10-18T15:15:36Z,draftkings,Foster Moreau,Under,7.5,-135
+2026-10-18T15:15:36Z,draftkings,Nate Boerkircher,Over,7.5,155
+2026-10-18T15:15:36Z,draftkings,Nate Boerkircher,Under,7.5,-215
+2026-10-18T15:15:36Z,draftkings,Kayshon Boutte,Over,6.5,-115
+2026-10-18T15:15:36Z,draftkings,Kayshon Boutte,Under,6.5,-120
+2026-10-18T15:15:36Z,draftkings,Woody Marks,Over,5.5,-125
+2026-10-18T15:15:36Z,draftkings,Woody Marks,Under,5.5,-105
+2026-10-18T15:15:36Z,draftkings,Brian Thomas Jr,Over,4.5,-115
+2026-10-18T15:15:36Z,draftkings,Brian Thomas Jr,Under,4.5,-115
+2026-10-18T15:15:36Z,draftkings,Josh Cameron,Over,4.5,-115
+2026-10-18T15:15:36Z,draftkings,Josh Cameron,Under,4.5,-115
+2026-10-18T15:15:36Z,fanduel,Josh Cameron,Over,4.5,-112
+2026-10-18T15:15:36Z,fanduel,Josh Cameron,Under,4.5,-118
+2026-10-18T15:15:36Z,fanduel,Nate Boerkircher,Over,7.5,142
+2026-10-18T15:15:36Z,fanduel,Nate Boerkircher,Under,7.5,-192
+2026-10-18T15:15:36Z,fanduel,Jakobi Meyers,Over,33.5,-120
+2026-10-18T15:15:36Z,fanduel,Jakobi Meyers,Under,33.5,-110
+2026-10-18T15:15:36Z,fanduel,Kayshon Boutte,Over,7.5,-114
+2026-10-18T15:15:36Z,fanduel,Kayshon Boutte,Under,7.5,-114
+2026-10-18T15:15:36Z,fanduel,Marvin Harrison Jr.,Over,23.5,-118
+2026-10-18T15:15:36Z,fanduel,Marvin Harrison Jr.,Under,23.5,-112
+2026-10-18T15:15:36Z,fanduel,Parker Washington,Over,87.5,-112
+2026-10-18T15:15:36Z,fanduel,Parker Washington,Under,87.5,-118
+2026-10-18T15:15:36Z,fanduel,Xavier Hutchinson,Over,11.5,-114
+2026-10-18T15:15:36Z,fanduel,Xavier Hutchinson,Under,11.5,-114
+2026-10-18T15:15:36Z,fanduel,Woody Marks,Over,7.5,-125
+2026-10-18T15:15:36Z,fanduel,Woody Marks,Under,7.5,-106
+2026-10-18T15:15:36Z,fanduel,Nico Collins,Over,74.5,-118
+2026-10-18T15:15:36Z,fanduel,Nico Collins,Under,74.5,-112
+2026-10-18T15:15:36Z,fanduel,Foster Moreau,Over,12.5,-110
+2026-10-18T15:15:36Z,fanduel,Foster Moreau,Under,12.5,-120
+2026-10-18T15:15:36Z,fanduel,Bhayshul Tuten,Over,31.5,-122
+2026-10-18T15:15:36Z,fanduel,Bhayshul Tuten,Under,31.5,-106
+2026-10-18T15:15:36Z,fanduel,Jaylin Noel,Over,89.5,-118
+2026-10-18T15:15:36Z,fanduel,Jaylin Noel,Under,89.5,-112
+2026-10-18T15:15:36Z,fanduel,Brenton Strange,Over,47.5,-118
+2026-10-18T15:15:36Z,fanduel,Brenton Strange,Under,47.5,-112
+2026-10-18T15:15:36Z,fanduel,Brian Thomas Jr,Over,5.5,-114
+2026-10-18T15:15:36Z,fanduel,Brian Thomas Jr,Under,5.5,-114
+2026-10-18T15:20:36Z,draftkings,Jaylin Noel,Over,90.5,-115
+2026-10-18T15:20:36Z,draftkings,Jaylin Noel,Under,90.5,-115
+2026-10-18T15:20:36Z,draftkings,Parker Washington,Over,86.5,-120
+2026-10-18T15:20:36Z,draftkings,Parker Washington,Under,86.5,-115
+2026-10-18T15:20:36Z,draftkings,Nico Collins,Over,77.5,-120
+2026-10-18T15:20:36Z,draftkings,Nico Collins,Under,77.5,-115
+2026-10-18T15:20:36Z,draftkings,Brenton Strange,Over,48.5,-115
+2026-10-18T15:20:36Z,draftkings,Brenton Strange,Under,48.5,-120
+2026-10-18T15:20:36Z,draftkings,Jakobi Meyers,Over,34.5,-115
+2026-10-18T15:20:36Z,draftkings,Jakobi Meyers,Under,34.5,-120
+2026-10-18T15:20:36Z,draftkings,Bhayshul Tuten,Over,33.5,-125
+2026-10-18T15:20:36Z,draftkings,Bhayshul Tuten,Under,33.5,-110
+2026-10-18T15:20:36Z,draftkings,Marvin Harrison Jr.,Over,24.5,-115
+2026-10-18T15:20:36Z,draftkings,Marvin Harrison Jr.,Under,24.5,-120
+2026-10-18T15:20:36Z,draftkings,Xavier Hutchinson,Over,9.5,-120
+2026-10-18T15:20:36Z,draftkings,Xavier Hutchinson,Under,9.5,-115
+2026-10-18T15:20:36Z,draftkings,Kayshon Boutte,Over,7.5,-115
+2026-10-18T15:20:36Z,draftkings,Kayshon Boutte,Under,7.5,-120
+2026-10-18T15:20:36Z,draftkings,Foster Moreau,Over,7.5,-105
+2026-10-18T15:20:36Z,draftkings,Foster Moreau,Under,7.5,-130
+2026-10-18T15:20:36Z,draftkings,Nate Boerkircher,Over,7.5,155
+2026-10-18T15:20:36Z,draftkings,Nate Boerkircher,Under,7.5,-210
+2026-10-18T15:20:36Z,draftkings,Woody Marks,Over,6.5,-110
+2026-10-18T15:20:36Z,draftkings,Woody Marks,Under,6.5,-125
+2026-10-18T15:20:36Z,draftkings,Brian Thomas Jr,Over,4.5,-120
+2026-10-18T15:20:36Z,draftkings,Brian Thomas Jr,Under,4.5,-115
+2026-10-18T15:20:36Z,draftkings,Josh Cameron,Over,4.5,-120
+2026-10-18T15:20:36Z,draftkings,Josh Cameron,Under,4.5,-115
+2026-10-18T15:20:36Z,fanduel,Josh Cameron,Over,4.5,-114
+2026-10-18T15:20:36Z,fanduel,Josh Cameron,Under,4.5,-114
+2026-10-18T15:20:36Z,fanduel,Nate Boerkircher,Over,7.5,140
+2026-10-18T15:20:36Z,fanduel,Nate Boerkircher,Under,7.5,-188
+2026-10-18T15:20:36Z,fanduel,Jakobi Meyers,Over,34.5,-114
+2026-10-18T15:20:36Z,fanduel,Jakobi Meyers,Under,34.5,-114
+2026-10-18T15:20:36Z,fanduel,Kayshon Boutte,Over,7.5,-114
+2026-10-18T15:20:36Z,fanduel,Kayshon Boutte,Under,7.5,-114
+2026-10-18T15:20:36Z,fanduel,Marvin Harrison Jr.,Over,24.5,-114
+2026-10-18T15:20:36Z,fanduel,Marvin Harrison Jr.,Under,24.5,-114
+2026-10-18T15:20:36Z,fanduel,Parker Washington,Over,88.5,-112
+2026-10-18T15:20:36Z,fanduel,Parker Washington,Under,88.5,-118
+2026-10-18T15:20:36Z,fanduel,Xavier Hutchinson,Over,11.5,-118
+2026-10-18T15:20:36Z,fanduel,Xavier Hutchinson,Under,11.5,-112
+2026-10-18T15:20:36Z,fanduel,Woody Marks,Over,8.5,-106
+2026-10-18T15:20:36Z,fanduel,Woody Marks,Under,8.5,-125
+2026-10-18T15:20:36Z,fanduel,Nico Collins,Over,75.5,-112
+2026-10-18T15:20:36Z,fanduel,Nico Collins,Under,75.5,-118
+2026-10-18T15:20:36Z,fanduel,Foster Moreau,Over,12.5,-112
+2026-10-18T15:20:36Z,fanduel,Foster Moreau,Under,12.5,-118
+2026-10-18T15:20:36Z,fanduel,Bhayshul Tuten,Over,32.5,-110
+2026-10-18T15:20:36Z,fanduel,Bhayshul Tuten,Under,32.5,-120
+2026-10-18T15:20:36Z,fanduel,Jaylin Noel,Over,89.5,-114
+2026-10-18T15:20:36Z,fanduel,Jaylin Noel,Under,89.5,-114
+2026-10-18T15:20:36Z,fanduel,Brenton Strange,Over,47.5,-118
+2026-10-18T15:20:36Z,fanduel,Brenton Strange,Under,47.5,-112
+2026-10-18T15:20:36Z,fanduel,Brian Thomas Jr,Over,5.5,-114
+2026-10-18T15:20:36Z,fanduel,Brian Thomas Jr,Under,5.5,-114
+2026-10-18T15:25:36Z,draftkings,Parker Washington,Over,88.5,-115
+2026-10-18T15:25:36Z,draftkings,Parker Washington,Under,88.5,-115
+2026-10-18T15:25:36Z,draftkings,Jaylin Noel,Over,87.5,-115
+2026-10-18T15:25:36Z,draftkings,Jaylin Noel,Under,87.5,-115
+2026-10-18T15:25:36Z,draftkings,Nico Collins,Over,71.5,-115
+2026-10-18T15:25:36Z,draftkings,Nico Collins,Under,71.5,-115
+2026-10-18T15:25:36Z,draftkings,Brenton Strange,Over,49.5,-115
+2026-10-18T15:25:36Z,draftkings,Brenton Strange,Under,49.5,-120
+2026-10-18T15:25:36Z,draftkings,Jakobi Meyers,Over,35.5,-115
+2026-10-18T15:25:36Z,draftkings,Jakobi Meyers,Under,35.5,-120
+2026-10-18T15:25:36Z,draftkings,Bhayshul Tuten,Over,34.5,-110
+2026-10-18T15:25:36Z,draftkings,Bhayshul Tuten,Under,34.5,-125
+2026-10-18T15:25:36Z,draftkings,Marvin Harrison Jr.,Over,32.5,-115
+2026-10-18T15:25:36Z,draftkings,Marvin Harrison Jr.,Under,32.5,-115
+2026-10-18T15:25:36Z,draftkings,Xavier Hutchinson,Over,8.5,-120
+2026-10-18T15:25:36Z,draftkings,Xavier Hutchinson,Under,8.5,-115
+2026-10-18T15:25:36Z,draftkings,Foster Moreau,Over,7.5,-115
+2026-10-18T15:25:36Z,draftkings,Foster Moreau,Under,7.5,-120
+2026-10-18T15:25:36Z,draftkings,Nate Boerkircher,Over,7.5,150
+2026-10-18T15:25:36Z,draftkings,Nate Boerkircher,Under,7.5,-205
+2026-10-18T15:25:36Z,draftkings,Brian Thomas Jr,Over,5.5,-120
+2026-10-18T15:25:36Z,draftkings,Brian Thomas Jr,Under,5.5,-115
+2026-10-18T15:25:36Z,draftkings,Josh Cameron,Over,5.5,-115
+2026-10-18T15:25:36Z,draftkings,Josh Cameron,Under,5.5,-120
+2026-10-18T15:25:36Z,draftkings,Kayshon Boutte,Over,5.5,-115
+2026-10-18T15:25:36Z,draftkings,Kayshon Boutte,Under,5.5,-120
+2026-10-18T15:25:36Z,draftkings,Woody Marks,Over,4.5,-125
+2026-10-18T15:25:36Z,draftkings,Woody Marks,Under,4.5,-105
+2026-10-18T15:25:36Z,fanduel,Josh Cameron,Over,4.5,-118
+2026-10-18T15:25:36Z,fanduel,Josh Cameron,Under,4.5,-112
+2026-10-18T15:25:36Z,fanduel,Nate Boerkircher,Over,7.5,134
+2026-10-18T15:25:36Z,fanduel,Nate Boerkircher,Under,7.5,-180
+2026-10-18T15:25:36Z,fanduel,Jakobi Meyers,Over,35.5,-114
+2026-10-18T15:25:36Z,fanduel,Jakobi Meyers,Under,35.5,-114
+2026-10-18T15:25:36Z,fanduel,Kayshon Boutte,Over,4.5,-118
+2026-10-18T15:25:36Z,fanduel,Kayshon Boutte,Under,4.5,-112
+2026-10-18T15:25:36Z,fanduel,Marvin Harrison Jr.,Over,35.5,-114
+2026-10-18T15:25:36Z,fanduel,Marvin Harrison Jr.,Under,35.5,-114
+2026-10-18T15:25:36Z,fanduel,Dalton Schultz,Over,27.5,-112
+2026-10-18T15:25:36Z,fanduel,Dalton Schultz,Under,27.5,-118
+2026-10-18T15:25:36Z,fanduel,Parker Washington,Over,88.5,-114
+2026-10-18T15:25:36Z,fanduel,Parker Washington,Under,88.5,-114
+2026-10-18T15:25:36Z,fanduel,Xavier Hutchinson,Over,9.5,-118
+2026-10-18T15:25:36Z,fanduel,Xavier Hutchinson,Under,9.5,-112
+2026-10-18T15:25:36Z,fanduel,Woody Marks,Over,6.5,-118
+2026-10-18T15:25:36Z,fanduel,Woody Marks,Under,6.5,-112
+2026-10-18T15:25:36Z,fanduel,Nico Collins,Over,69.5,-112
+2026-10-18T15:25:36Z,fanduel,Nico Collins,Under,69.5,-118
+2026-10-18T15:25:36Z,fanduel,Foster Moreau,Over,10.5,-118
+2026-10-18T15:25:36Z,fanduel,Foster Moreau,Under,10.5,-112
+2026-10-18T15:25:36Z,fanduel,Bhayshul Tuten,Over,32.5,-114
+2026-10-18T15:25:36Z,fanduel,Bhayshul Tuten,Under,32.5,-114
+2026-10-18T15:25:36Z,fanduel,Jaylin Noel,Over,86.5,-114
+2026-10-18T15:25:36Z,fanduel,Jaylin Noel,Under,86.5,-114
+2026-10-18T15:25:36Z,fanduel,Brenton Strange,Over,47.5,-120
+2026-10-18T15:25:36Z,fanduel,Brenton Strange,Under,47.5,-110
+2026-10-18T15:25:36Z,fanduel,Brian Thomas Jr,Over,6.5,-112
+2026-10-18T15:25:36Z,fanduel,Brian Thomas Jr,Under,6.5,-118
+2026-10-18T15:30:36Z,draftkings,Jaylin Noel,Over,94.5,100
+2026-10-18T15:30:36Z,draftkings,Jaylin Noel,Under,94.5,-135
+2026-10-18T15:30:36Z,draftkings,Parker Washington,Over,87.5,-115
+2026-10-18T15:30:36Z,draftkings,Parker Washington,Under,87.5,-120
+2026-10-18T15:30:36Z,draftkings,Nico Collins,Over,65.5,-115
+2026-10-18T15:30:36Z,draftkings,Nico Collins,Under,65.5,-120
+2026-10-18T15:30:36Z,draftkings,Brenton Strange,Over,47.5,-120
+2026-10-18T15:30:36Z,draftkings,Brenton Strange,Under,47.5,-115
+2026-10-18T15:30:36Z,draftkings,Marvin Harrison Jr.,Over,42.5,-115
+2026-10-18T15:30:36Z,draftkings,Marvin Harrison Jr.,Under,42.5,-120
+2026-10-18T15:30:36Z,draftkings,Jakobi Meyers,Over,33.5,-120
+2026-10-18T15:30:36Z,draftkings,Jakobi Meyers,Under,33.5,-115
+2026-10-18T15:30:36Z,draftkings,Bhayshul Tuten,Over,33.5,-115
+2026-10-18T15:30:36Z,draftkings,Bhayshul Tuten,Under,33.5,-115
+2026-10-18T15:30:36Z,draftkings,Dalton Schultz,Over,25.5,-120
+2026-10-18T15:30:36Z,draftkings,Dalton Schultz,Under,25.5,-110
+2026-10-18T15:30:36Z,draftkings,Foster Moreau,Over,7.5,115
+2026-10-18T15:30:36Z,draftkings,Foster Moreau,Under,7.5,-155
+2026-10-18T15:30:36Z,draftkings,Nate Boerkircher,Over,7.5,155
+2026-10-18T15:30:36Z,draftkings,Nate Boerkircher,Under,7.5,-210
+2026-10-18T15:30:36Z,draftkings,Brian Thomas Jr,Over,5.5,-115
+2026-10-18T15:30:36Z,draftkings,Brian Thomas Jr,Under,5.5,-120
+2026-10-18T15:30:36Z,draftkings,Xavier Hutchinson,Over,5.5,135
+2026-10-18T15:30:36Z,draftkings,Xavier Hutchinson,Under,5.5,-180
+2026-10-18T15:30:36Z,draftkings,Josh Cameron,Over,3.5,-120
+2026-10-18T15:30:36Z,draftkings,Josh Cameron,Under,3.5,-115
+2026-10-18T15:30:36Z,draftkings,Woody Marks,Over,3.5,-115
+2026-10-18T15:30:36Z,draftkings,Woody Marks,Under,3.5,-115
+2026-10-18T15:30:36Z,draftkings,Kayshon Boutte,Over,0.5,100
+2026-10-18T15:30:36Z,draftkings,Kayshon Boutte,Under,0.5,-135
+2026-10-18T15:30:36Z,fanduel,Josh Cameron,Over,4.5,-114
+2026-10-18T15:30:36Z,fanduel,Josh Cameron,Under,4.5,-114
+2026-10-18T15:30:36Z,fanduel,Nate Boerkircher,Over,7.5,144
+2026-10-18T15:30:36Z,fanduel,Nate Boerkircher,Under,7.5,-194
+2026-10-18T15:30:36Z,fanduel,Jakobi Meyers,Over,34.5,-110
+2026-10-18T15:30:36Z,fanduel,Jakobi Meyers,Under,34.5,-120
+2026-10-18T15:30:36Z,fanduel,Kayshon Boutte,Over,0.5,104
+2026-10-18T15:30:36Z,fanduel,Kayshon Boutte,Under,0.5,-138
+2026-10-18T15:30:36Z,fanduel,Marvin Harrison Jr.,Over,41.5,-114
+2026-10-18T15:30:36Z,fanduel,Marvin Harrison Jr.,Under,41.5,-114
+2026-10-18T15:30:36Z,fanduel,Dalton Schultz,Over,24.5,-128
+2026-10-18T15:30:36Z,fanduel,Dalton Schultz,Under,24.5,-104
+2026-10-18T15:30:36Z,fanduel,Parker Washington,Over,86.5,-114
+2026-10-18T15:30:36Z,fanduel,Parker Washington,Under,86.5,-114
+2026-10-18T15:30:36Z,fanduel,Xavier Hutchinson,Over,5.5,108
+2026-10-18T15:30:36Z,fanduel,Xavier Hutchinson,Under,5.5,-144
+2026-10-18T15:30:36Z,fanduel,Woody Marks,Over,4.5,-120
+2026-10-18T15:30:36Z,fanduel,Woody Marks,Under,4.5,-110
+2026-10-18T15:30:36Z,fanduel,Nico Collins,Over,63.5,-112
+2026-10-18T15:30:36Z,fanduel,Nico Collins,Under,63.5,-118
+2026-10-18T15:30:36Z,fanduel,Foster Moreau,Over,7.5,-118
+2026-10-18T15:30:36Z,fanduel,Foster Moreau,Under,7.5,-112
+2026-10-18T15:30:36Z,fanduel,Bhayshul Tuten,Over,32.5,-112
+2026-10-18T15:30:36Z,fanduel,Bhayshul Tuten,Under,32.5,-118
+2026-10-18T15:30:36Z,fanduel,Jaylin Noel,Over,94.5,-110
+2026-10-18T15:30:36Z,fanduel,Jaylin Noel,Under,94.5,-120
+2026-10-18T15:30:36Z,fanduel,Brenton Strange,Over,47.5,-114
+2026-10-18T15:30:36Z,fanduel,Brenton Strange,Under,47.5,-114
+2026-10-18T15:30:36Z,fanduel,Brian Thomas Jr,Over,5.5,-112
+2026-10-18T15:30:36Z,fanduel,Brian Thomas Jr,Under,5.5,-118
+2026-10-18T15:35:36Z,draftkings,Jaylin Noel,Over,107.5,100
+2026-10-18T15:35:36Z,draftkings,Jaylin Noel,Under,107.5,-135
+2026-10-18T15:35:36Z,draftkings,Parker Washington,Over,91.5,-115
+2026-10-18T15:35:36Z,draftkings,Parker Washington,Under,91.5,-120
+2026-10-18T15:35:36Z,draftkings,Nico Collins,Over,61.5,-115
+2026-10-18T15:35:36Z,draftkings,Nico Collins,Under,61.5,-115
+2026-10-18T15:35:36Z,draftkings,Brenton Strange,Over,50.5,-115
+2026-10-18T15:35:36Z,draftkings,Brenton Strange,Under,50.5,-120
+2026-10-18T15:35:36Z,draftkings,Marvin Harrison Jr.,Over,41.5,-120
+2026-10-18T15:35:36Z,draftkings,Marvin Harrison Jr.,Under,41.5,-115
+2026-10-18T15:35:36Z,draftkings,Jakobi Meyers,Over,36.5,-110
+2026-10-18T15:35:36Z,draftkings,Jakobi Meyers,Under,36.5,-120
+2026-10-18T15:35:36Z,draftkings,Bhayshul Tuten,Over,34.5,-115
+2026-10-18T15:35:36Z,draftkings,Bhayshul Tuten,Under,34.5,-120
+2026-10-18T15:35:36Z,draftkings,Dalton Schultz,Over,24.5,-110
+2026-10-18T15:35:36Z,draftkings,Dalton Schultz,Under,24.5,-125
+2026-10-18T15:35:36Z,draftkings,Foster Moreau,Over,7.5,115
+2026-10-18T15:35:36Z,draftkings,Foster Moreau,Under,7.5,-155
+2026-10-18T15:35:36Z,draftkings,Nate Boerkircher,Over,7.5,145
+2026-10-18T15:35:36Z,draftkings,Nate Boerkircher,Under,7.5,-200
+2026-10-18T15:35:36Z,draftkings,Brian Thomas Jr,Over,6.5,-120
+2026-10-18T15:35:36Z,draftkings,Brian Thomas Jr,Under,6.5,-115
+2026-10-18T15:35:36Z,draftkings,Josh Cameron,Over,6.5,-115
+2026-10-18T15:35:36Z,draftkings,Josh Cameron,Under,6.5,-115
+2026-10-18T15:35:36Z,draftkings,Xavier Hutchinson,Over,5.5,145
+2026-10-18T15:35:36Z,draftkings,Xavier Hutchinson,Under,5.5,-200
+2026-10-18T15:35:36Z,draftkings,Woody Marks,Over,1.5,-120
+2026-10-18T15:35:36Z,draftkings,Woody Marks,Under,1.5,-110
+2026-10-18T15:35:36Z,draftkings,Kayshon Boutte,Over,0.5,135
+2026-10-18T15:35:36Z,draftkings,Kayshon Boutte,Under,0.5,-180
+2026-10-18T15:35:36Z,fanduel,Josh Cameron,Over,5.5,-112
+2026-10-18T15:35:36Z,fanduel,Josh Cameron,Under,5.5,-118
+2026-10-18T15:35:36Z,fanduel,Nate Boerkircher,Over,7.5,128
+2026-10-18T15:35:36Z,fanduel,Nate Boerkircher,Under,7.5,-172
+2026-10-18T15:35:36Z,fanduel,Jakobi Meyers,Over,35.5,-112
+2026-10-18T15:35:36Z,fanduel,Jakobi Meyers,Under,35.5,-118
+2026-10-18T15:35:36Z,fanduel,Kayshon Boutte,Over,0.5,126
+2026-10-18T15:35:36Z,fanduel,Kayshon Boutte,Under,0.5,-168
+2026-10-18T15:35:36Z,fanduel,Marvin Harrison Jr.,Over,41.5,-120
+2026-10-18T15:35:36Z,fanduel,Marvin Harrison Jr.,Under,41.5,-110
+2026-10-18T15:35:36Z,fanduel,Dalton Schultz,Over,23.5,-114
+2026-10-18T15:35:36Z,fanduel,Dalton Schultz,Under,23.5,-114
+2026-10-18T15:35:36Z,fanduel,Parker Washington,Over,88.5,-114
+2026-10-18T15:35:36Z,fanduel,Parker Washington,Under,88.5,-114
+2026-10-18T15:35:36Z,fanduel,Xavier Hutchinson,Over,5.5,128
+2026-10-18T15:35:36Z,fanduel,Xavier Hutchinson,Under,5.5,-172
+2026-10-18T15:35:36Z,fanduel,Woody Marks,Over,3.5,-118
+2026-10-18T15:35:36Z,fanduel,Woody Marks,Under,3.5,-112
+2026-10-18T15:35:36Z,fanduel,Nico Collins,Over,61.5,-112
+2026-10-18T15:35:36Z,fanduel,Nico Collins,Under,61.5,-118
+2026-10-18T15:35:36Z,fanduel,Foster Moreau,Over,7.5,102
+2026-10-18T15:35:36Z,fanduel,Foster Moreau,Under,7.5,-136
+2026-10-18T15:35:36Z,fanduel,Bhayshul Tuten,Over,33.5,-108
+2026-10-18T15:35:36Z,fanduel,Bhayshul Tuten,Under,33.5,-122
+2026-10-18T15:35:36Z,fanduel,Jaylin Noel,Over,107.5,-102
+2026-10-18T15:35:36Z,fanduel,Jaylin Noel,Under,107.5,-130
+2026-10-18T15:35:36Z,fanduel,Brenton Strange,Over,49.5,-112
+2026-10-18T15:35:36Z,fanduel,Brenton Strange,Under,49.5,-118
+2026-10-18T15:35:36Z,fanduel,Brian Thomas Jr,Over,6.5,-118
+2026-10-18T15:35:36Z,fanduel,Brian Thomas Jr,Under,6.5,-110
+2026-10-18T15:40:36Z,draftkings,Jaylin Noel,Over,107.5,-115
+2026-10-18T15:40:36Z,draftkings,Jaylin Noel,Under,107.5,-120
+2026-10-18T15:40:36Z,draftkings,Parker Washington,Over,85.5,-115
+2026-10-18T15:40:36Z,draftkings,Parker Washington,Under,85.5,-120
+2026-10-18T15:40:36Z,draftkings,Nico Collins,Over,61.5,-120
+2026-10-18T15:40:36Z,draftkings,Nico Collins,Under,61.5,-115
+2026-10-18T15:40:36Z,draftkings,Brenton Strange,Over,46.5,-120
+2026-10-18T15:40:36Z,draftkings,Brenton Strange,Under,46.5,-115
+2026-10-18T15:40:36Z,draftkings,Marvin Harrison Jr.,Over,42.5,-120
+2026-10-18T15:40:36Z,draftkings,Marvin Harrison Jr.,Under,42.5,-115
+2026-10-18T15:40:36Z,draftkings,Jakobi Meyers,Over,33.5,-115
+2026-10-18T15:40:36Z,draftkings,Jakobi Meyers,Under,33.5,-120
+2026-10-18T15:40:36Z,draftkings,Bhayshul Tuten,Over,32.5,-115
+2026-10-18T15:40:36Z,draftkings,Bhayshul Tuten,Under,32.5,-115
+2026-10-18T15:40:36Z,draftkings,Dalton Schultz,Over,24.5,-120
+2026-10-18T15:40:36Z,draftkings,Dalton Schultz,Under,24.5,-115
+2026-10-18T15:40:36Z,draftkings,Foster Moreau,Over,7.5,-115
+2026-10-18T15:40:36Z,draftkings,Foster Moreau,Under,7.5,-120
+2026-10-18T15:40:36Z,draftkings,Nate Boerkircher,Over,7.5,180
+2026-10-18T15:40:36Z,draftkings,Nate Boerkircher,Under,7.5,-245
+2026-10-18T15:40:36Z,draftkings,Xavier Hutchinson,Over,5.5,130
+2026-10-18T15:40:36Z,draftkings,Xavier Hutchinson,Under,5.5,-175
+2026-10-18T15:40:36Z,draftkings,Brian Thomas Jr,Over,3.5,-115
+2026-10-18T15:40:36Z,draftkings,Brian Thomas Jr,Under,3.5,-115
+2026-10-18T15:40:36Z,draftkings,Woody Marks,Over,2.5,-115
+2026-10-18T15:40:36Z,draftkings,Woody Marks,Under,2.5,-120
+2026-10-18T15:40:36Z,draftkings,Josh Cameron,Over,1.5,-115
+2026-10-18T15:40:36Z,draftkings,Josh Cameron,Under,1.5,-115
+2026-10-18T15:40:36Z,draftkings,Kayshon Boutte,Over,0.5,130
+2026-10-18T15:40:36Z,draftkings,Kayshon Boutte,Under,0.5,-175
+2026-10-18T15:40:36Z,fanduel,Josh Cameron,Over,3.5,-120
+2026-10-18T15:40:36Z,fanduel,Josh Cameron,Under,3.5,-110
+2026-10-18T15:40:36Z,fanduel,Nate Boerkircher,Over,7.5,142
+2026-10-18T15:40:36Z,fanduel,Nate Boerkircher,Under,7.5,-192
+2026-10-18T15:40:36Z,fanduel,Jakobi Meyers,Over,33.5,-112
+2026-10-18T15:40:36Z,fanduel,Jakobi Meyers,Under,33.5,-118
+2026-10-18T15:40:36Z,fanduel,Kayshon Boutte,Over,0.5,110
+2026-10-18T15:40:36Z,fanduel,Kayshon Boutte,Under,0.5,-146
+2026-10-18T15:40:36Z,fanduel,Marvin Harrison Jr.,Over,42.5,-120
+2026-10-18T15:40:36Z,fanduel,Marvin Harrison Jr.,Under,42.5,-110
+2026-10-18T15:40:36Z,fanduel,Dalton Schultz,Over,24.5,-112
+2026-10-18T15:40:36Z,fanduel,Dalton Schultz,Under,24.5,-118
+2026-10-18T15:40:36Z,fanduel,Parker Washington,Over,85.5,-112
+2026-10-18T15:40:36Z,fanduel,Parker Washington,Under,85.5,-118
+2026-10-18T15:40:36Z,fanduel,Xavier Hutchinson,Over,5.5,116
+2026-10-18T15:40:36Z,fanduel,Xavier Hutchinson,Under,5.5,-154
+2026-10-18T15:40:36Z,fanduel,Woody Marks,Over,4.5,-118
+2026-10-18T15:40:36Z,fanduel,Woody Marks,Under,4.5,-112
+2026-10-18T15:40:36Z,fanduel,Nico Collins,Over,62.5,-114
+2026-10-18T15:40:36Z,fanduel,Nico Collins,Under,62.5,-114
+2026-10-18T15:40:36Z,fanduel,Foster Moreau,Over,7.5,-110
+2026-10-18T15:40:36Z,fanduel,Foster Moreau,Under,7.5,-120
+2026-10-18T15:40:36Z,fanduel,Bhayshul Tuten,Over,32.5,-112
+2026-10-18T15:40:36Z,fanduel,Bhayshul Tuten,Under,32.5,-118
+2026-10-18T15:40:36Z,fanduel,Jaylin Noel,Over,112.5,-110
+2026-10-18T15:40:36Z,fanduel,Jaylin Noel,Under,112.5,-122
+2026-10-18T15:40:36Z,fanduel,Brenton Strange,Over,45.5,-120
+2026-10-18T15:40:36Z,fanduel,Brenton Strange,Under,45.5,-110
+2026-10-18T15:40:36Z,fanduel,Brian Thomas Jr,Over,4.5,-118
+2026-10-18T15:40:36Z,fanduel,Brian Thomas Jr,Under,4.5,-112
+2026-10-18T15:45:36Z,draftkings,Jaylin Noel,Over,107.5,135
+2026-10-18T15:45:36Z,draftkings,Jaylin Noel,Under,107.5,-180
+2026-10-18T15:45:36Z,draftkings,Parker Washington,Over,86.5,-115
+2026-10-18T15:45:36Z,draftkings,Parker Washington,Under,86.5,-120
+2026-10-18T15:45:36Z,draftkings,Nico Collins,Over,55.5,-115
+2026-10-18T15:45:36Z,draftkings,Nico Collins,Under,55.5,-120
+2026-10-18T15:45:36Z,draftkings,Brenton Strange,Over,47.5,-115
+2026-10-18T15:45:36Z,draftkings,Brenton Strange,Under,47.5,-120
+2026-10-18T15:45:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,105
+2026-10-18T15:45:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-140
+2026-10-18T15:45:36Z,draftkings,Jakobi Meyers,Over,33.5,-115
+2026-10-18T15:45:36Z,draftkings,Jakobi Meyers,Under,33.5,-120
+2026-10-18T15:45:36Z,draftkings,Bhayshul Tuten,Over,32.5,-120
+2026-10-18T15:45:36Z,draftkings,Bhayshul Tuten,Under,32.5,-115
+2026-10-18T15:45:36Z,draftkings,Dalton Schultz,Over,20.5,-115
+2026-10-18T15:45:36Z,draftkings,Dalton Schultz,Under,20.5,-115
+2026-10-18T15:45:36Z,draftkings,Kayshon Boutte,Over,10.5,190
+2026-10-18T15:45:36Z,draftkings,Kayshon Boutte,Under,10.5,-260
+2026-10-18T15:45:36Z,draftkings,Foster Moreau,Over,7.5,140
+2026-10-18T15:45:36Z,draftkings,Foster Moreau,Under,7.5,-185
+2026-10-18T15:45:36Z,draftkings,Nate Boerkircher,Over,7.5,175
+2026-10-18T15:45:36Z,draftkings,Nate Boerkircher,Under,7.5,-240
+2026-10-18T15:45:36Z,draftkings,Xavier Hutchinson,Over,5.5,190
+2026-10-18T15:45:36Z,draftkings,Xavier Hutchinson,Under,5.5,-265
+2026-10-18T15:45:36Z,draftkings,Josh Cameron,Over,3.5,-115
+2026-10-18T15:45:36Z,draftkings,Josh Cameron,Under,3.5,-120
+2026-10-18T15:45:36Z,draftkings,Brian Thomas Jr,Over,2.5,-120
+2026-10-18T15:45:36Z,draftkings,Brian Thomas Jr,Under,2.5,-115
+2026-10-18T15:45:36Z,draftkings,Woody Marks,Over,0.5,115
+2026-10-18T15:45:36Z,draftkings,Woody Marks,Under,0.5,-155
+2026-10-18T15:45:36Z,fanduel,Josh Cameron,Over,3.5,-114
+2026-10-18T15:45:36Z,fanduel,Josh Cameron,Under,3.5,-114
+2026-10-18T15:45:36Z,fanduel,Nate Boerkircher,Over,7.5,146
+2026-10-18T15:45:36Z,fanduel,Nate Boerkircher,Under,7.5,-198
+2026-10-18T15:45:36Z,fanduel,Jakobi Meyers,Over,33.5,-112
+2026-10-18T15:45:36Z,fanduel,Jakobi Meyers,Under,33.5,-118
+2026-10-18T15:45:36Z,fanduel,Kayshon Boutte,Over,10.5,162
+2026-10-18T15:45:36Z,fanduel,Kayshon Boutte,Under,10.5,-220
+2026-10-18T15:45:36Z,fanduel,Marvin Harrison Jr.,Over,36.5,-114
+2026-10-18T15:45:36Z,fanduel,Marvin Harrison Jr.,Under,36.5,-114
+2026-10-18T15:45:36Z,fanduel,Dalton Schultz,Over,21.5,-114
+2026-10-18T15:45:36Z,fanduel,Dalton Schultz,Under,21.5,-114
+2026-10-18T15:45:36Z,fanduel,Parker Washington,Over,85.5,-114
+2026-10-18T15:45:36Z,fanduel,Parker Washington,Under,85.5,-114
+2026-10-18T15:45:36Z,fanduel,Xavier Hutchinson,Over,5.5,168
+2026-10-18T15:45:36Z,fanduel,Xavier Hutchinson,Under,5.5,-230
+2026-10-18T15:45:36Z,fanduel,Woody Marks,Over,0.5,-122
+2026-10-18T15:45:36Z,fanduel,Woody Marks,Under,0.5,-110
+2026-10-18T15:45:36Z,fanduel,Nico Collins,Over,56.5,-114
+2026-10-18T15:45:36Z,fanduel,Nico Collins,Under,56.5,-114
+2026-10-18T15:45:36Z,fanduel,Bhayshul Tuten,Over,32.5,-112
+2026-10-18T15:45:36Z,fanduel,Bhayshul Tuten,Under,32.5,-118
+2026-10-18T15:45:36Z,fanduel,Jaylin Noel,Over,107.5,108
+2026-10-18T15:45:36Z,fanduel,Jaylin Noel,Under,107.5,-144
+2026-10-18T15:45:36Z,fanduel,Brenton Strange,Over,46.5,-114
+2026-10-18T15:45:36Z,fanduel,Brenton Strange,Under,46.5,-114
+2026-10-18T15:45:36Z,fanduel,Brian Thomas Jr,Over,5.5,-112
+2026-10-18T15:45:36Z,fanduel,Brian Thomas Jr,Under,5.5,-118
+2026-10-18T15:50:36Z,draftkings,Jaylin Noel,Over,107.5,115
+2026-10-18T15:50:36Z,draftkings,Jaylin Noel,Under,107.5,-155
+2026-10-18T15:50:36Z,draftkings,Jakobi Meyers,Over,79.5,-120
+2026-10-18T15:50:36Z,draftkings,Jakobi Meyers,Under,79.5,-115
+2026-10-18T15:50:36Z,draftkings,Parker Washington,Over,78.5,-115
+2026-10-18T15:50:36Z,draftkings,Parker Washington,Under,78.5,-115
+2026-10-18T15:50:36Z,draftkings,Nico Collins,Over,57.5,-120
+2026-10-18T15:50:36Z,draftkings,Nico Collins,Under,57.5,-115
+2026-10-18T15:50:36Z,draftkings,Brenton Strange,Over,43.5,-115
+2026-10-18T15:50:36Z,draftkings,Brenton Strange,Under,43.5,-120
+2026-10-18T15:50:36Z,draftkings,Marvin Harrison Jr.,Over,39.5,-115
+2026-10-18T15:50:36Z,draftkings,Marvin Harrison Jr.,Under,39.5,-115
+2026-10-18T15:50:36Z,draftkings,Bhayshul Tuten,Over,29.5,-120
+2026-10-18T15:50:36Z,draftkings,Bhayshul Tuten,Under,29.5,-115
+2026-10-18T15:50:36Z,draftkings,Dalton Schultz,Over,22.5,-120
+2026-10-18T15:50:36Z,draftkings,Dalton Schultz,Under,22.5,-110
+2026-10-18T15:50:36Z,draftkings,Kayshon Boutte,Over,10.5,165
+2026-10-18T15:50:36Z,draftkings,Kayshon Boutte,Under,10.5,-225
+2026-10-18T15:50:36Z,draftkings,Foster Moreau,Over,7.5,170
+2026-10-18T15:50:36Z,draftkings,Foster Moreau,Under,7.5,-230
+2026-10-18T15:50:36Z,draftkings,Nate Boerkircher,Over,7.5,200
+2026-10-18T15:50:36Z,draftkings,Nate Boerkircher,Under,7.5,-275
+2026-10-18T15:50:36Z,draftkings,Xavier Hutchinson,Over,5.5,170
+2026-10-18T15:50:36Z,draftkings,Xavier Hutchinson,Under,5.5,-235
+2026-10-18T15:50:36Z,draftkings,Woody Marks,Over,0.5,-105
+2026-10-18T15:50:36Z,draftkings,Woody Marks,Under,0.5,-125
+2026-10-18T15:50:36Z,draftkings,Brian Thomas Jr,Over,0.5,100
+2026-10-18T15:50:36Z,draftkings,Brian Thomas Jr,Under,0.5,-135
+2026-10-18T15:50:36Z,draftkings,Josh Cameron,Over,0.5,105
+2026-10-18T15:50:36Z,draftkings,Josh Cameron,Under,0.5,-145
+2026-10-18T15:50:36Z,fanduel,Kayshon Boutte,Over,10.5,140
+2026-10-18T15:50:36Z,fanduel,Kayshon Boutte,Under,10.5,-188
+2026-10-18T15:50:36Z,fanduel,Marvin Harrison Jr.,Over,39.5,-118
+2026-10-18T15:50:36Z,fanduel,Marvin Harrison Jr.,Under,39.5,-112
+2026-10-18T15:50:36Z,fanduel,Dalton Schultz,Over,21.5,-118
+2026-10-18T15:50:36Z,fanduel,Dalton Schultz,Under,21.5,-112
+2026-10-18T15:50:36Z,fanduel,Xavier Hutchinson,Over,5.5,144
+2026-10-18T15:50:36Z,fanduel,Xavier Hutchinson,Under,5.5,-194
+2026-10-18T15:50:36Z,fanduel,Woody Marks,Over,0.5,102
+2026-10-18T15:50:36Z,fanduel,Woody Marks,Under,0.5,-136
+2026-10-18T15:50:36Z,fanduel,Nico Collins,Over,57.5,-120
+2026-10-18T15:50:36Z,fanduel,Nico Collins,Under,57.5,-110
+2026-10-18T15:50:36Z,fanduel,Foster Moreau,Over,7.5,188
+2026-10-18T15:50:36Z,fanduel,Foster Moreau,Under,7.5,-260
+2026-10-18T15:50:36Z,fanduel,Jaylin Noel,Over,107.5,-106
+2026-10-18T15:50:36Z,fanduel,Jaylin Noel,Under,107.5,-125
+2026-10-18T15:55:36Z,draftkings,Jaylin Noel,Over,107.5,105
+2026-10-18T15:55:36Z,draftkings,Jaylin Noel,Under,107.5,-140
+2026-10-18T15:55:36Z,draftkings,Jakobi Meyers,Over,78.5,-115
+2026-10-18T15:55:36Z,draftkings,Jakobi Meyers,Under,78.5,-120
+2026-10-18T15:55:36Z,draftkings,Parker Washington,Over,75.5,-120
+2026-10-18T15:55:36Z,draftkings,Parker Washington,Under,75.5,-115
+2026-10-18T15:55:36Z,draftkings,Nico Collins,Over,59.5,-115
+2026-10-18T15:55:36Z,draftkings,Nico Collins,Under,59.5,-120
+2026-10-18T15:55:36Z,draftkings,Marvin Harrison Jr.,Over,42.5,-115
+2026-10-18T15:55:36Z,draftkings,Marvin Harrison Jr.,Under,42.5,-115
+2026-10-18T15:55:36Z,draftkings,Brenton Strange,Over,41.5,-115
+2026-10-18T15:55:36Z,draftkings,Brenton Strange,Under,41.5,-115
+2026-10-18T15:55:36Z,draftkings,Bhayshul Tuten,Over,40.5,-105
+2026-10-18T15:55:36Z,draftkings,Bhayshul Tuten,Under,40.5,-125
+2026-10-18T15:55:36Z,draftkings,Dalton Schultz,Over,23.5,-115
+2026-10-18T15:55:36Z,draftkings,Dalton Schultz,Under,23.5,-120
+2026-10-18T15:55:36Z,draftkings,Kayshon Boutte,Over,10.5,155
+2026-10-18T15:55:36Z,draftkings,Kayshon Boutte,Under,10.5,-210
+2026-10-18T15:55:36Z,draftkings,Nate Boerkircher,Over,8.5,245
+2026-10-18T15:55:36Z,draftkings,Nate Boerkircher,Under,8.5,-350
+2026-10-18T15:55:36Z,draftkings,Foster Moreau,Over,7.5,160
+2026-10-18T15:55:36Z,draftkings,Foster Moreau,Under,7.5,-215
+2026-10-18T15:55:36Z,draftkings,Xavier Hutchinson,Over,5.5,180
+2026-10-18T15:55:36Z,draftkings,Xavier Hutchinson,Under,5.5,-245
+2026-10-18T15:55:36Z,draftkings,Woody Marks,Over,1.5,-115
+2026-10-18T15:55:36Z,draftkings,Woody Marks,Under,1.5,-120
+2026-10-18T15:55:36Z,draftkings,Brian Thomas Jr,Over,0.5,115
+2026-10-18T15:55:36Z,draftkings,Brian Thomas Jr,Under,0.5,-160
+2026-10-18T15:55:36Z,draftkings,Josh Cameron,Over,0.5,125
+2026-10-18T15:55:36Z,draftkings,Josh Cameron,Under,0.5,-170
+2026-10-18T15:55:36Z,fanduel,Josh Cameron,Over,0.5,136
+2026-10-18T15:55:36Z,fanduel,Josh Cameron,Under,0.5,-182
+2026-10-18T15:55:36Z,fanduel,Jakobi Meyers,Over,77.5,-118
+2026-10-18T15:55:36Z,fanduel,Jakobi Meyers,Under,77.5,-112
+2026-10-18T15:55:36Z,fanduel,Kayshon Boutte,Over,10.5,136
+2026-10-18T15:55:36Z,fanduel,Kayshon Boutte,Under,10.5,-182
+2026-10-18T15:55:36Z,fanduel,Marvin Harrison Jr.,Over,42.5,-112
+2026-10-18T15:55:36Z,fanduel,Marvin Harrison Jr.,Under,42.5,-118
+2026-10-18T15:55:36Z,fanduel,Dalton Schultz,Over,21.5,-118
+2026-10-18T15:55:36Z,fanduel,Dalton Schultz,Under,21.5,-112
+2026-10-18T15:55:36Z,fanduel,Parker Washington,Over,76.5,-114
+2026-10-18T15:55:36Z,fanduel,Parker Washington,Under,76.5,-114
+2026-10-18T15:55:36Z,fanduel,Xavier Hutchinson,Over,5.5,154
+2026-10-18T15:55:36Z,fanduel,Xavier Hutchinson,Under,5.5,-210
+2026-10-18T15:55:36Z,fanduel,Woody Marks,Over,0.5,-106
+2026-10-18T15:55:36Z,fanduel,Woody Marks,Under,0.5,-125
+2026-10-18T15:55:36Z,fanduel,Nico Collins,Over,59.5,-112
+2026-10-18T15:55:36Z,fanduel,Nico Collins,Under,59.5,-118
+2026-10-18T15:55:36Z,fanduel,Foster Moreau,Over,7.5,188
+2026-10-18T15:55:36Z,fanduel,Foster Moreau,Under,7.5,-260
+2026-10-18T15:55:36Z,fanduel,Bhayshul Tuten,Over,40.5,-114
+2026-10-18T15:55:36Z,fanduel,Bhayshul Tuten,Under,40.5,-114
+2026-10-18T15:55:36Z,fanduel,Jaylin Noel,Over,109.5,-114
+2026-10-18T15:55:36Z,fanduel,Jaylin Noel,Under,109.5,-114
+2026-10-18T15:55:36Z,fanduel,Brenton Strange,Over,40.5,-118
+2026-10-18T15:55:36Z,fanduel,Brenton Strange,Under,40.5,-112
+2026-10-18T15:55:36Z,fanduel,Brian Thomas Jr,Over,0.5,116
+2026-10-18T15:55:36Z,fanduel,Brian Thomas Jr,Under,0.5,-154
+2026-10-18T16:00:36Z,draftkings,Jaylin Noel,Over,107.5,130
+2026-10-18T16:00:36Z,draftkings,Jaylin Noel,Under,107.5,-180
+2026-10-18T16:00:36Z,draftkings,Jakobi Meyers,Over,79.5,-110
+2026-10-18T16:00:36Z,draftkings,Jakobi Meyers,Under,79.5,-120
+2026-10-18T16:00:36Z,draftkings,Parker Washington,Over,78.5,-115
+2026-10-18T16:00:36Z,draftkings,Parker Washington,Under,78.5,-120
+2026-10-18T16:00:36Z,draftkings,Nico Collins,Over,54.5,-120
+2026-10-18T16:00:36Z,draftkings,Nico Collins,Under,54.5,-115
+2026-10-18T16:00:36Z,draftkings,Brenton Strange,Over,42.5,-115
+2026-10-18T16:00:36Z,draftkings,Brenton Strange,Under,42.5,-115
+2026-10-18T16:00:36Z,draftkings,Bhayshul Tuten,Over,41.5,-115
+2026-10-18T16:00:36Z,draftkings,Bhayshul Tuten,Under,41.5,-115
+2026-10-18T16:00:36Z,draftkings,Dalton Schultz,Over,36.5,-120
+2026-10-18T16:00:36Z,draftkings,Dalton Schultz,Under,36.5,-115
+2026-10-18T16:00:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,100
+2026-10-18T16:00:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-135
+2026-10-18T16:00:36Z,draftkings,Kayshon Boutte,Over,10.5,200
+2026-10-18T16:00:36Z,draftkings,Kayshon Boutte,Under,10.5,-275
+2026-10-18T16:00:36Z,draftkings,Xavier Hutchinson,Over,10.5,200
+2026-10-18T16:00:36Z,draftkings,Xavier Hutchinson,Under,10.5,-275
+2026-10-18T16:00:36Z,draftkings,Nate Boerkircher,Over,8.5,215
+2026-10-18T16:00:36Z,draftkings,Nate Boerkircher,Under,8.5,-300
+2026-10-18T16:00:36Z,draftkings,Foster Moreau,Over,7.5,185
+2026-10-18T16:00:36Z,draftkings,Foster Moreau,Under,7.5,-255
+2026-10-18T16:00:36Z,draftkings,Josh Cameron,Over,0.5,115
+2026-10-18T16:00:36Z,draftkings,Josh Cameron,Under,0.5,-155
+2026-10-18T16:00:36Z,draftkings,Woody Marks,Over,0.5,115
+2026-10-18T16:00:36Z,draftkings,Woody Marks,Under,0.5,-155
+2026-10-18T16:00:36Z,draftkings,Brian Thomas Jr,Over,0.5,120
+2026-10-18T16:00:36Z,draftkings,Brian Thomas Jr,Under,0.5,-160
+2026-10-18T16:00:36Z,fanduel,Josh Cameron,Over,0.5,118
+2026-10-18T16:00:36Z,fanduel,Josh Cameron,Under,0.5,-158
+2026-10-18T16:00:36Z,fanduel,Jakobi Meyers,Over,78.5,-114
+2026-10-18T16:00:36Z,fanduel,Jakobi Meyers,Under,78.5,-114
+2026-10-18T16:00:36Z,fanduel,Kayshon Boutte,Over,10.5,182
+2026-10-18T16:00:36Z,fanduel,Kayshon Boutte,Under,10.5,-250
+2026-10-18T16:00:36Z,fanduel,Marvin Harrison Jr.,Over,39.5,-114
+2026-10-18T16:00:36Z,fanduel,Marvin Harrison Jr.,Under,39.5,-114
+2026-10-18T16:00:36Z,fanduel,Dalton Schultz,Over,33.5,-110
+2026-10-18T16:00:36Z,fanduel,Dalton Schultz,Under,33.5,-120
+2026-10-18T16:00:36Z,fanduel,Parker Washington,Over,77.5,-118
+2026-10-18T16:00:36Z,fanduel,Parker Washington,Under,77.5,-112
+2026-10-18T16:00:36Z,fanduel,Woody Marks,Over,0.5,126
+2026-10-18T16:00:36Z,fanduel,Woody Marks,Under,0.5,-168
+2026-10-18T16:00:36Z,fanduel,Nico Collins,Over,53.5,-120
+2026-10-18T16:00:36Z,fanduel,Nico Collins,Under,53.5,-110
+2026-10-18T16:00:36Z,fanduel,Bhayshul Tuten,Over,42.5,-114
+2026-10-18T16:00:36Z,fanduel,Bhayshul Tuten,Under,42.5,-114
+2026-10-18T16:00:36Z,fanduel,Jaylin Noel,Over,107.5,118
+2026-10-18T16:00:36Z,fanduel,Jaylin Noel,Under,107.5,-158
+2026-10-18T16:00:36Z,fanduel,Brenton Strange,Over,41.5,-118
+2026-10-18T16:00:36Z,fanduel,Brenton Strange,Under,41.5,-112
+2026-10-18T16:00:36Z,fanduel,Brian Thomas Jr,Over,0.5,104
+2026-10-18T16:00:36Z,fanduel,Brian Thomas Jr,Under,0.5,-138
+2026-10-18T16:05:36Z,draftkings,Jaylin Noel,Over,107.5,165
+2026-10-18T16:05:36Z,draftkings,Jaylin Noel,Under,107.5,-225
+2026-10-18T16:05:36Z,draftkings,Parker Washington,Over,82.5,-120
+2026-10-18T16:05:36Z,draftkings,Parker Washington,Under,82.5,-115
+2026-10-18T16:05:36Z,draftkings,Jakobi Meyers,Over,81.5,-115
+2026-10-18T16:05:36Z,draftkings,Jakobi Meyers,Under,81.5,-120
+2026-10-18T16:05:36Z,draftkings,Nico Collins,Over,50.5,-115
+2026-10-18T16:05:36Z,draftkings,Nico Collins,Under,50.5,-115
+2026-10-18T16:05:36Z,draftkings,Brenton Strange,Over,45.5,-115
+2026-10-18T16:05:36Z,draftkings,Brenton Strange,Under,45.5,-120
+2026-10-18T16:05:36Z,draftkings,Bhayshul Tuten,Over,43.5,-115
+2026-10-18T16:05:36Z,draftkings,Bhayshul Tuten,Under,43.5,-120
+2026-10-18T16:05:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,135
+2026-10-18T16:05:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-185
+2026-10-18T16:05:36Z,draftkings,Dalton Schultz,Over,33.5,100
+2026-10-18T16:05:36Z,draftkings,Dalton Schultz,Under,33.5,-135
+2026-10-18T16:05:36Z,draftkings,Xavier Hutchinson,Over,10.5,200
+2026-10-18T16:05:36Z,draftkings,Xavier Hutchinson,Under,10.5,-275
+2026-10-18T16:05:36Z,draftkings,Kayshon Boutte,Over,10.5,240
+2026-10-18T16:05:36Z,draftkings,Kayshon Boutte,Under,10.5,-340
+2026-10-18T16:05:36Z,draftkings,Nate Boerkircher,Over,8.5,190
+2026-10-18T16:05:36Z,draftkings,Nate Boerkircher,Under,8.5,-265
+2026-10-18T16:05:36Z,draftkings,Foster Moreau,Over,7.5,225
+2026-10-18T16:05:36Z,draftkings,Foster Moreau,Under,7.5,-310
+2026-10-18T16:05:36Z,draftkings,Brian Thomas Jr,Over,0.5,-110
+2026-10-18T16:05:36Z,draftkings,Brian Thomas Jr,Under,0.5,-120
+2026-10-18T16:05:36Z,draftkings,Josh Cameron,Over,0.5,-105
+2026-10-18T16:05:36Z,draftkings,Josh Cameron,Under,0.5,-130
+2026-10-18T16:05:36Z,draftkings,Woody Marks,Over,0.5,145
+2026-10-18T16:05:36Z,draftkings,Woody Marks,Under,0.5,-200
+2026-10-18T16:05:36Z,fanduel,Josh Cameron,Over,0.5,-102
+2026-10-18T16:05:36Z,fanduel,Josh Cameron,Under,0.5,-130
+2026-10-18T16:05:36Z,fanduel,Nate Boerkircher,Over,8.5,168
+2026-10-18T16:05:36Z,fanduel,Nate Boerkircher,Under,8.5,-230
+2026-10-18T16:05:36Z,fanduel,Jakobi Meyers,Over,81.5,-114
+2026-10-18T16:05:36Z,fanduel,Jakobi Meyers,Under,81.5,-114
+2026-10-18T16:05:36Z,fanduel,Marvin Harrison Jr.,Over,34.5,-108
+2026-10-18T16:05:36Z,fanduel,Marvin Harrison Jr.,Under,34.5,-122
+2026-10-18T16:05:36Z,fanduel,Dalton Schultz,Over,33.5,118
+2026-10-18T16:05:36Z,fanduel,Dalton Schultz,Under,33.5,-158
+2026-10-18T16:05:36Z,fanduel,Parker Washington,Over,82.5,-112
+2026-10-18T16:05:36Z,fanduel,Parker Washington,Under,82.5,-118
+2026-10-18T16:05:36Z,fanduel,Woody Marks,Over,0.5,172
+2026-10-18T16:05:36Z,fanduel,Woody Marks,Under,0.5,-235
+2026-10-18T16:05:36Z,fanduel,Nico Collins,Over,51.5,-114
+2026-10-18T16:05:36Z,fanduel,Nico Collins,Under,51.5,-114
+2026-10-18T16:05:36Z,fanduel,Bhayshul Tuten,Over,44.5,-120
+2026-10-18T16:05:36Z,fanduel,Bhayshul Tuten,Under,44.5,-110
+2026-10-18T16:05:36Z,fanduel,Jaylin Noel,Over,107.5,146
+2026-10-18T16:05:36Z,fanduel,Jaylin Noel,Under,107.5,-200
+2026-10-18T16:05:36Z,fanduel,Brenton Strange,Over,43.5,-120
+2026-10-18T16:05:36Z,fanduel,Brenton Strange,Under,43.5,-110
+2026-10-18T16:05:36Z,fanduel,Brian Thomas Jr,Over,1.5,-114
+2026-10-18T16:05:36Z,fanduel,Brian Thomas Jr,Under,1.5,-114
+2026-10-18T16:10:36Z,draftkings,Jaylin Noel,Over,107.5,170
+2026-10-18T16:10:36Z,draftkings,Jaylin Noel,Under,107.5,-230
+2026-10-18T16:10:36Z,draftkings,Parker Washington,Over,84.5,-110
+2026-10-18T16:10:36Z,draftkings,Parker Washington,Under,84.5,-120
+2026-10-18T16:10:36Z,draftkings,Jakobi Meyers,Over,76.5,-125
+2026-10-18T16:10:36Z,draftkings,Jakobi Meyers,Under,76.5,-110
+2026-10-18T16:10:36Z,draftkings,Bhayshul Tuten,Over,40.5,-110
+2026-10-18T16:10:36Z,draftkings,Bhayshul Tuten,Under,40.5,-125
+2026-10-18T16:10:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,135
+2026-10-18T16:10:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-185
+2026-10-18T16:10:36Z,draftkings,Dalton Schultz,Over,33.5,100
+2026-10-18T16:10:36Z,draftkings,Dalton Schultz,Under,33.5,-135
+2026-10-18T16:10:36Z,draftkings,Xavier Hutchinson,Over,10.5,230
+2026-10-18T16:10:36Z,draftkings,Xavier Hutchinson,Under,10.5,-320
+2026-10-18T16:10:36Z,draftkings,Kayshon Boutte,Over,10.5,250
+2026-10-18T16:10:36Z,draftkings,Kayshon Boutte,Under,10.5,-350
+2026-10-18T16:10:36Z,draftkings,Nate Boerkircher,Over,8.5,255
+2026-10-18T16:10:36Z,draftkings,Nate Boerkircher,Under,8.5,-360
+2026-10-18T16:10:36Z,draftkings,Foster Moreau,Over,7.5,235
+2026-10-18T16:10:36Z,draftkings,Foster Moreau,Under,7.5,-330
+2026-10-18T16:10:36Z,draftkings,Brian Thomas Jr,Over,0.5,130
+2026-10-18T16:10:36Z,draftkings,Brian Thomas Jr,Under,0.5,-175
+2026-10-18T16:10:36Z,draftkings,Woody Marks,Over,0.5,145
+2026-10-18T16:10:36Z,draftkings,Woody Marks,Under,0.5,-195
+2026-10-18T16:10:36Z,fanduel,Marvin Harrison Jr.,Over,34.5,102
+2026-10-18T16:10:36Z,fanduel,Marvin Harrison Jr.,Under,34.5,-136
+2026-10-18T16:10:36Z,fanduel,Dalton Schultz,Over,33.5,110
+2026-10-18T16:10:36Z,fanduel,Dalton Schultz,Under,33.5,-146
+2026-10-18T16:10:36Z,fanduel,Woody Marks,Over,0.5,154
+2026-10-18T16:10:36Z,fanduel,Woody Marks,Under,0.5,-210
+2026-10-18T16:10:36Z,fanduel,Nico Collins,Over,53.5,-112
+2026-10-18T16:10:36Z,fanduel,Nico Collins,Under,53.5,-118
+2026-10-18T16:10:36Z,fanduel,Jaylin Noel,Over,107.5,138
+2026-10-18T16:10:36Z,fanduel,Jaylin Noel,Under,107.5,-186
+2026-10-18T16:15:36Z,draftkings,Jaylin Noel,Over,107.5,180
+2026-10-18T16:15:36Z,draftkings,Jaylin Noel,Under,107.5,-250
+2026-10-18T16:15:36Z,draftkings,Parker Washington,Over,79.5,-115
+2026-10-18T16:15:36Z,draftkings,Parker Washington,Under,79.5,-120
+2026-10-18T16:15:36Z,draftkings,Jakobi Meyers,Over,73.5,-115
+2026-10-18T16:15:36Z,draftkings,Jakobi Meyers,Under,73.5,-120
+2026-10-18T16:15:36Z,draftkings,Nico Collins,Over,49.5,-120
+2026-10-18T16:15:36Z,draftkings,Nico Collins,Under,49.5,-115
+2026-10-18T16:15:36Z,draftkings,Bhayshul Tuten,Over,40.5,130
+2026-10-18T16:15:36Z,draftkings,Bhayshul Tuten,Under,40.5,-180
+2026-10-18T16:15:36Z,draftkings,Brenton Strange,Over,36.5,-120
+2026-10-18T16:15:36Z,draftkings,Brenton Strange,Under,36.5,-115
+2026-10-18T16:15:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,110
+2026-10-18T16:15:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-150
+2026-10-18T16:15:36Z,draftkings,Dalton Schultz,Over,33.5,100
+2026-10-18T16:15:36Z,draftkings,Dalton Schultz,Under,33.5,-140
+2026-10-18T16:15:36Z,draftkings,Xavier Hutchinson,Over,10.5,245
+2026-10-18T16:15:36Z,draftkings,Xavier Hutchinson,Under,10.5,-340
+2026-10-18T16:15:36Z,draftkings,Kayshon Boutte,Over,10.5,265
+2026-10-18T16:15:36Z,draftkings,Kayshon Boutte,Under,10.5,-370
+2026-10-18T16:15:36Z,draftkings,Nate Boerkircher,Over,8.5,350
+2026-10-18T16:15:36Z,draftkings,Nate Boerkircher,Under,8.5,-525
+2026-10-18T16:15:36Z,draftkings,Foster Moreau,Over,7.5,235
+2026-10-18T16:15:36Z,draftkings,Foster Moreau,Under,7.5,-330
+2026-10-18T16:15:36Z,draftkings,Woody Marks,Over,0.5,145
+2026-10-18T16:15:36Z,draftkings,Woody Marks,Under,0.5,-195
+2026-10-18T16:15:36Z,draftkings,Brian Thomas Jr,Over,0.5,185
+2026-10-18T16:15:36Z,draftkings,Brian Thomas Jr,Under,0.5,-255
+2026-10-18T16:15:36Z,fanduel,Josh Cameron,Over,0.5,194
+2026-10-18T16:15:36Z,fanduel,Josh Cameron,Under,0.5,-270
+2026-10-18T16:15:36Z,fanduel,Jakobi Meyers,Over,74.5,-110
+2026-10-18T16:15:36Z,fanduel,Jakobi Meyers,Under,74.5,-120
+2026-10-18T16:15:36Z,fanduel,Kayshon Boutte,Over,10.5,194
+2026-10-18T16:15:36Z,fanduel,Kayshon Boutte,Under,10.5,-270
+2026-10-18T16:15:36Z,fanduel,Marvin Harrison Jr.,Over,34.5,110
+2026-10-18T16:15:36Z,fanduel,Marvin Harrison Jr.,Under,34.5,-146
+2026-10-18T16:15:36Z,fanduel,Dalton Schultz,Over,33.5,-112
+2026-10-18T16:15:36Z,fanduel,Dalton Schultz,Under,33.5,-118
+2026-10-18T16:15:36Z,fanduel,Travis Hunter,Over,59.5,162
+2026-10-18T16:15:36Z,fanduel,Travis Hunter,Under,59.5,-220
+2026-10-18T16:15:36Z,fanduel,Parker Washington,Over,79.5,-110
+2026-10-18T16:15:36Z,fanduel,Parker Washington,Under,79.5,-120
+2026-10-18T16:15:36Z,fanduel,Woody Marks,Over,0.5,148
+2026-10-18T16:15:36Z,fanduel,Woody Marks,Under,0.5,-200
+2026-10-18T16:15:36Z,fanduel,Nico Collins,Over,53.5,-114
+2026-10-18T16:15:36Z,fanduel,Nico Collins,Under,53.5,-114
+2026-10-18T16:15:36Z,fanduel,Bhayshul Tuten,Over,40.5,118
+2026-10-18T16:15:36Z,fanduel,Bhayshul Tuten,Under,40.5,-158
+2026-10-18T16:15:36Z,fanduel,Jaylin Noel,Over,107.5,136
+2026-10-18T16:15:36Z,fanduel,Jaylin Noel,Under,107.5,-186
+2026-10-18T16:15:36Z,fanduel,Brenton Strange,Over,35.5,-122
+2026-10-18T16:15:36Z,fanduel,Brenton Strange,Under,35.5,-108
+2026-10-18T16:20:36Z,draftkings,Jaylin Noel,Over,107.5,250
+2026-10-18T16:20:36Z,draftkings,Jaylin Noel,Under,107.5,-350
+2026-10-18T16:20:36Z,draftkings,Parker Washington,Over,75.5,-115
+2026-10-18T16:20:36Z,draftkings,Parker Washington,Under,75.5,-115
+2026-10-18T16:20:36Z,draftkings,Jakobi Meyers,Over,68.5,-110
+2026-10-18T16:20:36Z,draftkings,Jakobi Meyers,Under,68.5,-120
+2026-10-18T16:20:36Z,draftkings,Bhayshul Tuten,Over,40.5,155
+2026-10-18T16:20:36Z,draftkings,Bhayshul Tuten,Under,40.5,-215
+2026-10-18T16:20:36Z,draftkings,Brenton Strange,Over,34.5,-115
+2026-10-18T16:20:36Z,draftkings,Brenton Strange,Under,34.5,-120
+2026-10-18T16:20:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,155
+2026-10-18T16:20:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-210
+2026-10-18T16:20:36Z,draftkings,Dalton Schultz,Over,33.5,145
+2026-10-18T16:20:36Z,draftkings,Dalton Schultz,Under,33.5,-195
+2026-10-18T16:20:36Z,draftkings,Kayshon Boutte,Over,16.5,360
+2026-10-18T16:20:36Z,draftkings,Kayshon Boutte,Under,16.5,-525
+2026-10-18T16:20:36Z,draftkings,Xavier Hutchinson,Over,10.5,330
+2026-10-18T16:20:36Z,draftkings,Xavier Hutchinson,Under,10.5,-475
+2026-10-18T16:20:36Z,draftkings,Nate Boerkircher,Over,8.5,425
+2026-10-18T16:20:36Z,draftkings,Nate Boerkircher,Under,8.5,-650
+2026-10-18T16:20:36Z,draftkings,Foster Moreau,Over,7.5,340
+2026-10-18T16:20:36Z,draftkings,Foster Moreau,Under,7.5,-500
+2026-10-18T16:20:36Z,draftkings,Woody Marks,Over,0.5,195
+2026-10-18T16:20:36Z,draftkings,Woody Marks,Under,0.5,-265
+2026-10-18T16:20:36Z,fanduel,Jakobi Meyers,Over,73.5,-118
+2026-10-18T16:20:36Z,fanduel,Jakobi Meyers,Under,73.5,-112
+2026-10-18T16:20:36Z,fanduel,Travis Hunter,Over,62.5,-114
+2026-10-18T16:20:36Z,fanduel,Travis Hunter,Under,62.5,-114
+2026-10-18T16:20:36Z,fanduel,Parker Washington,Over,77.5,-112
+2026-10-18T16:20:36Z,fanduel,Parker Washington,Under,77.5,-118
+2026-10-18T16:20:36Z,fanduel,Bhayshul Tuten,Over,40.5,116
+2026-10-18T16:20:36Z,fanduel,Bhayshul Tuten,Under,40.5,-154
+2026-10-18T16:20:36Z,fanduel,Brenton Strange,Over,35.5,-118
+2026-10-18T16:20:36Z,fanduel,Brenton Strange,Under,35.5,-112
+2026-10-18T16:25:36Z,draftkings,Jaylin Noel,Over,107.5,380
+2026-10-18T16:25:36Z,draftkings,Jaylin Noel,Under,107.5,-550
+2026-10-18T16:25:36Z,draftkings,Parker Washington,Over,74.5,-120
+2026-10-18T16:25:36Z,draftkings,Parker Washington,Under,74.5,-115
+2026-10-18T16:25:36Z,draftkings,Jakobi Meyers,Over,68.5,100
+2026-10-18T16:25:36Z,draftkings,Jakobi Meyers,Under,68.5,-135
+2026-10-18T16:25:36Z,draftkings,Nico Collins,Over,63.5,145
+2026-10-18T16:25:36Z,draftkings,Nico Collins,Under,63.5,-200
+2026-10-18T16:25:36Z,draftkings,Bhayshul Tuten,Over,40.5,180
+2026-10-18T16:25:36Z,draftkings,Bhayshul Tuten,Under,40.5,-245
+2026-10-18T16:25:36Z,draftkings,Marvin Harrison Jr.,Over,34.5,245
+2026-10-18T16:25:36Z,draftkings,Marvin Harrison Jr.,Under,34.5,-350
+2026-10-18T16:25:36Z,draftkings,Brenton Strange,Over,33.5,-115
+2026-10-18T16:25:36Z,draftkings,Brenton Strange,Under,33.5,-115
+2026-10-18T16:25:36Z,draftkings,Dalton Schultz,Over,33.5,215
+2026-10-18T16:25:36Z,draftkings,Dalton Schultz,Under,33.5,-295
+2026-10-18T16:25:36Z,draftkings,Kayshon Boutte,Over,16.5,550
+2026-10-18T16:25:36Z,draftkings,Kayshon Boutte,Under,16.5,-900
+2026-10-18T16:25:36Z,draftkings,Xavier Hutchinson,Over,10.5,500
+2026-10-18T16:25:36Z,draftkings,Xavier Hutchinson,Under,10.5,-800
+2026-10-18T16:25:36Z,draftkings,Nate Boerkircher,Over,8.5,450
+2026-10-18T16:25:36Z,draftkings,Nate Boerkircher,Under,8.5,-700
+2026-10-18T16:25:36Z,draftkings,Foster Moreau,Over,7.5,475
+2026-10-18T16:25:36Z,draftkings,Foster Moreau,Under,7.5,-750
+2026-10-18T16:25:36Z,draftkings,Woody Marks,Over,0.5,295
+2026-10-18T16:25:36Z,draftkings,Woody Marks,Under,0.5,-425
+2026-10-18T16:25:36Z,fanduel,Jakobi Meyers,Over,70.5,-114
+2026-10-18T16:25:36Z,fanduel,Jakobi Meyers,Under,70.5,-114
+2026-10-18T16:25:36Z,fanduel,Nico Collins,Over,63.5,112
+2026-10-18T16:25:36Z,fanduel,Nico Collins,Under,63.5,-148
+2026-10-18T16:25:36Z,fanduel,Bhayshul Tuten,Over,40.5,146
+2026-10-18T16:25:36Z,fanduel,Bhayshul Tuten,Under,40.5,-198
+2026-10-18T16:25:36Z,fanduel,Brenton Strange,Over,33.5,-118
+2026-10-18T16:25:36Z,fanduel,Brenton Strange,Under,33.5,-112
+2026-10-18T16:25:36Z,fanduel,Travis Hunter,Over,59.5,106
+2026-10-18T16:25:36Z,fanduel,Travis Hunter,Under,59.5,-140
+2026-10-18T16:25:36Z,fanduel,Parker Washington,Over,74.5,-120
+2026-10-18T16:25:36Z,fanduel,Parker Washington,Under,74.5,-110
+2026-10-18T16:30:36Z,draftkings,Parker Washington,Over,73.5,-115
+2026-10-18T16:30:36Z,draftkings,Parker Washington,Under,73.5,-115
+2026-10-18T16:30:36Z,draftkings,Jakobi Meyers,Over,68.5,110
+2026-10-18T16:30:36Z,draftkings,Jakobi Meyers,Under,68.5,-145
+2026-10-18T16:30:36Z,draftkings,Bhayshul Tuten,Over,40.5,200
+2026-10-18T16:30:36Z,draftkings,Bhayshul Tuten,Under,40.5,-280
+2026-10-18T16:30:36Z,draftkings,Brenton Strange,Over,29.5,-110
+2026-10-18T16:30:36Z,draftkings,Brenton Strange,Under,29.5,-120
+2026-10-18T16:30:36Z,fanduel,Jakobi Meyers,Over,70.5,-114
+2026-10-18T16:30:36Z,fanduel,Jakobi Meyers,Under,70.5,-114
+2026-10-18T16:30:36Z,fanduel,Nico Collins,Over,74.5,194
+2026-10-18T16:30:36Z,fanduel,Nico Collins,Under,74.5,-270
+2026-10-18T16:30:36Z,fanduel,Bhayshul Tuten,Over,40.5,152
+2026-10-18T16:30:36Z,fanduel,Bhayshul Tuten,Under,40.5,-205
+2026-10-18T16:30:36Z,fanduel,Brenton Strange,Over,33.5,-114
+2026-10-18T16:30:36Z,fanduel,Brenton Strange,Under,33.5,-114
+2026-10-18T16:30:36Z,fanduel,Travis Hunter,Over,59.5,104
+2026-10-18T16:30:36Z,fanduel,Travis Hunter,Under,59.5,-138
+2026-10-18T16:30:36Z,fanduel,Parker Washington,Over,74.5,-114
+2026-10-18T16:30:36Z,fanduel,Parker Washington,Under,74.5,-114
+2026-10-18T16:35:36Z,draftkings,Parker Washington,Over,73.5,-115
+2026-10-18T16:35:36Z,draftkings,Parker Washington,Under,73.5,-115
+2026-10-18T16:35:36Z,draftkings,Jakobi Meyers,Over,68.5,110
+2026-10-18T16:35:36Z,draftkings,Jakobi Meyers,Under,68.5,-145
+2026-10-18T16:35:36Z,draftkings,Bhayshul Tuten,Over,40.5,200
+2026-10-18T16:35:36Z,draftkings,Bhayshul Tuten,Under,40.5,-280
+2026-10-18T16:35:36Z,draftkings,Brenton Strange,Over,29.5,-110
+2026-10-18T16:35:36Z,draftkings,Brenton Strange,Under,29.5,-120
+2026-10-18T16:35:36Z,fanduel,Jakobi Meyers,Over,70.5,-114
+2026-10-18T16:35:36Z,fanduel,Jakobi Meyers,Under,70.5,-114
+2026-10-18T16:35:36Z,fanduel,Nico Collins,Over,74.5,194
+2026-10-18T16:35:36Z,fanduel,Nico Collins,Under,74.5,-270
+2026-10-18T16:35:36Z,fanduel,Bhayshul Tuten,Over,40.5,152
+2026-10-18T16:35:36Z,fanduel,Bhayshul Tuten,Under,40.5,-205
+2026-10-18T16:35:36Z,fanduel,Brenton Strange,Over,33.5,-114
+2026-10-18T16:35:36Z,fanduel,Brenton Strange,Under,33.5,-114
+2026-10-18T16:35:36Z,fanduel,Travis Hunter,Over,59.5,104
+2026-10-18T16:35:36Z,fanduel,Travis Hunter,Under,59.5,-138
+2026-10-18T16:35:36Z,fanduel,Parker Washington,Over,74.5,-114
+2026-10-18T16:35:36Z,fanduel,Parker Washington,Under,74.5,-114
+2026-10-18T16:40:36Z,draftkings,Parker Washington,Over,73.5,-115
+2026-10-18T16:40:36Z,draftkings,Parker Washington,Under,73.5,-115
+2026-10-18T16:40:36Z,draftkings,Jakobi Meyers,Over,68.5,110
+2026-10-18T16:40:36Z,draftkings,Jakobi Meyers,Under,68.5,-145
+2026-10-18T16:40:36Z,draftkings,Bhayshul Tuten,Over,40.5,200
+2026-10-18T16:40:36Z,draftkings,Bhayshul Tuten,Under,40.5,-280
+2026-10-18T16:40:36Z,draftkings,Brenton Strange,Over,29.5,-110
+2026-10-18T16:40:36Z,draftkings,Brenton Strange,Under,29.5,-120
+2026-10-18T16:40:36Z,fanduel,Jakobi Meyers,Over,70.5,-114
+2026-10-18T16:40:36Z,fanduel,Jakobi Meyers,Under,70.5,-114
+2026-10-18T16:40:36Z,fanduel,Nico Collins,Over,74.5,194
+2026-10-18T16:40:36Z,fanduel,Nico Collins,Under,74.5,-270
+2026-10-18T16:40:36Z,fanduel,Bhayshul Tuten,Over,40.5,152
+2026-10-18T16:40:36Z,fanduel,Bhayshul Tuten,Under,40.5,-205
+2026-10-18T16:40:36Z,fanduel,Brenton Strange,Over,33.5,-114
+2026-10-18T16:40:36Z,fanduel,Brenton Strange,Under,33.5,-114
+2026-10-18T16:40:36Z,fanduel,Travis Hunter,Over,59.5,104
+2026-10-18T16:40:36Z,fanduel,Travis Hunter,Under,59.5,-138
+2026-10-18T16:40:36Z,fanduel,Parker Washington,Over,74.5,-114
+2026-10-18T16:40:36Z,fanduel,Parker Washington,Under,74.5,-114

@@ -1,0 +1,24 @@
+name: weekly-refresh
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * 2"   # Tuesday 13:00 UTC, after nflverse posts the week's pbp
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install numpy
+      - name: fetch data and retrain
+        run: |
+          ./fetch_data.sh
+          curl -sL "https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_2026.csv" -o data/roster_2026.csv
+          cd analysis && python3 export_live.py
+      - name: commit weights, priors, watchlist
+        run: |
+          git config user.name "prop-monitor-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add live/*.json docs/watchlist.json
+          git diff --cached --quiet || (git commit -m "weekly refresh" && git push)

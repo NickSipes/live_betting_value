@@ -1,0 +1,811 @@
+snapshot,book,player,side,point,price
+2026-10-18T19:50:36Z,draftkings,James Cook,Over,93.5,-110
+2026-10-18T19:50:36Z,draftkings,James Cook,Under,93.5,-114
+2026-10-18T19:50:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T19:50:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T19:50:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T19:50:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T19:50:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T19:50:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T19:50:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T19:50:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T19:50:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T19:50:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T19:50:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T19:50:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T19:50:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T19:50:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T19:50:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T19:50:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T19:50:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T19:50:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T19:50:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T19:50:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T19:50:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T19:50:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T19:55:36Z,draftkings,James Cook,Over,92.5,-114
+2026-10-18T19:55:36Z,draftkings,James Cook,Under,92.5,-110
+2026-10-18T19:55:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T19:55:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T19:55:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T19:55:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T19:55:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T19:55:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T19:55:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T19:55:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T19:55:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T19:55:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T19:55:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T19:55:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T19:55:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T19:55:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T19:55:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T19:55:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T19:55:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T19:55:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T19:55:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T19:55:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T19:55:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T19:55:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:00:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:00:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:00:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:00:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:00:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:00:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:00:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:00:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:00:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:00:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:00:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:00:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:00:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T20:00:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T20:00:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T20:00:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T20:00:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T20:00:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T20:00:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T20:00:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T20:00:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T20:00:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T20:00:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T20:00:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:05:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:05:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:05:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:05:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:05:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:05:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:05:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:05:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:05:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:05:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:05:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:05:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:05:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T20:05:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T20:05:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T20:05:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T20:05:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T20:05:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T20:05:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T20:05:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T20:05:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T20:05:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T20:05:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T20:05:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:10:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:10:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:10:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:10:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:10:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:10:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:10:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:10:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:10:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:10:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:10:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:10:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:10:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T20:10:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T20:10:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T20:10:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T20:10:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T20:10:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T20:10:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T20:10:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T20:10:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T20:10:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T20:10:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T20:10:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:15:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:15:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:15:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:15:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:15:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:15:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:15:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:15:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:15:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:15:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:15:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:15:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:15:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T20:15:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T20:15:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T20:15:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T20:15:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T20:15:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T20:15:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T20:15:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T20:15:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T20:15:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T20:15:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T20:15:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:20:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:20:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:20:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:20:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:20:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:20:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:20:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:20:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:20:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:20:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:20:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:20:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:20:36Z,fanduel,Mike Washington Jr.,Over,14.5,-113
+2026-10-18T20:20:36Z,fanduel,Mike Washington Jr.,Under,14.5,-113
+2026-10-18T20:20:36Z,fanduel,James Cook,Over,93.5,-113
+2026-10-18T20:20:36Z,fanduel,James Cook,Under,93.5,-113
+2026-10-18T20:20:36Z,fanduel,Kirk Cousins,Over,2.5,116
+2026-10-18T20:20:36Z,fanduel,Kirk Cousins,Under,2.5,-148
+2026-10-18T20:20:36Z,fanduel,Ashton Jeanty,Over,55.5,-113
+2026-10-18T20:20:36Z,fanduel,Ashton Jeanty,Under,55.5,-113
+2026-10-18T20:20:36Z,fanduel,Josh Allen,Over,33.5,-113
+2026-10-18T20:20:36Z,fanduel,Josh Allen,Under,33.5,-113
+2026-10-18T20:20:36Z,fanduel,Ray Davis,Over,9.5,-106
+2026-10-18T20:20:36Z,fanduel,Ray Davis,Under,9.5,-120
+2026-10-18T20:25:36Z,draftkings,James Cook,Over,94.5,-112
+2026-10-18T20:25:36Z,draftkings,James Cook,Under,94.5,-112
+2026-10-18T20:25:36Z,draftkings,Ashton Jeanty,Over,56.5,-110
+2026-10-18T20:25:36Z,draftkings,Ashton Jeanty,Under,56.5,-114
+2026-10-18T20:25:36Z,draftkings,Josh Allen,Over,32.5,-116
+2026-10-18T20:25:36Z,draftkings,Josh Allen,Under,32.5,-108
+2026-10-18T20:25:36Z,draftkings,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:25:36Z,draftkings,Mike Washington Jr.,Under,13.5,-106
+2026-10-18T20:25:36Z,draftkings,Ray Davis,Over,9.5,-116
+2026-10-18T20:25:36Z,draftkings,Ray Davis,Under,9.5,-108
+2026-10-18T20:25:36Z,draftkings,Kirk Cousins,Over,1.5,-107
+2026-10-18T20:25:36Z,draftkings,Kirk Cousins,Under,1.5,-117
+2026-10-18T20:25:36Z,fanduel,Mike Washington Jr.,Over,14.5,-120
+2026-10-18T20:25:36Z,fanduel,Mike Washington Jr.,Under,14.5,-110
+2026-10-18T20:25:36Z,fanduel,James Cook,Over,94.5,-114
+2026-10-18T20:25:36Z,fanduel,James Cook,Under,94.5,-114
+2026-10-18T20:25:36Z,fanduel,Kirk Cousins,Over,0.5,-125
+2026-10-18T20:25:36Z,fanduel,Kirk Cousins,Under,0.5,-106
+2026-10-18T20:25:36Z,fanduel,Ashton Jeanty,Over,55.5,-114
+2026-10-18T20:25:36Z,fanduel,Ashton Jeanty,Under,55.5,-114
+2026-10-18T20:25:36Z,fanduel,Josh Allen,Over,33.5,-118
+2026-10-18T20:25:36Z,fanduel,Josh Allen,Under,33.5,-112
+2026-10-18T20:25:36Z,fanduel,Ray Davis,Over,8.5,-125
+2026-10-18T20:25:36Z,fanduel,Ray Davis,Under,8.5,-106
+2026-10-18T20:30:36Z,draftkings,James Cook,Over,98.5,-115
+2026-10-18T20:30:36Z,draftkings,James Cook,Under,98.5,-120
+2026-10-18T20:30:36Z,draftkings,Ashton Jeanty,Over,54.5,-120
+2026-10-18T20:30:36Z,draftkings,Ashton Jeanty,Under,54.5,-115
+2026-10-18T20:30:36Z,draftkings,Josh Allen,Over,30.5,-120
+2026-10-18T20:30:36Z,draftkings,Josh Allen,Under,30.5,-115
+2026-10-18T20:30:36Z,draftkings,Mike Washington Jr.,Over,13.5,-125
+2026-10-18T20:30:36Z,draftkings,Mike Washington Jr.,Under,13.5,-110
+2026-10-18T20:30:36Z,draftkings,Ray Davis,Over,9.5,-110
+2026-10-18T20:30:36Z,draftkings,Ray Davis,Under,9.5,-120
+2026-10-18T20:30:36Z,draftkings,Kirk Cousins,Over,1.5,-115
+2026-10-18T20:30:36Z,draftkings,Kirk Cousins,Under,1.5,-120
+2026-10-18T20:30:36Z,fanduel,Mike Washington Jr.,Over,13.5,-118
+2026-10-18T20:30:36Z,fanduel,Mike Washington Jr.,Under,13.5,-112
+2026-10-18T20:30:36Z,fanduel,Kirk Cousins,Over,0.5,-125
+2026-10-18T20:30:36Z,fanduel,Kirk Cousins,Under,0.5,-106
+2026-10-18T20:30:36Z,fanduel,Ashton Jeanty,Over,52.5,-114
+2026-10-18T20:30:36Z,fanduel,Ashton Jeanty,Under,52.5,-114
+2026-10-18T20:35:36Z,draftkings,James Cook,Over,95.5,-115
+2026-10-18T20:35:36Z,draftkings,James Cook,Under,95.5,-115
+2026-10-18T20:35:36Z,draftkings,Ashton Jeanty,Over,54.5,-120
+2026-10-18T20:35:36Z,draftkings,Ashton Jeanty,Under,54.5,-115
+2026-10-18T20:35:36Z,draftkings,Josh Allen,Over,28.5,-120
+2026-10-18T20:35:36Z,draftkings,Josh Allen,Under,28.5,-115
+2026-10-18T20:35:36Z,draftkings,Mike Washington Jr.,Over,13.5,-115
+2026-10-18T20:35:36Z,draftkings,Mike Washington Jr.,Under,13.5,-115
+2026-10-18T20:35:36Z,draftkings,Ray Davis,Over,8.5,-115
+2026-10-18T20:35:36Z,draftkings,Ray Davis,Under,8.5,-115
+2026-10-18T20:35:36Z,draftkings,Kirk Cousins,Over,1.5,-115
+2026-10-18T20:35:36Z,draftkings,Kirk Cousins,Under,1.5,-120
+2026-10-18T20:35:36Z,fanduel,Mike Washington Jr.,Over,13.5,-122
+2026-10-18T20:35:36Z,fanduel,Mike Washington Jr.,Under,13.5,-108
+2026-10-18T20:35:36Z,fanduel,James Cook,Over,89.5,-114
+2026-10-18T20:35:36Z,fanduel,James Cook,Under,89.5,-114
+2026-10-18T20:35:36Z,fanduel,Kirk Cousins,Over,1.5,-108
+2026-10-18T20:35:36Z,fanduel,Kirk Cousins,Under,1.5,-122
+2026-10-18T20:35:36Z,fanduel,Ashton Jeanty,Over,54.5,-114
+2026-10-18T20:35:36Z,fanduel,Ashton Jeanty,Under,54.5,-114
+2026-10-18T20:35:36Z,fanduel,Josh Allen,Over,30.5,-114
+2026-10-18T20:35:36Z,fanduel,Josh Allen,Under,30.5,-114
+2026-10-18T20:35:36Z,fanduel,Ray Davis,Over,7.5,-114
+2026-10-18T20:35:36Z,fanduel,Ray Davis,Under,7.5,-114
+2026-10-18T20:40:36Z,draftkings,James Cook,Over,88.5,-115
+2026-10-18T20:40:36Z,draftkings,James Cook,Under,88.5,-115
+2026-10-18T20:40:36Z,draftkings,Ashton Jeanty,Over,62.5,-115
+2026-10-18T20:40:36Z,draftkings,Ashton Jeanty,Under,62.5,-120
+2026-10-18T20:40:36Z,draftkings,Josh Allen,Over,29.5,-115
+2026-10-18T20:40:36Z,draftkings,Josh Allen,Under,29.5,-120
+2026-10-18T20:40:36Z,draftkings,Mike Washington Jr.,Over,11.5,-120
+2026-10-18T20:40:36Z,draftkings,Mike Washington Jr.,Under,11.5,-115
+2026-10-18T20:40:36Z,draftkings,Ray Davis,Over,7.5,-115
+2026-10-18T20:40:36Z,draftkings,Ray Davis,Under,7.5,-120
+2026-10-18T20:40:36Z,draftkings,Kirk Cousins,Over,0.5,-115
+2026-10-18T20:40:36Z,draftkings,Kirk Cousins,Under,0.5,-115
+2026-10-18T20:40:36Z,fanduel,Mike Washington Jr.,Over,13.5,-112
+2026-10-18T20:40:36Z,fanduel,Mike Washington Jr.,Under,13.5,-118
+2026-10-18T20:40:36Z,fanduel,James Cook,Over,84.5,-114
+2026-10-18T20:40:36Z,fanduel,James Cook,Under,84.5,-114
+2026-10-18T20:40:36Z,fanduel,Kirk Cousins,Over,0.5,-118
+2026-10-18T20:40:36Z,fanduel,Kirk Cousins,Under,0.5,-112
+2026-10-18T20:40:36Z,fanduel,Ashton Jeanty,Over,64.5,-114
+2026-10-18T20:40:36Z,fanduel,Ashton Jeanty,Under,64.5,-114
+2026-10-18T20:40:36Z,fanduel,Josh Allen,Over,30.5,-112
+2026-10-18T20:40:36Z,fanduel,Josh Allen,Under,30.5,-118
+2026-10-18T20:40:36Z,fanduel,Ray Davis,Over,6.5,-122
+2026-10-18T20:40:36Z,fanduel,Ray Davis,Under,6.5,-108
+2026-10-18T20:45:36Z,draftkings,James Cook,Over,85.5,-120
+2026-10-18T20:45:36Z,draftkings,James Cook,Under,85.5,-115
+2026-10-18T20:45:36Z,draftkings,Ashton Jeanty,Over,62.5,-115
+2026-10-18T20:45:36Z,draftkings,Ashton Jeanty,Under,62.5,-115
+2026-10-18T20:45:36Z,draftkings,Josh Allen,Over,30.5,-120
+2026-10-18T20:45:36Z,draftkings,Josh Allen,Under,30.5,-115
+2026-10-18T20:45:36Z,draftkings,Mike Washington Jr.,Over,11.5,-115
+2026-10-18T20:45:36Z,draftkings,Mike Washington Jr.,Under,11.5,-115
+2026-10-18T20:45:36Z,draftkings,Ray Davis,Over,6.5,-120
+2026-10-18T20:45:36Z,draftkings,Ray Davis,Under,6.5,-110
+2026-10-18T20:45:36Z,draftkings,Kirk Cousins,Over,0.5,100
+2026-10-18T20:45:36Z,draftkings,Kirk Cousins,Under,0.5,-135
+2026-10-18T20:45:36Z,fanduel,Mike Washington Jr.,Over,12.5,-118
+2026-10-18T20:45:36Z,fanduel,Mike Washington Jr.,Under,12.5,-112
+2026-10-18T20:45:36Z,fanduel,James Cook,Over,83.5,-114
+2026-10-18T20:45:36Z,fanduel,James Cook,Under,83.5,-114
+2026-10-18T20:45:36Z,fanduel,Kirk Cousins,Over,0.5,100
+2026-10-18T20:45:36Z,fanduel,Kirk Cousins,Under,0.5,-132
+2026-10-18T20:45:36Z,fanduel,Ashton Jeanty,Over,60.5,-118
+2026-10-18T20:45:36Z,fanduel,Ashton Jeanty,Under,60.5,-112
+2026-10-18T20:45:36Z,fanduel,Josh Allen,Over,30.5,-118
+2026-10-18T20:45:36Z,fanduel,Josh Allen,Under,30.5,-112
+2026-10-18T20:45:36Z,fanduel,Ray Davis,Over,6.5,-106
+2026-10-18T20:45:36Z,fanduel,Ray Davis,Under,6.5,-125
+2026-10-18T20:50:36Z,draftkings,James Cook,Over,81.5,-120
+2026-10-18T20:50:36Z,draftkings,James Cook,Under,81.5,-115
+2026-10-18T20:50:36Z,draftkings,Ashton Jeanty,Over,59.5,-120
+2026-10-18T20:50:36Z,draftkings,Ashton Jeanty,Under,59.5,-115
+2026-10-18T20:50:36Z,draftkings,Josh Allen,Over,27.5,-115
+2026-10-18T20:50:36Z,draftkings,Josh Allen,Under,27.5,-120
+2026-10-18T20:50:36Z,draftkings,Mike Washington Jr.,Over,10.5,-115
+2026-10-18T20:50:36Z,draftkings,Mike Washington Jr.,Under,10.5,-120
+2026-10-18T20:50:36Z,draftkings,Ray Davis,Over,6.5,-110
+2026-10-18T20:50:36Z,draftkings,Ray Davis,Under,6.5,-125
+2026-10-18T20:50:36Z,draftkings,Kirk Cousins,Over,0.5,-105
+2026-10-18T20:50:36Z,draftkings,Kirk Cousins,Under,0.5,-130
+2026-10-18T20:50:36Z,fanduel,Mike Washington Jr.,Over,11.5,-112
+2026-10-18T20:50:36Z,fanduel,Mike Washington Jr.,Under,11.5,-118
+2026-10-18T20:50:36Z,fanduel,Kirk Cousins,Over,0.5,100
+2026-10-18T20:50:36Z,fanduel,Kirk Cousins,Under,0.5,-132
+2026-10-18T20:50:36Z,fanduel,Ashton Jeanty,Over,57.5,-114
+2026-10-18T20:50:36Z,fanduel,Ashton Jeanty,Under,57.5,-114
+2026-10-18T20:55:36Z,draftkings,James Cook,Over,80.5,-115
+2026-10-18T20:55:36Z,draftkings,James Cook,Under,80.5,-115
+2026-10-18T20:55:36Z,draftkings,Ashton Jeanty,Over,58.5,-120
+2026-10-18T20:55:36Z,draftkings,Ashton Jeanty,Under,58.5,-115
+2026-10-18T20:55:36Z,draftkings,Josh Allen,Over,27.5,-115
+2026-10-18T20:55:36Z,draftkings,Josh Allen,Under,27.5,-120
+2026-10-18T20:55:36Z,draftkings,Mike Washington Jr.,Over,10.5,-110
+2026-10-18T20:55:36Z,draftkings,Mike Washington Jr.,Under,10.5,-125
+2026-10-18T20:55:36Z,draftkings,Ray Davis,Over,5.5,-120
+2026-10-18T20:55:36Z,draftkings,Ray Davis,Under,5.5,-110
+2026-10-18T20:55:36Z,draftkings,Kirk Cousins,Over,0.5,-105
+2026-10-18T20:55:36Z,draftkings,Kirk Cousins,Under,0.5,-130
+2026-10-18T20:55:36Z,fanduel,Mike Washington Jr.,Over,12.5,-110
+2026-10-18T20:55:36Z,fanduel,Mike Washington Jr.,Under,12.5,-120
+2026-10-18T20:55:36Z,fanduel,James Cook,Over,73.5,-114
+2026-10-18T20:55:36Z,fanduel,James Cook,Under,73.5,-114
+2026-10-18T20:55:36Z,fanduel,Kirk Cousins,Over,0.5,104
+2026-10-18T20:55:36Z,fanduel,Kirk Cousins,Under,0.5,-138
+2026-10-18T20:55:36Z,fanduel,Ashton Jeanty,Over,61.5,-114
+2026-10-18T20:55:36Z,fanduel,Ashton Jeanty,Under,61.5,-114
+2026-10-18T20:55:36Z,fanduel,Josh Allen,Over,28.5,-114
+2026-10-18T20:55:36Z,fanduel,Josh Allen,Under,28.5,-114
+2026-10-18T20:55:36Z,fanduel,Ray Davis,Over,5.5,-110
+2026-10-18T20:55:36Z,fanduel,Ray Davis,Under,5.5,-120
+2026-10-18T21:00:36Z,draftkings,James Cook,Over,77.5,-120
+2026-10-18T21:00:36Z,draftkings,James Cook,Under,77.5,-115
+2026-10-18T21:00:36Z,draftkings,Ashton Jeanty,Over,62.5,-115
+2026-10-18T21:00:36Z,draftkings,Ashton Jeanty,Under,62.5,-115
+2026-10-18T21:00:36Z,draftkings,Josh Allen,Over,27.5,-115
+2026-10-18T21:00:36Z,draftkings,Josh Allen,Under,27.5,-115
+2026-10-18T21:00:36Z,draftkings,Mike Washington Jr.,Over,10.5,-115
+2026-10-18T21:00:36Z,draftkings,Mike Washington Jr.,Under,10.5,-115
+2026-10-18T21:00:36Z,draftkings,Ray Davis,Over,4.5,-125
+2026-10-18T21:00:36Z,draftkings,Ray Davis,Under,4.5,-110
+2026-10-18T21:00:36Z,draftkings,Kirk Cousins,Over,0.5,100
+2026-10-18T21:00:36Z,draftkings,Kirk Cousins,Under,0.5,-135
+2026-10-18T21:00:36Z,fanduel,Mike Washington Jr.,Over,11.5,-122
+2026-10-18T21:00:36Z,fanduel,Mike Washington Jr.,Under,11.5,-108
+2026-10-18T21:00:36Z,fanduel,James Cook,Over,74.5,-112
+2026-10-18T21:00:36Z,fanduel,James Cook,Under,74.5,-118
+2026-10-18T21:00:36Z,fanduel,Kirk Cousins,Over,0.5,104
+2026-10-18T21:00:36Z,fanduel,Kirk Cousins,Under,0.5,-138
+2026-10-18T21:00:36Z,fanduel,Ashton Jeanty,Over,61.5,-114
+2026-10-18T21:00:36Z,fanduel,Ashton Jeanty,Under,61.5,-114
+2026-10-18T21:00:36Z,fanduel,Josh Allen,Over,27.5,-118
+2026-10-18T21:00:36Z,fanduel,Josh Allen,Under,27.5,-112
+2026-10-18T21:00:36Z,fanduel,Ray Davis,Over,5.5,-110
+2026-10-18T21:00:36Z,fanduel,Ray Davis,Under,5.5,-120
+2026-10-18T21:05:36Z,draftkings,James Cook,Over,84.5,-115
+2026-10-18T21:05:36Z,draftkings,James Cook,Under,84.5,-115
+2026-10-18T21:05:36Z,draftkings,Ashton Jeanty,Over,55.5,-115
+2026-10-18T21:05:36Z,draftkings,Ashton Jeanty,Under,55.5,-120
+2026-10-18T21:05:36Z,draftkings,Josh Allen,Over,28.5,-115
+2026-10-18T21:05:36Z,draftkings,Josh Allen,Under,28.5,-120
+2026-10-18T21:05:36Z,draftkings,Mike Washington Jr.,Over,9.5,-120
+2026-10-18T21:05:36Z,draftkings,Mike Washington Jr.,Under,9.5,-110
+2026-10-18T21:05:36Z,draftkings,Ray Davis,Over,6.5,-110
+2026-10-18T21:05:36Z,draftkings,Ray Davis,Under,6.5,-125
+2026-10-18T21:05:36Z,draftkings,Kirk Cousins,Over,0.5,105
+2026-10-18T21:05:36Z,draftkings,Kirk Cousins,Under,0.5,-140
+2026-10-18T21:05:36Z,fanduel,Mike Washington Jr.,Over,10.5,-118
+2026-10-18T21:05:36Z,fanduel,Mike Washington Jr.,Under,10.5,-112
+2026-10-18T21:05:36Z,fanduel,James Cook,Over,82.5,-118
+2026-10-18T21:05:36Z,fanduel,James Cook,Under,82.5,-112
+2026-10-18T21:05:36Z,fanduel,Kirk Cousins,Over,0.5,118
+2026-10-18T21:05:36Z,fanduel,Kirk Cousins,Under,0.5,-158
+2026-10-18T21:05:36Z,fanduel,Ashton Jeanty,Over,53.5,-118
+2026-10-18T21:05:36Z,fanduel,Ashton Jeanty,Under,53.5,-112
+2026-10-18T21:05:36Z,fanduel,Josh Allen,Over,28.5,-114
+2026-10-18T21:05:36Z,fanduel,Josh Allen,Under,28.5,-114
+2026-10-18T21:05:36Z,fanduel,Ray Davis,Over,5.5,-118
+2026-10-18T21:05:36Z,fanduel,Ray Davis,Under,5.5,-112
+2026-10-18T21:10:36Z,draftkings,Ashton Jeanty,Over,52.5,-115
+2026-10-18T21:10:36Z,draftkings,Ashton Jeanty,Under,52.5,-120
+2026-10-18T21:10:36Z,draftkings,Josh Allen,Over,22.5,-115
+2026-10-18T21:10:36Z,draftkings,Josh Allen,Under,22.5,-120
+2026-10-18T21:10:36Z,draftkings,Mike Washington Jr.,Over,8.5,-120
+2026-10-18T21:10:36Z,draftkings,Mike Washington Jr.,Under,8.5,-110
+2026-10-18T21:10:36Z,draftkings,Kirk Cousins,Over,0.5,110
+2026-10-18T21:10:36Z,draftkings,Kirk Cousins,Under,0.5,-150
+2026-10-18T21:10:36Z,fanduel,Mike Washington Jr.,Over,9.5,-114
+2026-10-18T21:10:36Z,fanduel,Mike Washington Jr.,Under,9.5,-114
+2026-10-18T21:10:36Z,fanduel,Ashton Jeanty,Over,49.5,-114
+2026-10-18T21:10:36Z,fanduel,Ashton Jeanty,Under,49.5,-114
+2026-10-18T21:15:36Z,draftkings,Ashton Jeanty,Over,51.5,-120
+2026-10-18T21:15:36Z,draftkings,Ashton Jeanty,Under,51.5,-115
+2026-10-18T21:15:36Z,draftkings,Josh Allen,Over,21.5,-115
+2026-10-18T21:15:36Z,draftkings,Josh Allen,Under,21.5,-115
+2026-10-18T21:15:36Z,draftkings,Mike Washington Jr.,Over,8.5,-125
+2026-10-18T21:15:36Z,draftkings,Mike Washington Jr.,Under,8.5,-110
+2026-10-18T21:15:36Z,draftkings,Kirk Cousins,Over,0.5,105
+2026-10-18T21:15:36Z,draftkings,Kirk Cousins,Under,0.5,-140
+2026-10-18T21:15:36Z,fanduel,James Cook,Over,85.5,-112
+2026-10-18T21:15:36Z,fanduel,James Cook,Under,85.5,-118
+2026-10-18T21:15:36Z,fanduel,Ashton Jeanty,Over,48.5,-114
+2026-10-18T21:15:36Z,fanduel,Ashton Jeanty,Under,48.5,-114
+2026-10-18T21:15:36Z,fanduel,Josh Allen,Over,24.5,-112
+2026-10-18T21:15:36Z,fanduel,Josh Allen,Under,24.5,-118
+2026-10-18T21:15:36Z,fanduel,Ray Davis,Over,9.5,-108
+2026-10-18T21:15:36Z,fanduel,Ray Davis,Under,9.5,-122
+2026-10-18T21:20:36Z,draftkings,James Cook,Over,87.5,-115
+2026-10-18T21:20:36Z,draftkings,James Cook,Under,87.5,-115
+2026-10-18T21:20:36Z,draftkings,Ashton Jeanty,Over,45.5,-115
+2026-10-18T21:20:36Z,draftkings,Ashton Jeanty,Under,45.5,-115
+2026-10-18T21:20:36Z,draftkings,Mike Washington Jr.,Over,23.5,-110
+2026-10-18T21:20:36Z,draftkings,Mike Washington Jr.,Under,23.5,-125
+2026-10-18T21:20:36Z,draftkings,Josh Allen,Over,20.5,-115
+2026-10-18T21:20:36Z,draftkings,Josh Allen,Under,20.5,-115
+2026-10-18T21:20:36Z,draftkings,Ray Davis,Over,7.5,-120
+2026-10-18T21:20:36Z,draftkings,Ray Davis,Under,7.5,-115
+2026-10-18T21:20:36Z,draftkings,Kirk Cousins,Over,0.5,120
+2026-10-18T21:20:36Z,draftkings,Kirk Cousins,Under,0.5,-160
+2026-10-18T21:20:36Z,fanduel,James Cook,Over,83.5,-112
+2026-10-18T21:20:36Z,fanduel,James Cook,Under,83.5,-118
+2026-10-18T21:20:36Z,fanduel,Ashton Jeanty,Over,45.5,-118
+2026-10-18T21:20:36Z,fanduel,Ashton Jeanty,Under,45.5,-112
+2026-10-18T21:20:36Z,fanduel,Josh Allen,Over,23.5,-112
+2026-10-18T21:20:36Z,fanduel,Josh Allen,Under,23.5,-118
+2026-10-18T21:20:36Z,fanduel,Ray Davis,Over,8.5,-108
+2026-10-18T21:20:36Z,fanduel,Ray Davis,Under,8.5,-122
+2026-10-18T21:25:36Z,draftkings,James Cook,Over,89.5,-120
+2026-10-18T21:25:36Z,draftkings,James Cook,Under,89.5,-115
+2026-10-18T21:25:36Z,draftkings,Ashton Jeanty,Over,51.5,-115
+2026-10-18T21:25:36Z,draftkings,Ashton Jeanty,Under,51.5,-115
+2026-10-18T21:25:36Z,draftkings,Mike Washington Jr.,Over,22.5,-120
+2026-10-18T21:25:36Z,draftkings,Mike Washington Jr.,Under,22.5,-115
+2026-10-18T21:25:36Z,draftkings,Josh Allen,Over,20.5,-110
+2026-10-18T21:25:36Z,draftkings,Josh Allen,Under,20.5,-120
+2026-10-18T21:25:36Z,draftkings,Ray Davis,Over,8.5,-115
+2026-10-18T21:25:36Z,draftkings,Ray Davis,Under,8.5,-120
+2026-10-18T21:25:36Z,draftkings,Kirk Cousins,Over,0.5,130
+2026-10-18T21:25:36Z,draftkings,Kirk Cousins,Under,0.5,-175
+2026-10-18T21:25:36Z,fanduel,James Cook,Over,82.5,-114
+2026-10-18T21:25:36Z,fanduel,James Cook,Under,82.5,-114
+2026-10-18T21:25:36Z,fanduel,Ashton Jeanty,Over,47.5,-114
+2026-10-18T21:25:36Z,fanduel,Ashton Jeanty,Under,47.5,-114
+2026-10-18T21:25:36Z,fanduel,Josh Allen,Over,22.5,-118
+2026-10-18T21:25:36Z,fanduel,Josh Allen,Under,22.5,-112
+2026-10-18T21:25:36Z,fanduel,Ray Davis,Over,8.5,-118
+2026-10-18T21:25:36Z,fanduel,Ray Davis,Under,8.5,-112
+2026-10-18T21:30:36Z,draftkings,James Cook,Over,82.5,-120
+2026-10-18T21:30:36Z,draftkings,James Cook,Under,82.5,-115
+2026-10-18T21:30:36Z,draftkings,Ashton Jeanty,Over,53.5,-115
+2026-10-18T21:30:36Z,draftkings,Ashton Jeanty,Under,53.5,-120
+2026-10-18T21:30:36Z,draftkings,Mike Washington Jr.,Over,23.5,-110
+2026-10-18T21:30:36Z,draftkings,Mike Washington Jr.,Under,23.5,-125
+2026-10-18T21:30:36Z,draftkings,Josh Allen,Over,19.5,-120
+2026-10-18T21:30:36Z,draftkings,Josh Allen,Under,19.5,-110
+2026-10-18T21:30:36Z,draftkings,Ray Davis,Over,6.5,-125
+2026-10-18T21:30:36Z,draftkings,Ray Davis,Under,6.5,-110
+2026-10-18T21:30:36Z,draftkings,Kirk Cousins,Over,0.5,125
+2026-10-18T21:30:36Z,draftkings,Kirk Cousins,Under,0.5,-170
+2026-10-18T21:30:36Z,fanduel,Ashton Jeanty,Over,52.5,-112
+2026-10-18T21:30:36Z,fanduel,Ashton Jeanty,Under,52.5,-118
+2026-10-18T21:35:36Z,draftkings,James Cook,Over,80.5,-115
+2026-10-18T21:35:36Z,draftkings,James Cook,Under,80.5,-115
+2026-10-18T21:35:36Z,draftkings,Mike Washington Jr.,Over,23.5,-110
+2026-10-18T21:35:36Z,draftkings,Mike Washington Jr.,Under,23.5,-120
+2026-10-18T21:35:36Z,draftkings,Josh Allen,Over,18.5,-120
+2026-10-18T21:35:36Z,draftkings,Josh Allen,Under,18.5,-115
+2026-10-18T21:35:36Z,draftkings,Ray Davis,Over,6.5,-120
+2026-10-18T21:35:36Z,draftkings,Ray Davis,Under,6.5,-115
+2026-10-18T21:35:36Z,draftkings,Kirk Cousins,Over,0.5,125
+2026-10-18T21:35:36Z,draftkings,Kirk Cousins,Under,0.5,-165
+2026-10-18T21:35:36Z,fanduel,James Cook,Over,75.5,-118
+2026-10-18T21:35:36Z,fanduel,James Cook,Under,75.5,-112
+2026-10-18T21:35:36Z,fanduel,Ashton Jeanty,Over,53.5,-118
+2026-10-18T21:35:36Z,fanduel,Ashton Jeanty,Under,53.5,-112
+2026-10-18T21:35:36Z,fanduel,Josh Allen,Over,20.5,-112
+2026-10-18T21:35:36Z,fanduel,Josh Allen,Under,20.5,-118
+2026-10-18T21:35:36Z,fanduel,Ray Davis,Over,7.5,-106
+2026-10-18T21:35:36Z,fanduel,Ray Davis,Under,7.5,-125
+2026-10-18T21:40:36Z,draftkings,James Cook,Over,77.5,-115
+2026-10-18T21:40:36Z,draftkings,James Cook,Under,77.5,-115
+2026-10-18T21:40:36Z,draftkings,Ashton Jeanty,Over,56.5,-120
+2026-10-18T21:40:36Z,draftkings,Ashton Jeanty,Under,56.5,-115
+2026-10-18T21:40:36Z,draftkings,Mike Washington Jr.,Over,23.5,-110
+2026-10-18T21:40:36Z,draftkings,Mike Washington Jr.,Under,23.5,-125
+2026-10-18T21:40:36Z,draftkings,Josh Allen,Over,17.5,-120
+2026-10-18T21:40:36Z,draftkings,Josh Allen,Under,17.5,-115
+2026-10-18T21:40:36Z,draftkings,Ray Davis,Over,5.5,-120
+2026-10-18T21:40:36Z,draftkings,Ray Davis,Under,5.5,-115
+2026-10-18T21:40:36Z,draftkings,Kirk Cousins,Over,0.5,155
+2026-10-18T21:40:36Z,draftkings,Kirk Cousins,Under,0.5,-210
+2026-10-18T21:40:36Z,fanduel,James Cook,Over,75.5,-114
+2026-10-18T21:40:36Z,fanduel,James Cook,Under,75.5,-114
+2026-10-18T21:40:36Z,fanduel,Josh Allen,Over,20.5,-112
+2026-10-18T21:40:36Z,fanduel,Josh Allen,Under,20.5,-118
+2026-10-18T21:40:36Z,fanduel,Ray Davis,Over,6.5,-114
+2026-10-18T21:40:36Z,fanduel,Ray Davis,Under,6.5,-114
+2026-10-18T21:45:36Z,draftkings,James Cook,Over,76.5,-120
+2026-10-18T21:45:36Z,draftkings,James Cook,Under,76.5,-115
+2026-10-18T21:45:36Z,draftkings,Ashton Jeanty,Over,56.5,-115
+2026-10-18T21:45:36Z,draftkings,Ashton Jeanty,Under,56.5,-115
+2026-10-18T21:45:36Z,draftkings,Mike Washington Jr.,Over,22.5,-125
+2026-10-18T21:45:36Z,draftkings,Mike Washington Jr.,Under,22.5,-110
+2026-10-18T21:45:36Z,draftkings,Josh Allen,Over,16.5,-115
+2026-10-18T21:45:36Z,draftkings,Josh Allen,Under,16.5,-115
+2026-10-18T21:45:36Z,draftkings,Ray Davis,Over,5.5,-115
+2026-10-18T21:45:36Z,draftkings,Ray Davis,Under,5.5,-120
+2026-10-18T21:45:36Z,draftkings,Kirk Cousins,Over,0.5,165
+2026-10-18T21:45:36Z,draftkings,Kirk Cousins,Under,0.5,-225
+2026-10-18T21:45:36Z,fanduel,James Cook,Over,71.5,-118
+2026-10-18T21:45:36Z,fanduel,James Cook,Under,71.5,-112
+2026-10-18T21:45:36Z,fanduel,Ashton Jeanty,Over,52.5,-112
+2026-10-18T21:45:36Z,fanduel,Ashton Jeanty,Under,52.5,-118
+2026-10-18T21:45:36Z,fanduel,Josh Allen,Over,19.5,-114
+2026-10-18T21:45:36Z,fanduel,Josh Allen,Under,19.5,-114
+2026-10-18T21:45:36Z,fanduel,Ray Davis,Over,6.5,-106
+2026-10-18T21:45:36Z,fanduel,Ray Davis,Under,6.5,-125
+2026-10-18T21:50:36Z,draftkings,James Cook,Over,78.5,-120
+2026-10-18T21:50:36Z,draftkings,James Cook,Under,78.5,-115
+2026-10-18T21:50:36Z,draftkings,Ashton Jeanty,Over,57.5,-115
+2026-10-18T21:50:36Z,draftkings,Ashton Jeanty,Under,57.5,-115
+2026-10-18T21:50:36Z,draftkings,Mike Washington Jr.,Over,22.5,-120
+2026-10-18T21:50:36Z,draftkings,Mike Washington Jr.,Under,22.5,-110
+2026-10-18T21:50:36Z,draftkings,Josh Allen,Over,17.5,-115
+2026-10-18T21:50:36Z,draftkings,Josh Allen,Under,17.5,-120
+2026-10-18T21:50:36Z,draftkings,Ray Davis,Over,5.5,-115
+2026-10-18T21:50:36Z,draftkings,Ray Davis,Under,5.5,-120
+2026-10-18T21:50:36Z,draftkings,Kirk Cousins,Over,0.5,165
+2026-10-18T21:50:36Z,draftkings,Kirk Cousins,Under,0.5,-225
+2026-10-18T21:50:36Z,fanduel,James Cook,Over,78.5,-114
+2026-10-18T21:50:36Z,fanduel,James Cook,Under,78.5,-114
+2026-10-18T21:50:36Z,fanduel,Ashton Jeanty,Over,56.5,-114
+2026-10-18T21:50:36Z,fanduel,Ashton Jeanty,Under,56.5,-114
+2026-10-18T21:50:36Z,fanduel,Josh Allen,Over,19.5,-118
+2026-10-18T21:50:36Z,fanduel,Josh Allen,Under,19.5,-112
+2026-10-18T21:50:36Z,fanduel,Ray Davis,Over,6.5,-114
+2026-10-18T21:50:36Z,fanduel,Ray Davis,Under,6.5,-114
+2026-10-18T21:55:36Z,draftkings,James Cook,Over,79.5,-115
+2026-10-18T21:55:36Z,draftkings,James Cook,Under,79.5,-115
+2026-10-18T21:55:36Z,draftkings,Ashton Jeanty,Over,56.5,-120
+2026-10-18T21:55:36Z,draftkings,Ashton Jeanty,Under,56.5,-115
+2026-10-18T21:55:36Z,draftkings,Mike Washington Jr.,Over,22.5,-120
+2026-10-18T21:55:36Z,draftkings,Mike Washington Jr.,Under,22.5,-110
+2026-10-18T21:55:36Z,draftkings,Josh Allen,Over,18.5,-120
+2026-10-18T21:55:36Z,draftkings,Josh Allen,Under,18.5,-115
+2026-10-18T21:55:36Z,draftkings,Ray Davis,Over,5.5,-115
+2026-10-18T21:55:36Z,draftkings,Ray Davis,Under,5.5,-120
+2026-10-18T21:55:36Z,draftkings,Kirk Cousins,Over,0.5,150
+2026-10-18T21:55:36Z,draftkings,Kirk Cousins,Under,0.5,-205
+2026-10-18T21:55:36Z,fanduel,James Cook,Over,78.5,-114
+2026-10-18T21:55:36Z,fanduel,James Cook,Under,78.5,-114
+2026-10-18T21:55:36Z,fanduel,Ashton Jeanty,Over,56.5,-114
+2026-10-18T21:55:36Z,fanduel,Ashton Jeanty,Under,56.5,-114
+2026-10-18T21:55:36Z,fanduel,Josh Allen,Over,19.5,-118
+2026-10-18T21:55:36Z,fanduel,Josh Allen,Under,19.5,-112
+2026-10-18T21:55:36Z,fanduel,Ray Davis,Over,6.5,-114
+2026-10-18T21:55:36Z,fanduel,Ray Davis,Under,6.5,-114
+2026-10-18T22:00:36Z,draftkings,James Cook,Over,82.5,-115
+2026-10-18T22:00:36Z,draftkings,James Cook,Under,82.5,-120
+2026-10-18T22:00:36Z,draftkings,Ashton Jeanty,Over,52.5,-115
+2026-10-18T22:00:36Z,draftkings,Ashton Jeanty,Under,52.5,-115
+2026-10-18T22:00:36Z,draftkings,Mike Washington Jr.,Over,21.5,-120
+2026-10-18T22:00:36Z,draftkings,Mike Washington Jr.,Under,21.5,-110
+2026-10-18T22:00:36Z,draftkings,Josh Allen,Over,20.5,-115
+2026-10-18T22:00:36Z,draftkings,Josh Allen,Under,20.5,-120
+2026-10-18T22:00:36Z,draftkings,Ray Davis,Over,6.5,-115
+2026-10-18T22:00:36Z,draftkings,Ray Davis,Under,6.5,-115
+2026-10-18T22:00:36Z,draftkings,Kirk Cousins,Over,0.5,160
+2026-10-18T22:00:36Z,draftkings,Kirk Cousins,Under,0.5,-220
+2026-10-18T22:00:36Z,fanduel,James Cook,Over,83.5,-114
+2026-10-18T22:00:36Z,fanduel,James Cook,Under,83.5,-114
+2026-10-18T22:00:36Z,fanduel,Josh Allen,Over,20.5,-118
+2026-10-18T22:00:36Z,fanduel,Josh Allen,Under,20.5,-112
+2026-10-18T22:00:36Z,fanduel,Ray Davis,Over,7.5,-106
+2026-10-18T22:00:36Z,fanduel,Ray Davis,Under,7.5,-125
+2026-10-18T22:05:36Z,draftkings,James Cook,Over,99.5,-115
+2026-10-18T22:05:36Z,draftkings,James Cook,Under,99.5,-115
+2026-10-18T22:05:36Z,draftkings,Ashton Jeanty,Over,54.5,-115
+2026-10-18T22:05:36Z,draftkings,Ashton Jeanty,Under,54.5,-120
+2026-10-18T22:05:36Z,draftkings,Mike Washington Jr.,Over,20.5,-130
+2026-10-18T22:05:36Z,draftkings,Mike Washington Jr.,Under,20.5,-105
+2026-10-18T22:05:36Z,draftkings,Josh Allen,Over,19.5,-115
+2026-10-18T22:05:36Z,draftkings,Josh Allen,Under,19.5,-115
+2026-10-18T22:05:36Z,draftkings,Ray Davis,Over,6.5,-120
+2026-10-18T22:05:36Z,draftkings,Ray Davis,Under,6.5,-110
+2026-10-18T22:05:36Z,draftkings,Kirk Cousins,Over,0.5,165
+2026-10-18T22:05:36Z,draftkings,Kirk Cousins,Under,0.5,-225
+2026-10-18T22:05:36Z,fanduel,James Cook,Over,99.5,-114
+2026-10-18T22:05:36Z,fanduel,James Cook,Under,99.5,-114
+2026-10-18T22:05:36Z,fanduel,Ashton Jeanty,Over,48.5,-118
+2026-10-18T22:05:36Z,fanduel,Ashton Jeanty,Under,48.5,-112
+2026-10-18T22:05:36Z,fanduel,Josh Allen,Over,21.5,-110
+2026-10-18T22:05:36Z,fanduel,Josh Allen,Under,21.5,-120
+2026-10-18T22:10:36Z,draftkings,James Cook,Over,98.5,-115
+2026-10-18T22:10:36Z,draftkings,James Cook,Under,98.5,-120
+2026-10-18T22:10:36Z,draftkings,Ashton Jeanty,Over,54.5,-115
+2026-10-18T22:10:36Z,draftkings,Ashton Jeanty,Under,54.5,-115
+2026-10-18T22:10:36Z,draftkings,Mike Washington Jr.,Over,21.5,-110
+2026-10-18T22:10:36Z,draftkings,Mike Washington Jr.,Under,21.5,-120
+2026-10-18T22:10:36Z,draftkings,Josh Allen,Over,17.5,-110
+2026-10-18T22:10:36Z,draftkings,Josh Allen,Under,17.5,-120
+2026-10-18T22:10:36Z,draftkings,Ray Davis,Over,4.5,-105
+2026-10-18T22:10:36Z,draftkings,Ray Davis,Under,4.5,-130
+2026-10-18T22:10:36Z,draftkings,Kirk Cousins,Over,0.5,190
+2026-10-18T22:10:36Z,draftkings,Kirk Cousins,Under,0.5,-260
+2026-10-18T22:10:36Z,fanduel,James Cook,Over,98.5,-114
+2026-10-18T22:10:36Z,fanduel,James Cook,Under,98.5,-114
+2026-10-18T22:10:36Z,fanduel,Ashton Jeanty,Over,48.5,-118
+2026-10-18T22:10:36Z,fanduel,Ashton Jeanty,Under,48.5,-112
+2026-10-18T22:10:36Z,fanduel,Josh Allen,Over,18.5,-112
+2026-10-18T22:10:36Z,fanduel,Josh Allen,Under,18.5,-118
+2026-10-18T22:15:36Z,draftkings,James Cook,Over,100.5,-120
+2026-10-18T22:15:36Z,draftkings,James Cook,Under,100.5,-115
+2026-10-18T22:15:36Z,draftkings,Ashton Jeanty,Over,46.5,-115
+2026-10-18T22:15:36Z,draftkings,Ashton Jeanty,Under,46.5,-120
+2026-10-18T22:15:36Z,draftkings,Mike Washington Jr.,Over,20.5,-110
+2026-10-18T22:15:36Z,draftkings,Mike Washington Jr.,Under,20.5,-125
+2026-10-18T22:15:36Z,draftkings,Josh Allen,Over,17.5,-115
+2026-10-18T22:15:36Z,draftkings,Josh Allen,Under,17.5,-115
+2026-10-18T22:15:36Z,draftkings,Ray Davis,Over,4.5,-105
+2026-10-18T22:15:36Z,draftkings,Ray Davis,Under,4.5,-125
+2026-10-18T22:15:36Z,draftkings,Kirk Cousins,Over,0.5,170
+2026-10-18T22:15:36Z,draftkings,Kirk Cousins,Under,0.5,-235
+2026-10-18T22:15:36Z,fanduel,James Cook,Over,100.5,-112
+2026-10-18T22:15:36Z,fanduel,James Cook,Under,100.5,-118
+2026-10-18T22:15:36Z,fanduel,Josh Allen,Over,18.5,-110
+2026-10-18T22:15:36Z,fanduel,Josh Allen,Under,18.5,-120
+2026-10-18T22:20:36Z,draftkings,James Cook,Over,103.5,-115
+2026-10-18T22:20:36Z,draftkings,James Cook,Under,103.5,-120
+2026-10-18T22:20:36Z,draftkings,Ashton Jeanty,Over,40.5,-115
+2026-10-18T22:20:36Z,draftkings,Ashton Jeanty,Under,40.5,-115
+2026-10-18T22:20:36Z,draftkings,Mike Washington Jr.,Over,19.5,-115
+2026-10-18T22:20:36Z,draftkings,Mike Washington Jr.,Under,19.5,-120
+2026-10-18T22:20:36Z,draftkings,Josh Allen,Over,15.5,-115
+2026-10-18T22:20:36Z,draftkings,Josh Allen,Under,15.5,-115
+2026-10-18T22:20:36Z,draftkings,Ray Davis,Over,5.5,-125
+2026-10-18T22:20:36Z,draftkings,Ray Davis,Under,5.5,-110
+2026-10-18T22:20:36Z,draftkings,Kirk Cousins,Over,0.5,175
+2026-10-18T22:20:36Z,draftkings,Kirk Cousins,Under,0.5,-235
+2026-10-18T22:20:36Z,fanduel,Ashton Jeanty,Over,38.5,-114
+2026-10-18T22:20:36Z,fanduel,Ashton Jeanty,Under,38.5,-114
+2026-10-18T22:25:36Z,draftkings,James Cook,Over,101.5,-115
+2026-10-18T22:25:36Z,draftkings,James Cook,Under,101.5,-115
+2026-10-18T22:25:36Z,draftkings,Ashton Jeanty,Over,39.5,-120
+2026-10-18T22:25:36Z,draftkings,Ashton Jeanty,Under,39.5,-115
+2026-10-18T22:25:36Z,draftkings,Mike Washington Jr.,Over,19.5,-110
+2026-10-18T22:25:36Z,draftkings,Mike Washington Jr.,Under,19.5,-125
+2026-10-18T22:25:36Z,draftkings,Josh Allen,Over,13.5,-115
+2026-10-18T22:25:36Z,draftkings,Josh Allen,Under,13.5,-120
+2026-10-18T22:25:36Z,draftkings,Ray Davis,Over,5.5,-120
+2026-10-18T22:25:36Z,draftkings,Ray Davis,Under,5.5,-110
+2026-10-18T22:25:36Z,draftkings,Kirk Cousins,Over,0.5,170
+2026-10-18T22:25:36Z,draftkings,Kirk Cousins,Under,0.5,-230
+2026-10-18T22:25:36Z,fanduel,James Cook,Over,99.5,-114
+2026-10-18T22:25:36Z,fanduel,James Cook,Under,99.5,-114
+2026-10-18T22:25:36Z,fanduel,Ashton Jeanty,Over,36.5,-110
+2026-10-18T22:25:36Z,fanduel,Ashton Jeanty,Under,36.5,-120
+2026-10-18T22:25:36Z,fanduel,Josh Allen,Over,13.5,-114
+2026-10-18T22:25:36Z,fanduel,Josh Allen,Under,13.5,-114
+2026-10-18T22:30:36Z,draftkings,James Cook,Over,101.5,-120
+2026-10-18T22:30:36Z,draftkings,James Cook,Under,101.5,-115
+2026-10-18T22:30:36Z,draftkings,Ashton Jeanty,Over,35.5,-125
+2026-10-18T22:30:36Z,draftkings,Ashton Jeanty,Under,35.5,-110
+2026-10-18T22:30:36Z,draftkings,Mike Washington Jr.,Over,17.5,-105
+2026-10-18T22:30:36Z,draftkings,Mike Washington Jr.,Under,17.5,-125
+2026-10-18T22:30:36Z,draftkings,Josh Allen,Over,12.5,-115
+2026-10-18T22:30:36Z,draftkings,Josh Allen,Under,12.5,-115
+2026-10-18T22:30:36Z,draftkings,Ray Davis,Over,5.5,-115
+2026-10-18T22:30:36Z,draftkings,Ray Davis,Under,5.5,-120
+2026-10-18T22:30:36Z,draftkings,Kirk Cousins,Over,0.5,185
+2026-10-18T22:30:36Z,draftkings,Kirk Cousins,Under,0.5,-255
+2026-10-18T22:30:36Z,fanduel,James Cook,Over,104.5,-112
+2026-10-18T22:30:36Z,fanduel,James Cook,Under,104.5,-118
+2026-10-18T22:30:36Z,fanduel,Josh Allen,Over,13.5,-112
+2026-10-18T22:30:36Z,fanduel,Josh Allen,Under,13.5,-118
+2026-10-18T22:35:37Z,draftkings,James Cook,Over,94.5,-115
+2026-10-18T22:35:37Z,draftkings,James Cook,Under,94.5,-120
+2026-10-18T22:35:37Z,draftkings,Ashton Jeanty,Over,32.5,-115
+2026-10-18T22:35:37Z,draftkings,Ashton Jeanty,Under,32.5,-115
+2026-10-18T22:35:37Z,draftkings,Mike Washington Jr.,Over,20.5,105
+2026-10-18T22:35:37Z,draftkings,Mike Washington Jr.,Under,20.5,-145
+2026-10-18T22:35:37Z,draftkings,Josh Allen,Over,10.5,-120
+2026-10-18T22:35:37Z,draftkings,Josh Allen,Under,10.5,-110
+2026-10-18T22:35:37Z,draftkings,Ray Davis,Over,4.5,110
+2026-10-18T22:35:37Z,draftkings,Ray Davis,Under,4.5,-150
+2026-10-18T22:35:37Z,draftkings,Kirk Cousins,Over,0.5,235
+2026-10-18T22:35:37Z,draftkings,Kirk Cousins,Under,0.5,-330
+2026-10-18T22:35:37Z,fanduel,James Cook,Over,98.5,-114
+2026-10-18T22:35:37Z,fanduel,James Cook,Under,98.5,-114
+2026-10-18T22:35:37Z,fanduel,Josh Allen,Over,12.5,-108
+2026-10-18T22:35:37Z,fanduel,Josh Allen,Under,12.5,-122
+2026-10-18T22:40:36Z,draftkings,James Cook,Over,95.5,-115
+2026-10-18T22:40:36Z,draftkings,James Cook,Under,95.5,-120
+2026-10-18T22:40:36Z,draftkings,Ashton Jeanty,Over,30.5,-110
+2026-10-18T22:40:36Z,draftkings,Ashton Jeanty,Under,30.5,-120
+2026-10-18T22:40:36Z,draftkings,Mike Washington Jr.,Over,20.5,130
+2026-10-18T22:40:36Z,draftkings,Mike Washington Jr.,Under,20.5,-180
+2026-10-18T22:40:36Z,draftkings,Josh Allen,Over,10.5,-120
+2026-10-18T22:40:36Z,draftkings,Josh Allen,Under,10.5,-115
+2026-10-18T22:40:36Z,draftkings,Ray Davis,Over,4.5,105
+2026-10-18T22:40:36Z,draftkings,Ray Davis,Under,4.5,-140
+2026-10-18T22:40:36Z,draftkings,Kirk Cousins,Over,0.5,235
+2026-10-18T22:40:36Z,draftkings,Kirk Cousins,Under,0.5,-320
+2026-10-18T22:40:36Z,fanduel,James Cook,Over,96.5,-112
+2026-10-18T22:40:36Z,fanduel,James Cook,Under,96.5,-118
+2026-10-18T22:40:36Z,fanduel,Ashton Jeanty,Over,27.5,-118
+2026-10-18T22:40:36Z,fanduel,Ashton Jeanty,Under,27.5,-112
+2026-10-18T22:40:36Z,fanduel,Josh Allen,Over,12.5,-114
+2026-10-18T22:40:36Z,fanduel,Josh Allen,Under,12.5,-114
+2026-10-18T22:45:36Z,draftkings,James Cook,Over,94.5,-115
+2026-10-18T22:45:36Z,draftkings,James Cook,Under,94.5,-115
+2026-10-18T22:45:36Z,draftkings,Ashton Jeanty,Over,25.5,-120
+2026-10-18T22:45:36Z,draftkings,Ashton Jeanty,Under,25.5,-115
+2026-10-18T22:45:36Z,draftkings,Mike Washington Jr.,Over,21.5,170
+2026-10-18T22:45:36Z,draftkings,Mike Washington Jr.,Under,21.5,-230
+2026-10-18T22:45:36Z,draftkings,Josh Allen,Over,9.5,-115
+2026-10-18T22:45:36Z,draftkings,Josh Allen,Under,9.5,-115
+2026-10-18T22:45:36Z,draftkings,Kirk Cousins,Over,0.5,290
+2026-10-18T22:45:36Z,draftkings,Kirk Cousins,Under,0.5,-425
+2026-10-18T22:45:36Z,fanduel,James Cook,Over,92.5,-114
+2026-10-18T22:45:36Z,fanduel,James Cook,Under,92.5,-114
+2026-10-18T22:45:36Z,fanduel,Ashton Jeanty,Over,22.5,-122
+2026-10-18T22:45:36Z,fanduel,Ashton Jeanty,Under,22.5,-108
+2026-10-18T22:45:36Z,fanduel,Josh Allen,Over,11.5,-110
+2026-10-18T22:45:36Z,fanduel,Josh Allen,Under,11.5,-120
+2026-10-18T22:50:36Z,draftkings,James Cook,Over,85.5,-115
+2026-10-18T22:50:36Z,draftkings,James Cook,Under,85.5,-115
+2026-10-18T22:50:36Z,draftkings,Ashton Jeanty,Over,27.5,-115
+2026-10-18T22:50:36Z,draftkings,Ashton Jeanty,Under,27.5,-120
+2026-10-18T22:50:36Z,draftkings,Mike Washington Jr.,Over,21.5,160
+2026-10-18T22:50:36Z,draftkings,Mike Washington Jr.,Under,21.5,-220
+2026-10-18T22:50:36Z,draftkings,Josh Allen,Over,7.5,-125
+2026-10-18T22:50:36Z,draftkings,Josh Allen,Under,7.5,-110
+2026-10-18T22:50:36Z,draftkings,Kirk Cousins,Over,0.5,295
+2026-10-18T22:50:36Z,draftkings,Kirk Cousins,Under,0.5,-425
+2026-10-18T22:50:36Z,fanduel,James Cook,Over,88.5,-114
+2026-10-18T22:50:36Z,fanduel,James Cook,Under,88.5,-114
+2026-10-18T22:50:36Z,fanduel,Josh Allen,Over,11.5,-108
+2026-10-18T22:50:36Z,fanduel,Josh Allen,Under,11.5,-122
+2026-10-18T22:55:36Z,draftkings,James Cook,Over,82.5,-115
+2026-10-18T22:55:36Z,draftkings,James Cook,Under,82.5,-120
+2026-10-18T22:55:36Z,draftkings,Ashton Jeanty,Over,27.5,-120
+2026-10-18T22:55:36Z,draftkings,Ashton Jeanty,Under,27.5,-115
+2026-10-18T22:55:36Z,draftkings,Mike Washington Jr.,Over,21.5,150
+2026-10-18T22:55:36Z,draftkings,Mike Washington Jr.,Under,21.5,-205
+2026-10-18T22:55:36Z,draftkings,Josh Allen,Over,5.5,-125
+2026-10-18T22:55:36Z,draftkings,Josh Allen,Under,5.5,-110
+2026-10-18T22:55:36Z,draftkings,Kirk Cousins,Over,0.5,265
+2026-10-18T22:55:36Z,draftkings,Kirk Cousins,Under,0.5,-380
+2026-10-18T22:55:36Z,fanduel,James Cook,Over,84.5,-120
+2026-10-18T22:55:36Z,fanduel,James Cook,Under,84.5,-110
+2026-10-18T22:55:36Z,fanduel,Josh Allen,Over,7.5,-125
+2026-10-18T22:55:36Z,fanduel,Josh Allen,Under,7.5,-106
+2026-10-18T23:00:39Z,draftkings,James Cook,Over,78.5,-120
+2026-10-18T23:00:39Z,draftkings,James Cook,Under,78.5,-110
+2026-10-18T23:00:39Z,draftkings,Mike Washington Jr.,Over,43.5,220
+2026-10-18T23:00:39Z,draftkings,Mike Washington Jr.,Under,43.5,-300
+2026-10-18T23:00:39Z,draftkings,Ashton Jeanty,Over,25.5,-110
+2026-10-18T23:00:39Z,draftkings,Ashton Jeanty,Under,25.5,-125
+2026-10-18T23:00:39Z,draftkings,Josh Allen,Over,8.5,-110
+2026-10-18T23:00:39Z,draftkings,Josh Allen,Under,8.5,-125
+2026-10-18T23:00:39Z,draftkings,Kirk Cousins,Over,0.5,500
+2026-10-18T23:00:39Z,draftkings,Kirk Cousins,Under,0.5,-800
+2026-10-18T23:00:39Z,fanduel,James Cook,Over,80.5,-114
+2026-10-18T23:00:39Z,fanduel,James Cook,Under,80.5,-114
+2026-10-18T23:00:39Z,fanduel,Josh Allen,Over,9.5,-112
+2026-10-18T23:00:39Z,fanduel,Josh Allen,Under,9.5,-118
+2026-10-18T23:05:39Z,draftkings,James Cook,Over,79.5,-120
+2026-10-18T23:05:39Z,draftkings,James Cook,Under,79.5,-110
+2026-10-18T23:05:39Z,draftkings,Mike Washington Jr.,Over,43.5,235
+2026-10-18T23:05:39Z,draftkings,Mike Washington Jr.,Under,43.5,-330
+2026-10-18T23:05:39Z,draftkings,Ashton Jeanty,Over,25.5,-120
+2026-10-18T23:05:39Z,draftkings,Ashton Jeanty,Under,25.5,-115
+2026-10-18T23:05:39Z,draftkings,Josh Allen,Over,9.5,-115
+2026-10-18T23:05:39Z,draftkings,Josh Allen,Under,9.5,-120
+2026-10-18T23:05:39Z,draftkings,Kirk Cousins,Over,0.5,500
+2026-10-18T23:05:39Z,draftkings,Kirk Cousins,Under,0.5,-750
+2026-10-18T23:05:39Z,fanduel,James Cook,Over,81.5,-114
+2026-10-18T23:05:39Z,fanduel,James Cook,Under,81.5,-114
+2026-10-18T23:05:39Z,fanduel,Josh Allen,Over,9.5,-114
+2026-10-18T23:05:39Z,fanduel,Josh Allen,Under,9.5,-114
+2026-10-18T23:10:36Z,draftkings,James Cook,Over,89.5,-115
+2026-10-18T23:10:36Z,draftkings,James Cook,Under,89.5,-115
+2026-10-18T23:10:36Z,draftkings,Mike Washington Jr.,Over,43.5,270
+2026-10-18T23:10:36Z,draftkings,Mike Washington Jr.,Under,43.5,-380
+2026-10-18T23:10:36Z,draftkings,Ashton Jeanty,Over,24.5,-110
+2026-10-18T23:10:36Z,draftkings,Ashton Jeanty,Under,24.5,-125
+2026-10-18T23:10:36Z,draftkings,Josh Allen,Over,5.5,-120
+2026-10-18T23:10:36Z,draftkings,Josh Allen,Under,5.5,-115
+2026-10-18T23:10:36Z,draftkings,Kirk Cousins,Over,0.5,500
+2026-10-18T23:10:36Z,draftkings,Kirk Cousins,Under,0.5,-800
+2026-10-18T23:10:36Z,fanduel,James Cook,Over,92.5,-108
+2026-10-18T23:10:36Z,fanduel,James Cook,Under,92.5,-122
+2026-10-18T23:15:36Z,draftkings,James Cook,Over,89.5,-115
+2026-10-18T23:15:36Z,draftkings,James Cook,Under,89.5,-115
+2026-10-18T23:15:36Z,draftkings,Mike Washington Jr.,Over,43.5,270
+2026-10-18T23:15:36Z,draftkings,Mike Washington Jr.,Under,43.5,-380
+2026-10-18T23:15:36Z,draftkings,Ashton Jeanty,Over,24.5,-110
+2026-10-18T23:15:36Z,draftkings,Ashton Jeanty,Under,24.5,-125
+2026-10-18T23:15:36Z,draftkings,Josh Allen,Over,5.5,-120
+2026-10-18T23:15:36Z,draftkings,Josh Allen,Under,5.5,-115
+2026-10-18T23:15:36Z,draftkings,Kirk Cousins,Over,0.5,500
+2026-10-18T23:15:36Z,draftkings,Kirk Cousins,Under,0.5,-800
+2026-10-18T23:15:36Z,fanduel,James Cook,Over,92.5,-108
+2026-10-18T23:15:36Z,fanduel,James Cook,Under,92.5,-122
+2026-10-18T23:20:36Z,draftkings,James Cook,Over,89.5,-115
+2026-10-18T23:20:36Z,draftkings,James Cook,Under,89.5,-115
+2026-10-18T23:20:36Z,draftkings,Mike Washington Jr.,Over,43.5,270
+2026-10-18T23:20:36Z,draftkings,Mike Washington Jr.,Under,43.5,-380
+2026-10-18T23:20:36Z,draftkings,Ashton Jeanty,Over,24.5,-110
+2026-10-18T23:20:36Z,draftkings,Ashton Jeanty,Under,24.5,-125
+2026-10-18T23:20:36Z,draftkings,Josh Allen,Over,5.5,-120
+2026-10-18T23:20:36Z,draftkings,Josh Allen,Under,5.5,-115
+2026-10-18T23:20:36Z,draftkings,Kirk Cousins,Over,0.5,500
+2026-10-18T23:20:36Z,draftkings,Kirk Cousins,Under,0.5,-800
+2026-10-18T23:20:36Z,fanduel,James Cook,Over,92.5,-108
+2026-10-18T23:20:36Z,fanduel,James Cook,Under,92.5,-122

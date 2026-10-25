@@ -1,0 +1,83 @@
+{
+ "week": 8,
+ "entries": [
+  {
+   "player": "Kenneth Walker III",
+   "pos": "RB",
+   "rank": 1,
+   "ypg": 133.0,
+   "market": "rush",
+   "team": "KC",
+   "opp": "DEN",
+   "def_rank": 3,
+   "def_ypg": 107.8,
+   "game": "KC @ DEN",
+   "kick": "Sun 16:25 ET"
+  },
+  {
+   "player": "Tee Higgins",
+   "pos": "WR",
+   "rank": 9,
+   "ypg": 84.6,
+   "market": "rec",
+   "team": "CIN",
+   "opp": "TEN",
+   "def_rank": 7,
+   "def_ypg": 175.3,
+   "game": "TEN @ CIN",
+   "kick": "Sun 13:00 ET"
+  },
+  {
+   "player": "Kyren Williams",
+   "pos": "RB",
+   "rank": 13,
+   "ypg": 65.5,
+   "market": "rush",
+   "team": "LA",
+   "opp": "LAC",
+   "def_rank": 7,
+   "def_ypg": 104.8,
+   "game": "LAC @ LA",
+   "kick": "Sun 16:05 ET"
+  },
+  {
+   "player": "Zay Flowers",
+   "pos": "WR",
+   "rank": 5,
+   "ypg": 94.2,
+   "market": "rec",
+   "team": "BAL",
+   "opp": "BUF",
+   "def_rank": 8,
+   "def_ypg": 173.8,
+   "game": "BAL @ BUF",
+   "kick": "Sun 13:00 ET"
+  },
+  {
+   "player": "Tyler Higbee",
+   "pos": "TE",
+   "rank": 8,
+   "ypg": 49.2,
+   "market": "rec",
+   "team": "LA",
+   "opp": "LAC",
+   "def_rank": 9,
+   "def_ypg": 57.5,
+   "game": "LAC @ LA",
+   "kick": "Sun 16:05 ET"
+  },
+  {
+   "player": "Garrett Wilson",
+   "pos": "WR",
+   "rank": 20,
+   "ypg": 69.7,
+   "market": "rec",
+   "team": "NYJ",
+   "opp": "LV",
+   "def_rank": 10,
+   "def_ypg": 161.0,
+   "game": "LV @ NYJ",
+   "kick": "Sun 13:00 ET"
+  }
+ ]
+}

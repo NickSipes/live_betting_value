@@ -14,7 +14,8 @@ import urllib.request
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-KEY = open(os.path.join(HERE, "..", ".env")).read().split("ODDS_API_KEY=")[1].strip()
+KEY = os.environ.get("ODDS_API_KEY") or \
+    open(os.path.join(HERE, "..", ".env")).read().split("ODDS_API_KEY=")[1].strip()
 ODDS = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl"
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
@@ -208,7 +209,7 @@ class Monitor:
                 self.status[oid] = status
         return opps, games_out
 
-    def run(self, demo=False):
+    def run(self, demo=False, once=False):
         while True:
             if demo:
                 opps = [
@@ -230,23 +231,24 @@ class Monitor:
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "near": NEAR, "trigger": TRIG, "games": games_out, "opps": opps},
-                      open(f"{HERE}/web/state.json", "w"))
+                      open(f"{HERE}/../docs/state.json", "w"))
             json.dump(self.hist, open(self.hist_path, "w"))
             print(f'{datetime.datetime.now():%H:%M:%S} {len(games_out)} live games, {len(opps)} tracked, '
                   f'{sum(1 for o in opps if o["status"]=="TRIGGER")} triggered')
-            if demo:
+            if demo or once:
                 break
             time.sleep(self.poll)
 
 def serve():
-    os.chdir(f"{HERE}/web")
+    os.chdir(f"{HERE}/../docs")
     HTTPServer(("127.0.0.1", PORT), SimpleHTTPRequestHandler).serve_forever()
 
 if __name__ == "__main__":
     poll = int(sys.argv[sys.argv.index("--poll") + 1]) if "--poll" in sys.argv else 300
-    threading.Thread(target=serve, daemon=True).start()
-    print(f"dashboard: http://localhost:{PORT}")
-    Monitor(poll).run(demo="--demo" in sys.argv)
+    if "--once" not in sys.argv:
+        threading.Thread(target=serve, daemon=True).start()
+        print(f"dashboard: http://localhost:{PORT}")
+    Monitor(poll).run(demo="--demo" in sys.argv, once="--once" in sys.argv)
     if "--demo" in sys.argv:
         print("demo state written; serving dashboard (ctrl-c to stop)")
         while True:

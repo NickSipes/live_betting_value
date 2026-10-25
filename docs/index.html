@@ -60,6 +60,9 @@
   </div>
   <div class="games" id="games"></div>
   <div id="content"></div>
+  <h2 id="watchtitle" style="font-size:15px;margin:26px 0 10px">Players to watch</h2>
+  <div class="meta" style="margin:-6px 0 10px">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week. These are the matchups the live model hunts in.</div>
+  <div id="watch"></div>
 </div>
 <script>
 let known = {};   // id -> last status, for browser notifications
@@ -107,7 +110,28 @@ async function refresh() {
     known[o.id] = o.status;
   }
 }
+async function loadWatch() {
+  let d;
+  try { d = await (await fetch("watchlist.json?" + Date.now())).json(); }
+  catch (e) { return; }
+  document.getElementById("watchtitle").textContent = `Players to watch — week ${d.week}`;
+  const rows = (d.entries || []).map(e => `
+    <tr>
+      <td><b>${e.player}</b> <span style="color:var(--muted)">${e.pos} #${e.rank}</span></td>
+      <td>${e.market === "rec" ? "receiving" : "rushing"}</td>
+      <td>${e.ypg} ypg</td>
+      <td>${e.game}</td>
+      <td>vs ${e.opp} <span style="color:var(--muted)">#${e.def_rank} worst vs ${e.pos}, ${e.def_ypg} ypg</span></td>
+      <td>${e.kick}</td>
+    </tr>`).join("");
+  document.getElementById("watch").innerHTML = rows ? `
+    <table><thead><tr>
+      <th>player</th><th>market</th><th>season</th><th>game</th><th>matchup</th><th>kickoff</th>
+    </tr></thead><tbody>${rows}</tbody></table>`
+    : `<div id="empty">No qualifying matchups this week.</div>`;
+}
 refresh();
+loadWatch();
 setInterval(refresh, 10000);
 </script>
 </body>

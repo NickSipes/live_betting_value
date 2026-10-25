@@ -307,7 +307,7 @@ function callRow(o) {
       <span class="what">${MKT(o.market)} O ${c.line}</span>
       <span class="res ${w ? "win" : ""}">${w ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending"}</span>
     </div>
-    <div class="cr2">${c.clock} · ${c.score ?? o.game} · had ${c.cum} → now ${o.cum} yds · ${Math.round(c.p * 100)}%${c.rebuilt ? " · rebuilt" : ""}</div>
+    <div class="cr2">${c.clock} · ${c.score ?? o.game} · had ${c.cum} → now ${o.cum} yds · ${Math.round(c.p * 100)}%</div>
   </div>`;
 }
 function propPreCard(w, chip = "PREGAME") {
@@ -856,7 +856,7 @@ function openProp(id, rec) {
   const bets = !call ? "" : `
     <div class="cbets"><div class="ttl">Called Bets</div>
       <table><thead><tr><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
-      <tbody><tr><td>${call.score ?? "—"}</td><td>${call.clock}${call.rebuilt ? ` <span style="color:var(--muted);font-size:11px">rebuilt</span>` : ""}</td>
+      <tbody><tr><td>${call.score ?? "—"}</td><td>${call.clock}</td>
         <td>${call.cum}</td><td>O ${call.line}</td><td><b>${result}</b></td></tr></tbody></table></div>`;
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${MKT(h.market)} · ${h.game}</span></h3>

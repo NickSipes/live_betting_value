@@ -24,6 +24,11 @@ MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
 SIGNAL = 0.50              # first time a prop is worth showing (Past scorecard "flag")
 NEAR, TRIG = 0.55, 0.70    # card status + notifications
 CALL = TRIG                # a "call": if the player then clears that line, it's a win
+SCORE_WINDOW = (600, 3060)  # game-clock seconds the v2 model was trained on (10:00-51:00 elapsed);
+                            # outside it the inputs (pace, team rates) are unstable and P isn't trustworthy
+
+def in_window(gc):
+    return gc is not None and SCORE_WINDOW[0] <= gc <= SCORE_WINDOW[1]
 PORT = int(os.environ.get("PORT", 8766))
 HOST = os.environ.get("HOST", "127.0.0.1")
 DOCS = os.environ.get("DOCS_DIR", f"{HERE}/../docs")   # served site + published state
@@ -286,7 +291,8 @@ class Monitor:
         opp_abbr = game["away_abbr"] if home else game["home_abbr"]
         dv = DEF.get(f'{kind}|{opp_abbr}|{pr["pos"]}', 0)
         needed = L - cum
-        if needed < 3 or L < 15:
+        if needed < 3 or L < 15 or not in_window(gc):
+            h["snaps"][-1] = [gc, cum, nev, L, None]
             return None
         x = feature_vec(pr, kind, dv, gc, cum, nev, (gc - h["last_change"]) / 60,
                         e10, y10, diff, ts_, L, h["l0"])
@@ -297,9 +303,12 @@ class Monitor:
         recorded) by rebuilding every model input at that moment from the play log.
         Also fills in the inputs for calls saved before calls recorded them."""
         eid = game["espn_id"]
-        todo = [k for k, h in self.hist.items() if k.startswith(eid + "|") and (
-            any(len(s) < 5 for s in h["snaps"]) or
-            (h.get("call") and ("x" not in h["call"] or "score" not in h["call"])))]
+        def stale(h):
+            return (any(len(s) < 5 for s in h["snaps"])
+                    or any(len(s) >= 5 and s[4] is not None and not in_window(s[0]) for s in h["snaps"])
+                    or any(h.get(k) and not in_window(h[k].get("gc")) for k in ("signal", "call"))
+                    or (h.get("call") and ("x" not in h["call"] or "score" not in h["call"])))
+        todo = [k for k, h in self.hist.items() if k.startswith(eid + "|") and stale(h)]
         if not todo:
             return
         pplays, tplays = espn_timeline(eid)
@@ -314,7 +323,7 @@ class Monitor:
 
             def inputs(s):
                 gc, cum, nev, L = s[:4]
-                if not (pr and team and gc > 0 and L is not None and L - cum >= 3 and L >= 15):
+                if not (pr and team and in_window(gc) and L is not None and L - cum >= 3 and L >= 15):
                     return None
                 upto = [q for q in mine if q[1] <= gc]
                 gains = [q[1] for q in upto if q[5] and q[4] > 0]
@@ -335,7 +344,7 @@ class Monitor:
                 if x is not None:
                     xs[len(out)] = x
                 if len(s) >= 5:
-                    out.append(s)
+                    out.append(s if in_window(s[0]) else list(s[:4]) + [None])
                 else:
                     if x is not None:
                         fresh.add(len(out))
@@ -346,11 +355,15 @@ class Monitor:
                 if i is None:
                     continue
                 cur = h.get(key)
-                if i in fresh:   # the first crossing is in a rebuilt stretch, so it predates any live one
+                if cur and not in_window(cur.get("gc")):   # made outside the trained window: not a real signal
+                    h.pop(key)
+                    cur = None
+                if i in fresh or cur is None:   # first crossing is rebuilt (predates any live one), or no record yet
                     keep = {k: v for k, v in (cur or {}).items() if k in ("result", "won_at", "won_yds")}
                     h[key] = {**keep, "clock": gc_label(out[i][0]), "gc": out[i][0], "line": out[i][3],
-                              "cum": out[i][1], "p": out[i][4], "rebuilt": True,
-                              "x": [round(v, 4) for v in xs[i]], "t": (cur or {}).get("t", time.time())}
+                              "cum": out[i][1], "p": out[i][4], "rebuilt": i in fresh,
+                              "x": [round(v, 4) for v in xs[i]] if i in xs else None,
+                              "t": (cur or {}).get("t", time.time())}
                 elif cur and not cur.get("x") and i in xs:   # older record: attach its inputs
                     cur["x"] = [round(v, 4) for v in xs[i]]
                     cur.setdefault("gc", out[i][0])

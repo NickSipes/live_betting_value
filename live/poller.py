@@ -10,7 +10,7 @@ Needs live/model_weights.json + live/priors.json (run analysis/export_live.py).
 Costs 2 credits per live game per poll (2 markets, DK+FD).
 """
 import json, os, sys, time, csv, math, bisect, datetime, subprocess, threading, re
-import urllib.request
+import urllib.request, functools
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,10 @@ ODDS = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl"
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
 NEAR, TRIG = 0.50, 0.60
-PORT = 8766
+PORT = int(os.environ.get("PORT", 8766))
+HOST = os.environ.get("HOST", "127.0.0.1")
+DOCS = os.environ.get("DOCS_DIR", f"{HERE}/../docs")   # served site + published state
+DATA = os.environ.get("DATA_DIR", HERE)                # private state (history, logs)
 
 W = json.load(open(f"{HERE}/model_weights.json"))
 PRIORS = json.load(open(f"{HERE}/priors.json"))     # name -> {kind:{ypg,ype,epg,pos}}
@@ -67,7 +70,7 @@ def team_stats(box_team):
 class Monitor:
     def __init__(self, poll):
         self.poll = poll
-        self.hist_path = f"{HERE}/history.json"
+        self.hist_path = f"{DATA}/history.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.status = {}    # opp id -> NEAR/TRIGGER
 
@@ -185,7 +188,7 @@ class Monitor:
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
                                              "final": last[1], "close": last[3]}
         for wk, recs in done.items():
-            path = f"{HERE}/../docs/archive/props_w{wk}.json"
+            path = f"{DOCS}/archive/props_w{wk}.json"
             d = json.load(open(path)) if os.path.exists(path) else {}
             d.update(recs)
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -235,7 +238,7 @@ class Monitor:
                     notify(f"{'🔔 TRIGGER' if status=='TRIGGER' else 'Approaching'}: {name}",
                            f'{kind} O{L} | {cum} yds, P={p:.2f} | {game["clock"]}')
                     if status == "TRIGGER":
-                        with open(f"{HERE}/paper_log.csv", "a") as lf:
+                        with open(f"{DATA}/paper_log.csv", "a") as lf:
                             csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
@@ -260,12 +263,12 @@ class Monitor:
                 except Exception as e:
                     print("cycle error", repr(e))
                     opps, games_out, histout = [], [], {}
-                json.dump(histout, open(f"{HERE}/../docs/nfl_history.json", "w"))
+                json.dump(histout, open(f"{DOCS}/nfl_history.json", "w"))
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "ts": time.time(),
                        "near": NEAR, "trigger": TRIG, "games": games_out, "opps": opps},
-                      open(f"{HERE}/../docs/state.json", "w"))
+                      open(f"{DOCS}/state.json", "w"))
             json.dump(self.hist, open(self.hist_path, "w"))
             print(f'{datetime.datetime.now():%H:%M:%S} {len(games_out)} live games, {len(opps)} tracked, '
                   f'{sum(1 for o in opps if o["status"]=="TRIGGER")} triggered')
@@ -273,15 +276,18 @@ class Monitor:
                 break
             time.sleep(self.poll)
 
+class QuietHandler(SimpleHTTPRequestHandler):
+    def log_message(self, *a):   # the dashboard polls every 10s; don't log each fetch
+        pass
+
 def serve():
-    os.chdir(f"{HERE}/../docs")
-    HTTPServer(("127.0.0.1", PORT), SimpleHTTPRequestHandler).serve_forever()
+    HTTPServer((HOST, PORT), functools.partial(QuietHandler, directory=DOCS)).serve_forever()
 
 if __name__ == "__main__":
     poll = int(sys.argv[sys.argv.index("--poll") + 1]) if "--poll" in sys.argv else 300
     if "--once" not in sys.argv:
         threading.Thread(target=serve, daemon=True).start()
-        print(f"dashboard: http://localhost:{PORT}")
+        print(f"dashboard: http://{HOST}:{PORT}")
     Monitor(poll).run(demo="--demo" in sys.argv, once="--once" in sys.argv)
     if "--demo" in sys.argv:
         print("demo state written; serving dashboard (ctrl-c to stop)")

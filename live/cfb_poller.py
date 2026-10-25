@@ -30,8 +30,10 @@ ESPN = f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/scor
     ("?groups=80&limit=250" if SPORT == "cfb" else "")
 STATE = {"cfb": "cfb_state.json", "nfl": "nfl_spreads_state.json"}[SPORT]
 PUBHIST = {"cfb": "cfb_history.json", "nfl": "nfl_spread_history.json"}[SPORT]
-REGISTRY = f"{HERE}/../docs/{SPORT}_games.json"
-ARCHIVE = f"{HERE}/../docs/archive"
+DOCS = os.environ.get("DOCS_DIR", f"{HERE}/../docs")   # served site + published state
+DATA = os.environ.get("DATA_DIR", HERE)                # private state (history, logs)
+REGISTRY = f"{DOCS}/{SPORT}_games.json"
+ARCHIVE = f"{DOCS}/archive"
 EDGE_FLAG = 4.0     # points of edge to flag
 SWING_PTS = 4.0     # line move in ~10 min beyond score move
 
@@ -180,7 +182,7 @@ def pickcenter_pregame(espn_id):
 class CFB:
     def __init__(self, poll):
         self.poll = poll
-        self.hist_path = f"{HERE}/hist_{SPORT}_spreads.json"
+        self.hist_path = f"{DATA}/hist_{SPORT}_spreads.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
         self.next_t = 0    # last fetch of next week's schedule
@@ -321,7 +323,7 @@ class CFB:
             if status != self.status.get(gid) and status != "watch":
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
-                with open(f"{HERE}/{SPORT}_spread_log.csv", "a") as lf:
+                with open(f"{DATA}/{SPORT}_spread_log.csv", "a") as lf:
                     csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), lbl, g["clock"],
                                              f'{g["as"]}-{g["hs"]}', S0, L, fair, edge, status])
             self.status[gid] = status
@@ -338,7 +340,7 @@ class CFB:
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},
-                      open(f"{HERE}/../docs/{STATE}", "w"))
+                      open(f"{DOCS}/{STATE}", "w"))
             # finals are archived each cycle; this only drops games ESPN stopped listing
             cut = time.time() - 3 * 86400
             self.hist = {k: v for k, v in self.hist.items() if v.get("t", 0) > cut}
@@ -347,7 +349,7 @@ class CFB:
             json.dump({k: {"meta": v.get("meta"), "pregame": v.get("pregame"),
                            "snaps": v.get("snaps", []), "events": v.get("events", [])}
                        for k, v in self.hist.items() if v.get("meta")},
-                      open(f"{HERE}/../docs/{PUBHIST}", "w"))
+                      open(f"{DOCS}/{PUBHIST}", "w"))
             print(f'{datetime.datetime.now():%H:%M:%S} {len(rows)} live {SPORT.upper()} games, '
                   f'{sum(1 for r in rows if r["status"]!="watch")} flagged')
             if once:

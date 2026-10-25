@@ -59,3 +59,9 @@ Sunday at 5-min polling ~1.2K. Used so far: ~14K.
 - nflverse: games, play-by-play, rosters (free)
 - the-odds-api: historical + live odds (key in .env, gitignored)
 - ESPN unofficial API: live boxscores/scoreboard (free, used by poller)
+
+## Hosting (Fly.io)
+
+One always-on machine runs the dashboard and all three pollers (`live/start.sh`);
+state lives on the `lbv_data` volume at `/data`. Deploy changes with `fly deploy`.
+Locally, the same pollers still run unchanged (defaults write to `docs/` and `live/`).

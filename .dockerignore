@@ -1,0 +1,12 @@
+.env
+.git
+.venv
+.claude
+data
+analysis
+reports
+live/*.log
+live/*.csv
+live/history.json
+live/hist_*.json
+live/*_history.json

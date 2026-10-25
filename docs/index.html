@@ -159,6 +159,9 @@
   .cr1 .what { font-size:12.5px; color:var(--ink-2); }
   .cr1 .res { margin-left:auto; font-size:12px; font-weight:650; color:var(--muted); white-space:nowrap; }
   .cr1 .res.win { color:var(--green); }
+  .ctag { font-size:10px; font-weight:650; letter-spacing:.04em; border-radius:6px; padding:1px 6px;
+          border:1px solid var(--baseline); color:var(--ink-2); }
+  .ctag.pre { border-color:var(--yellow); color:var(--yellow); }
   .cr2 { font-size:11.5px; color:var(--muted); margin-top:3px; font-variant-numeric:tabular-nums; }
   @keyframes callflash { 0%, 100% { background:transparent; }
                          50% { background:color-mix(in srgb, var(--green) 24%, transparent); } }
@@ -305,14 +308,18 @@ function callRow(c, open, isNew) {
   <div class="callrow ${isNew ? "new" : ""}" ${on(open)}>
     <div class="cr1">
       <span class="who">${c.player}${star(c.player, c.market)}</span>
+      <span class="ctag ${c.type === "pregame" ? "pre" : ""}">${c.type === "pregame" ? "PREGAME" : "70%"}</span>
       <span class="what">${MKT(c.market)} O ${c.line}</span>
       <span class="res ${c.result === "win" ? "win" : ""}">${res}</span>
     </div>
-    <div class="cr2">${c.clock} · ${c.score ?? ""} · had ${c.cum} → ${c.result === "win" ? "cleared at" : c.result === "loss" ? "finished" : "now"} ${c.now} yds · ${Math.round(c.p * 100)}%</div>
+    <div class="cr2">${c.type === "pregame" ? "Good Matchup · pregame line" : `${c.clock} · ${c.score ?? ""} · had ${c.cum}`}
+      → ${c.result === "win" ? "cleared at" : c.result === "loss" ? "finished" : "now"} ${c.now} yds${c.p != null ? ` · ${Math.round(c.p * 100)}%` : ""}</div>
   </div>`;
 }
-const liveCall = o => ({ ...o.call, player: o.player, market: o.market, now: o.call.result === "win" ? o.call.won_yds ?? o.cum : o.cum,
-  key: `${o.eid}|${o.player}|${o.market}`, t: o.call.settled_t || o.call.t });
+const callsOf = o => [o.pre, o.call].filter(Boolean).map(c => ({
+  ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`,
+  now: c.result === "win" ? c.won_yds ?? o.cum : o.cum,
+  key: `${o.eid}|${o.player}|${o.market}|${c.type || "live"}`, t: c.settled_t || c.t, open: () => openProp(o.id) }));
 async function openLedgerCall(c) {
   await loadArchive("nfl", c.week);
   const key = `${c.espn_id}|${c.player}|${c.market}`, rec = S.parch[c.week]?.[key];
@@ -426,22 +433,23 @@ function viewLive() {
   let html = "";
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
-    const active = all.filter(o => o.call && !o.call.result).sort((a, b) =>
-      (b.call.t || 0) - (a.call.t || 0) || (b.call.gc || 0) - (a.call.gc || 0));
+    const mine = all.flatMap(callsOf);
+    const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
     html += `
       <details class="sect ${Date.now() < flashUntil ? "flash" : ""}" ${closed.has("nfl-active-calls") ? "" : "open"}
                ontoggle="secToggle('nfl-active-calls', this.open)">
         <summary>Active calls <span class="count">${active.length} pending</span></summary>
-        <div class="leg">The model's ≥70% calls that haven't settled, newest first. Each wins once the player clears the called line, or loses at the final. Tap one for its chart.</div>
-        ${active.length ? `<div class="calls">${active.map(o => callRow(liveCall(o), () => openProp(o.id), freshCalls.has(o.id))).join("")}</div>`
+        <div class="leg">Calls that haven't settled, newest first. <b>PREGAME</b>: a watchlist matchup, the over at the pregame line. <b>70%</b>: the model's live call. Each wins once the player clears the called line, or loses at the final. Tap one for its chart.</div>
+        ${active.length ? `<div class="calls">${active.map(c => callRow(c, c.open, freshCalls.has(c.id))).join("")}</div>`
           : `<div class="empty">No open calls right now.</div>`}
       </details>`;
-    const liveWins = all.filter(o => o.call?.result).map(liveCall);
+    const liveWins = mine.filter(c => c.result);
     const have = new Set(liveWins.map(c => c.key));
     const wk = S.watch?.week;
-    const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !have.has(`${c.espn_id}|${c.player}|${c.market}`))
+    const ledger = (S.calls?.calls || []).map(c => ({ ...c, type: c.type || "live" }))
+      .filter(c => c.week === wk && !have.has(`${c.espn_id}|${c.player}|${c.market}|${c.type}`))
       .map(c => ({ ...c, now: c.final, t: c.settled_t || Date.parse(c.settled) / 1000 }));
-    const past = [...liveWins.map(c => ({ c, open: () => openProp(`${c.player}|${c.market}`) })),
+    const past = [...liveWins.map(c => ({ c, open: c.open })),
                   ...ledger.map(c => ({ c, open: () => openLedgerCall(c) }))]
       .sort((a, b) => (b.c.t || 0) - (a.c.t || 0));
     if (past.length) {
@@ -493,10 +501,12 @@ function viewPast() {
       .sort((a, b) => !!b[1].call - !!a[1].call);
     const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
     const leans = props.filter(([, r]) => !r.call), hits = leans.filter(([, r]) => r.final > r.signal.line).length;
-    const led = S.calls?.calls || [], lw = led.filter(c => c.result === "win").length;
+    const led = S.calls?.calls || [];
+    const rec = t => { const r = led.filter(c => (c.type || "live") === t), w = r.filter(c => c.result === "win").length;
+                       return r.length ? `${t === "live" ? "70% calls" : "pregame calls"} ${w}–${r.length - w} (${Math.round(w / r.length * 100)}%)` : ""; };
     if (led.length)
-      html += `<div class="leg" style="margin-top:14px"><b>Season record, 70% calls: ${lw}–${led.length - lw}</b>
-        (${Math.round(lw / led.length * 100)}% · every settled call with its inputs is saved in calls.json)</div>`;
+      html += `<div class="leg" style="margin-top:14px"><b>Season record: ${[rec("live"), rec("pregame")].filter(Boolean).join(" · ")}</b>
+        <br>every settled call, with the model's inputs for 70% calls, is saved in calls.json</div>`;
     html += section("nfl-past-props", "Player props flagged ≥50%",
       [calls.length ? `70% calls ${wins}–${calls.length - wins}` : "", leans.length ? `50–70% ${hits}/${leans.length} hit` : ""]
         .filter(Boolean).join(" · "),
@@ -555,15 +565,15 @@ async function loadAux() {
 }
 let seenCalls = null, freshCalls = new Set(), flashUntil = 0;
 function checkNewCalls() {
-  const calls = (S.props?.opps || []).filter(o => o.call && !o.call.result);
+  const calls = (S.props?.opps || []).flatMap(callsOf).filter(c => !c.result);
   if (seenCalls === null) { seenCalls = new Set(calls.map(o => o.id)); return; }   // no flash on page load
   if (Date.now() > flashUntil) freshCalls.clear();
   const fresh = calls.filter(o => !seenCalls.has(o.id));
   if (!fresh.length) return;
-  for (const o of fresh) {
-    seenCalls.add(o.id); freshCalls.add(o.id);
-    if ("Notification" in window && Notification.permission === "granted")
-      new Notification(`New call: ${o.player}`, { body: `${MKT(o.market)} O ${o.call.line} at ${Math.round(o.call.p * 100)}% · ${o.call.clock}` });
+  for (const c of fresh) {
+    seenCalls.add(c.id); freshCalls.add(c.id);
+    if (c.type === "live" && "Notification" in window && Notification.permission === "granted")
+      new Notification(`New call: ${c.player}`, { body: `${MKT(c.market)} O ${c.line} at ${Math.round(c.p * 100)}% · ${c.clock}` });
   }
   flashUntil = Date.now() + 4500;
   closed.delete("nfl-active-calls");   // make sure the list is open to show it
@@ -664,8 +674,8 @@ function svgChart(cfg) {
       s += `<path d="${d}" fill="none" stroke="${R.color}" stroke-width="2" stroke-linejoin="round"/>`;
     }
   }
-  if (cfg.star) {   // where the bet was called: x = game clock, y = the line at the call
-    const [cx, cy] = [X(cfg.star[0]), Y(cfg.star[1])], pts = [];
+  for (const st of cfg.stars || []) {   // where each bet was called: x = game clock, y = the line at the call
+    const [cx, cy] = [X(st[0]), Y(st[1])], pts = [];
     for (let k = 0; k < 10; k++) {
       const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 3.6 : 8.5;
       pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
@@ -850,7 +860,7 @@ function openProp(id, rec) {
   const linePts = clean(snaps.map(s => [s[0], s[3]])), ydsPts = clean(snaps.map(s => [s[0], s[1]]));
   const nevPts = clean(snaps.map(s => [s[0], s[2]])), pPts = clean(snaps.map(s => [s[0], s[4] ?? null]));
   const unit = h.market === "rec" ? "targets" : "carries";
-  const call = (o || rec)?.call, cum = o ? o.cum : rec?.final;
+  const call = (o || rec)?.call, pre = (o || rec)?.pre, cum = o ? o.cum : rec?.final;
   const chart = svgChart({
     yfmt: v => v,
     series: [
@@ -859,7 +869,7 @@ function openProp(id, rec) {
     ],
     rug, events: [],
     right: { pts: pPts, color: "var(--orange)" },
-    star: call?.gc !== undefined ? [Math.max(call.gc, 1), call.line] : null,
+    stars: [pre, call].filter(c => c && c.gc !== undefined).map(c => [Math.max(c.gc, 1), c.line]),
     tip: gc => {
       const pv = stepVal(pPts, gc), n = stepVal(nevPts, gc);
       return {
@@ -871,15 +881,17 @@ function openProp(id, rec) {
     },
   });
 
-  const result = !call ? "" : won(call, cum) ? "WIN ✓" : call.result === "loss" ? "LOSS" : "pending";
-  const verdict = !call ? "" : won(call, cum) ? `<span class="chip hot">WIN</span> cleared O ${call.line}`
-    : call.result === "loss" ? `<span class="chip watch">LOSS</span> finished ${cum} vs O ${call.line}`
-    : `needs ${Math.round((call.line - cum) * 10) / 10} more yds to clear the called line (O ${call.line})`;
-  const bets = !call ? "" : `
+  const lead = call || pre;   // the header speaks for the live call when there is one
+  const verdict = !lead ? "" : won(lead, cum) ? `<span class="chip hot">WIN</span> cleared O ${lead.line}`
+    : lead.result === "loss" ? `<span class="chip watch">LOSS</span> finished ${cum} vs O ${lead.line}`
+    : `needs ${Math.round((lead.line - cum) * 10) / 10} more yds to clear the called line (O ${lead.line})`;
+  const res = c => won(c, cum) ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
+  const bets = !(call || pre) ? "" : `
     <div class="cbets"><div class="ttl">Called Bets</div>
-      <table><thead><tr><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
-      <tbody><tr><td>${call.score ?? "—"}</td><td>${call.clock}</td>
-        <td>${call.cum}</td><td>O ${call.line}</td><td><b>${result}</b></td></tr></tbody></table></div>`;
+      <table><thead><tr><th>call</th><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
+      <tbody>${[pre, call].filter(Boolean).map(c => `<tr><td>${c.type === "pregame" ? "pregame" : "70%"}</td>
+        <td>${c.score ?? "—"}</td><td>${c.clock}</td><td>${c.cum}</td><td>O ${c.line}</td><td><b>${res(c)}</b></td></tr>`).join("")}
+      </tbody></table></div>`;
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${MKT(h.market)} · ${h.game}</span></h3>
     <div class="meta">${verdict || (rec ? `final ${rec.final} yds vs pregame O ${rec.l0}` : "")}</div>
@@ -888,7 +900,7 @@ function openProp(id, rec) {
     <div class="mleg"><span><i style="background:var(--blue)"></i>book line</span>
       <span><i style="background:var(--green)"></i>yards</span>
       <span><i style="background:var(--orange)"></i>P(over) · right axis</span>
-      ${call ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
+      ${call || pre ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
       <span>ticks = ${unit}</span></div>
     ${bets}`);
   bindChart();

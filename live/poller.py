@@ -27,6 +27,14 @@ CALL = TRIG                # a "call": if the player then clears that line, it's
 SCORE_WINDOW = (600, 3060)  # game-clock seconds the v2 model was trained on (10:00-51:00 elapsed);
                             # outside it the inputs (pace, team rates) are unstable and P isn't trustworthy
 
+ALIAS = {"LA": "LAR", "WAS": "WSH"}   # nflverse team codes that ESPN spells differently
+
+def watchlist():
+    try:
+        return json.load(open(f"{DOCS}/watchlist.json")).get("entries", [])
+    except Exception:
+        return []
+
 def in_window(gc):
     return gc is not None and SCORE_WINDOW[0] <= gc <= SCORE_WINDOW[1]
 PORT = int(os.environ.get("PORT", 8766))
@@ -150,9 +158,37 @@ class Monitor:
         self.poll = poll
         self.hist_path = f"{DATA}/history.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
+        self.pl_path = f"{DATA}/pregame_lines.json"   # espn_id -> {"name|kind": closing line}
+        self.pre_lines = json.load(open(self.pl_path)) if os.path.exists(self.pl_path) else {}
         self.bf_path = f"{DATA}/backfilled.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
+
+    def closing_lines(self, game, oe):
+        """Each player's closing pregame line: the last historical snapshot at kickoff
+        (one request, ~20 credits per game). Cached on the volume."""
+        eid = game["espn_id"]
+        if eid in self.pre_lines:
+            return self.pre_lines[eid]
+        lines = {}
+        try:
+            d = get(f"{HIST_ODDS}/events/{oe['id']}/odds?apiKey={KEY}&date={oe['commence_time']}"
+                    f"&bookmakers=draftkings,fanduel&markets={MARKETS['rec']},{MARKETS['rush']}&oddsFormat=american")
+            for b in (d.get("data") or {}).get("bookmakers", []):
+                for m in b.get("markets", []):
+                    kind = "rec" if m["key"] == MARKETS["rec"] else "rush"
+                    for o in m.get("outcomes", []):
+                        if o["name"] == "Over" and o.get("point") is not None:
+                            k = f'{o["description"]}|{kind}'
+                            if b["key"] == "fanduel" or k not in lines:
+                                lines[k] = float(o["point"])
+        except Exception as e:
+            print("closing-line fetch failed", eid, repr(e))
+            return {}
+        self.pre_lines[eid] = lines
+        json.dump(self.pre_lines, open(self.pl_path, "w"))
+        print(f"closing lines: {len(lines)} props for {game['away_abbr']} @ {game['home_abbr']}")
+        return lines
 
     def backfill(self, game, oe):
         """Joined a game after kickoff: rebuild each quoted player's line + production
@@ -397,22 +433,26 @@ class Monitor:
             self.hist.pop(hkey)
             last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
             final = box[eid].get(name, {}).get(kind, (last[1], 0))[0]   # box score beats a stale snapshot
-            c = h.get("call")
-            if c:
+            for key in ("call", "pre"):
+                c = h.get(key)
+                if not c:
+                    continue
                 if "result" not in c:
                     c.update(result="win" if final > c["line"] else "loss", settled_t=time.time())
                 settled.append({"week": wk, "espn_id": eid, "game": h["meta"]["game"], "player": name,
                                 "market": kind, "pregame_line": h.get("l0"), "final": final,
-                                "settled": datetime.datetime.now(datetime.timezone.utc).isoformat(), **c})
+                                "settled": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                                "type": "live", **c})
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
                                              "final": final, "close": last[3],
                                              "pmax": h.get("pmax", 0), "signal": h.get("signal"),
-                                             "call": c}
+                                             "call": h.get("call"), "pre": h.get("pre")}
         if settled:
             path = f"{DOCS}/calls.json"
             ledger = json.load(open(path)) if os.path.exists(path) else {"feats": W["feats"], "calls": []}
-            have = {(r["espn_id"], r["player"], r["market"]) for r in ledger["calls"]}
-            ledger["calls"] += [r for r in settled if (r["espn_id"], r["player"], r["market"]) not in have]
+            ident = lambda r: (r["espn_id"], r["player"], r["market"], r.get("type", "live"))
+            have = {ident(r) for r in ledger["calls"]}
+            ledger["calls"] += [r for r in settled if ident(r) not in have]
             json.dump(ledger, open(path, "w"), indent=1)
             print(f"ledger: settled {len(settled)} calls "
                   f"({sum(r['result'] == 'win' for r in settled)} wins)")
@@ -457,6 +497,11 @@ class Monitor:
                 print("rescore error", repr(e))
             for (name, kind), L in quotes.items():
                 f = self.features(name, kind, L, game, players, tstats)
+                hkey = f'{game["espn_id"]}|{name}|{kind}'
+                if hkey in self.hist and name in players:
+                    side = "hlogo" if players[name]["team"] == game["home"] else "alogo"
+                    self.hist[hkey]["meta"] = {"player": name, "market": kind, "logo": game.get(side),
+                                               "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 if not f:
                     continue
                 x, cum, nev, drought, opp, hkey = f
@@ -485,7 +530,7 @@ class Monitor:
                 opps.append({"id": oid, "eid": game["espn_id"], "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,
                              "drought": round(drought), "p": round(p, 3), "status": status, "vs": opp,
-                             "call": h.get("call")})
+                             "call": h.get("call"), "pre": h.get("pre")})
                 prev = self.status.get(oid)
                 if status != prev and status in ("NEAR", "TRIGGER"):
                     notify(f"{'🔔 TRIGGER' if status=='TRIGGER' else 'Approaching'}: {name}",
@@ -495,23 +540,51 @@ class Monitor:
                             csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
+            # every prop's l0 is its closing pregame line (what the model was trained on);
+            # watchlist props (top player vs bottom-10 defense) are pregame calls at that line
+            closing = self.closing_lines(game, oe)
+            for k, line in closing.items():
+                hk = f'{game["espn_id"]}|{k}'
+                if hk in self.hist and not self.hist[hk].get("l0_closing"):
+                    self.hist[hk].update(l0=line, l0_closing=True)
+            for w in watchlist():
+                k = next((k for k in closing if k.endswith("|" + w["market"]) and
+                          short_name(k.rsplit("|", 1)[0]) == short_name(w["player"])), None)
+                if not k:
+                    continue   # no pregame line = no bet was available
+                name, kind = k.rsplit("|", 1)
+                hkey = f'{game["espn_id"]}|{name}|{kind}'
+                h = self.hist.setdefault(hkey, {"l0": closing[k], "l0_closing": True, "last_change": 0, "snaps": []})
+                if not h.get("meta"):
+                    team = ALIAS.get(w["team"], w["team"])
+                    side = "hlogo" if team == game["home_abbr"] else "alogo" if team == game["away_abbr"] else None
+                    h["meta"] = {"player": name, "market": kind, "logo": game.get(side) if side else None,
+                                 "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
+                c = h.get("pre")
+                if not c or (c.get("src") != "closing" and "result" not in c):
+                    h["pre"] = c = {"type": "pregame", "src": "closing", "clock": "pregame", "gc": 0,
+                                    "line": closing[k], "cum": 0, "p": None, "t": (c or {}).get("t", time.time()),
+                                    "score": "kickoff", "rebuilt": False}
+                cum = players.get(name, {}).get(kind, (0, 0))[0]
+                if "result" not in c and cum > c["line"]:
+                    c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
             # a call stays listed until it settles, even when the prop isn't scored this
             # cycle (line pulled, within 3 yds of the line, or past the scoring window)
             for hkey, h in self.hist.items():
                 eid, name, kind = hkey.split("|", 2)
                 oid = f"{name}|{kind}"
-                if eid != game["espn_id"] or not h.get("call") or oid in listed or not h.get("meta") or not h["snaps"]:
+                if eid != game["espn_id"] or not (h.get("call") or h.get("pre")) or oid in listed or not h.get("meta"):
                     continue
-                last = h["snaps"][-1]
+                last = h["snaps"][-1] if h["snaps"] else [game["gc"], 0, 0, h["l0"], None]
                 cum, nev = players.get(name, {}).get(kind, (last[1], last[2]))
-                c = h["call"]
-                if "result" not in c and cum > c["line"]:
+                c = h.get("call")
+                if c and "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
                 histout[oid] = {**h["meta"], "snaps": h["snaps"]}
                 opps.append({"id": oid, "eid": eid, **h["meta"], "clock": game["clock"], "line": last[3], "cum": cum,
                              "events": nev, "drought": round((max(game["gc"], 60) - h.get("last_change", 0)) / 60),
                              "p": last[4] if len(last) > 4 and last[4] is not None else 0,
-                             "status": "watch", "vs": "", "call": c, "noline": True})
+                             "status": "watch", "vs": "", "call": c, "pre": h.get("pre"), "noline": True})
         return opps, games_out, histout
 
     def run(self, demo=False, once=False):

@@ -126,7 +126,8 @@ class CFB:
             status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else \
                      "SWING" if swing else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
-            rows.append({"id": gid, "game": lbl, "clock": g["clock"],
+            rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
+                         "clock": g["clock"],
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
                          "dline10": dline, "status": status,

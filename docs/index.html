@@ -145,17 +145,23 @@ async function refreshCfb() {
   catch (e) { return; }
   lastTs.cfb = d.ts;
   renderAges();
+  const fmtS = (v, g) => {
+    if (v === null || v === undefined) return "—";
+    if (!g.habbr) return v;                       // older state rows
+    if (v === 0) return "PK";
+    return v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
+  };
   const rows = (d.games || []).map(g => `
     <tr class="${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : ""}">
       <td><b>${g.game}</b></td><td>${g.clock}</td><td>${g.score}</td>
-      <td>${g.pregame ?? "—"}</td><td>${g.line ?? "—"}</td><td>${g.fair ?? "—"}</td>
+      <td>${fmtS(g.pregame, g)}</td><td>${fmtS(g.line, g)}</td><td>${fmtS(g.fair, g)}</td>
       <td>${g.edge ?? "—"}${g.side ? ` <span style="color:var(--muted)">(${g.side})</span>` : ""}</td>
       <td>${g.dline10 ?? "—"}</td>
       <td><span class="chip ${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : "watch"}">${g.status}</span></td>
     </tr>`).join("");
   document.getElementById("cfb").innerHTML = rows ? `
     <table><thead><tr>
-      <th>game</th><th>clock</th><th>score</th><th>pregame</th><th>live (home)</th>
+      <th>game</th><th>clock</th><th>score</th><th>pregame</th><th>live</th>
       <th>fair</th><th>edge</th><th>Δline 10m</th><th>status</th>
     </tr></thead><tbody>${rows}</tbody></table>`
     : `<div id="empty">No live college games right now.</div>`;

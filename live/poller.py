@@ -294,10 +294,11 @@ class Monitor:
 
     def rescore(self, game, players):
         """Score the snapshots that have no P yet (backfilled, or saved before P was
-        recorded) by rebuilding every model input at that moment from the play log."""
+        recorded) by rebuilding every model input at that moment from the play log.
+        Also fills in the inputs for calls saved before calls recorded them."""
         eid = game["espn_id"]
-        todo = [k for k, h in self.hist.items()
-                if k.startswith(eid + "|") and any(len(s) < 5 for s in h["snaps"])]
+        todo = [k for k, h in self.hist.items() if k.startswith(eid + "|") and (
+            any(len(s) < 5 for s in h["snaps"]) or (h.get("call") and "x" not in h["call"]))]
         if not todo:
             return
         pplays, tplays = espn_timeline(eid)
@@ -309,54 +310,92 @@ class Monitor:
             home = team == game["home"]
             dv = DEF.get(f'{kind}|{game["away_abbr"] if home else game["home_abbr"]}|{pr["pos"]}', 0) if pr else 0
             mine = [q for q in pplays if q[2] == kind and q[3] == short_name(name)]
-            out = []
+
+            def inputs(s):
+                gc, cum, nev, L = s[:4]
+                if not (pr and team and gc > 0 and L is not None and L - cum >= 3 and L >= 15):
+                    return None
+                upto = [q for q in mine if q[1] <= gc]
+                gains = [q[1] for q in upto if q[5] and q[4] > 0]
+                recent = [q for q in upto if q[1] > gc - 600]
+                tp = [q for q in tplays if q[1] <= gc]
+                hs, as_ = (tp[-1][6], tp[-1][7]) if tp else (0, 0)
+                mt = [q for q in tp if q[2] == team]
+                ts_ = {"pass_att": sum(q[3] == "pass" for q in mt), "rush_att": sum(q[3] == "rush" for q in mt),
+                       "pass_yds": sum(q[4] for q in mt if q[3] == "pass" and q[5]),
+                       "rush_yds": sum(q[4] for q in mt if q[3] == "rush")}
+                return feature_vec(pr, kind, dv, gc, cum, nev, (max(gc, 60) - (gains[-1] if gains else 0)) / 60,
+                                   len(recent), sum(q[4] for q in recent if q[5]),
+                                   (hs - as_) if home else (as_ - hs), ts_, L, h["l0"])
+
+            out, xs, fresh = [], {}, set()   # fresh = indices scored by this rebuild
             for s in h["snaps"]:
+                x = inputs(s)
+                if x is not None:
+                    xs[len(out)] = x
                 if len(s) >= 5:
                     out.append(s)
-                    continue
-                gc, cum, nev, L = s[:4]
-                p = None
-                if pr and team and gc > 0 and L is not None and L - cum >= 3 and L >= 15:
-                    upto = [q for q in mine if q[1] <= gc]
-                    gains = [q[1] for q in upto if q[5] and q[4] > 0]
-                    recent = [q for q in upto if q[1] > gc - 600]
-                    tp = [q for q in tplays if q[1] <= gc]
-                    hs, as_ = (tp[-1][6], tp[-1][7]) if tp else (0, 0)
-                    mt = [q for q in tp if q[2] == team]
-                    ts_ = {"pass_att": sum(q[3] == "pass" for q in mt), "rush_att": sum(q[3] == "rush" for q in mt),
-                           "pass_yds": sum(q[4] for q in mt if q[3] == "pass" and q[5]),
-                           "rush_yds": sum(q[4] for q in mt if q[3] == "rush")}
-                    x = feature_vec(pr, kind, dv, gc, cum, nev, (max(gc, 60) - (gains[-1] if gains else 0)) / 60,
-                                    len(recent), sum(q[4] for q in recent if q[5]),
-                                    (hs - as_) if home else (as_ - hs), ts_, L, h["l0"])
-                    p = round(score_row(x), 3)
-                out.append(list(s[:4]) + [p])
+                else:
+                    if x is not None:
+                        fresh.add(len(out))
+                    out.append(list(s[:4]) + [None if x is None else round(score_row(x), 3)])
             h["snaps"] = out
-            # rebuilt points all precede the live-scored ones, so they hold the earliest crossings
             for key, thr in (("signal", SIGNAL), ("call", CALL)):
-                first = next((s for s in out if s[4] is not None and s[4] >= thr), None)
-                if first:
-                    h[key] = {"clock": gc_label(first[0]), "line": first[3], "cum": first[1],
-                              "p": first[4], "rebuilt": True}
+                i = next((i for i, s in enumerate(out) if s[4] is not None and s[4] >= thr), None)
+                if i is None:
+                    continue
+                cur = h.get(key)
+                if i in fresh:   # the first crossing is in a rebuilt stretch, so it predates any live one
+                    keep = {k: v for k, v in (cur or {}).items() if k in ("result", "won_at", "won_yds")}
+                    h[key] = {**keep, "clock": gc_label(out[i][0]), "gc": out[i][0], "line": out[i][3],
+                              "cum": out[i][1], "p": out[i][4], "rebuilt": True,
+                              "x": [round(v, 4) for v in xs[i]]}
+                elif cur and not cur.get("x") and i in xs:   # older record: attach its inputs
+                    cur["x"] = [round(v, 4) for v in xs[i]]
+                    cur.setdefault("gc", out[i][0])
             scored = [s[4] for s in out if s[4] is not None]
             if scored:
                 h["pmax"] = max([h.get("pmax", 0)] + scored)
         print(f"rescored {len(todo)} props for {game['away_abbr']} @ {game['home_abbr']}")
 
     def archive_finals(self):
-        """Move tracked players from finished games into docs/archive/props_w{week}.json."""
-        done = {}
+        """Move tracked players from finished games into docs/archive/props_w{week}.json,
+        settle each 70% call (win if final yards cleared the line at the call), and
+        append settled calls to the season ledger docs/calls.json."""
+        done, box, settled = {}, {}, []
         for hkey in list(self.hist):
-            wk = self.finished.get(hkey.split("|")[0])
+            eid, name, kind = hkey.split("|", 2)
+            wk = self.finished.get(eid)
             h = self.hist[hkey]
             if wk is None or not h.get("meta"):
                 continue
+            if eid not in box:
+                try:
+                    box[eid] = self.espn_players(eid)[0]
+                except Exception as e:
+                    print("final box score fetch failed", eid, repr(e))
+                    box[eid] = {}
             self.hist.pop(hkey)
             last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
+            final = box[eid].get(name, {}).get(kind, (last[1], 0))[0]   # box score beats a stale snapshot
+            c = h.get("call")
+            if c:
+                c.setdefault("result", "win" if final > c["line"] else "loss")
+                settled.append({"week": wk, "espn_id": eid, "game": h["meta"]["game"], "player": name,
+                                "market": kind, "pregame_line": h.get("l0"), "final": final,
+                                "settled": datetime.datetime.now(datetime.timezone.utc).isoformat(), **c})
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
-                                             "final": last[1], "close": last[3],
+                                             "final": final, "close": last[3],
                                              "pmax": h.get("pmax", 0), "signal": h.get("signal"),
-                                             "call": h.get("call")}
+                                             "call": c}
+        if settled:
+            path = f"{DOCS}/calls.json"
+            ledger = json.load(open(path)) if os.path.exists(path) else {"feats": W["feats"], "calls": []}
+            have = {(r["espn_id"], r["player"], r["market"]) for r in ledger["calls"]}
+            ledger["calls"] += [r for r in settled if (r["espn_id"], r["player"], r["market"]) not in have]
+            json.dump(ledger, open(path, "w"), indent=1)
+            print(f"ledger: settled {len(settled)} calls "
+                  f"({sum(r['result'] == 'win' for r in settled)} wins)")
         for wk, recs in done.items():
             path = f"{DOCS}/archive/props_w{wk}.json"
             d = json.load(open(path)) if os.path.exists(path) else {}
@@ -406,7 +445,11 @@ class Monitor:
                 if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
                 if p >= CALL and "call" not in h:
-                    h["call"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
+                    h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
+                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x]}
+                c = h.get("call")
+                if c and "result" not in c and cum > c["line"]:
+                    c.update(result="win", won_at=game["clock"], won_yds=cum)
                 h["snaps"][-1] = list(h["snaps"][-1][:4]) + [round(p, 3)]   # (gc, cum, nev, L, P)
                 oid = f'{name}|{kind}'
                 pteam = players[name]["team"]
@@ -429,6 +472,22 @@ class Monitor:
                             csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
+            seen = {f"{n}|{k}" for (n, k) in quotes}
+            for hkey, h in self.hist.items():
+                eid, name, kind = hkey.split("|", 2)
+                oid = f"{name}|{kind}"
+                if eid != game["espn_id"] or not h.get("call") or oid in seen or not h.get("meta") or not h["snaps"]:
+                    continue
+                last = h["snaps"][-1]
+                cum, nev = players.get(name, {}).get(kind, (last[1], last[2]))
+                c = h["call"]
+                if "result" not in c and cum > c["line"]:
+                    c.update(result="win", won_at=game["clock"], won_yds=cum)
+                histout[oid] = {**h["meta"], "snaps": h["snaps"]}
+                opps.append({"id": oid, **h["meta"], "clock": game["clock"], "line": last[3], "cum": cum,
+                             "events": nev, "drought": round((max(game["gc"], 60) - h.get("last_change", 0)) / 60),
+                             "p": last[4] if len(last) > 4 and last[4] is not None else 0,
+                             "status": "watch", "vs": "", "call": c, "noline": True})
         return opps, games_out, histout
 
     def run(self, demo=False, once=False):

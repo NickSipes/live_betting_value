@@ -37,6 +37,8 @@
   tr.TRIGGER { background:color-mix(in srgb, var(--green) 10%, transparent); }
   tr.NEAR    { background:color-mix(in srgb, var(--orange) 8%, transparent); }
   .chip { font-size:11px; font-weight:600; border-radius:9px; padding:2px 8px; }
+  .leg { font-size:12px; color:var(--ink-2); margin:6px 0 12px; line-height:1.9; }
+  .leg .chip { margin-right:4px; }
   .chip.TRIGGER { color:#fff; background:var(--green); }
   .chip.NEAR { color:#fff; background:var(--orange); }
   .chip.watch { color:var(--muted); border:1px solid var(--muted); }
@@ -62,9 +64,19 @@
        background:color-mix(in srgb, var(--orange) 12%, transparent);
        border:1px solid var(--orange); font-size:13px;"></div>
   <div class="games" id="games"></div>
+  <div class="leg">
+    <span class="chip TRIGGER">TRIGGER</span> model gives the over ≥60% at the current line — the bet signal (still validating)
+    &nbsp;·&nbsp; <span class="chip NEAR">NEAR</span> ≥50% and approaching the trigger — start watching
+    &nbsp;·&nbsp; <span class="chip watch">watch</span> tracked, no signal
+  </div>
   <div id="content"></div>
   <h2 style="font-size:15px;margin:26px 0 10px">College football — live spreads vs fair line</h2>
   <div class="meta" style="margin:-6px 0 10px">Fair = current margin carried forward plus the pregame spread scaled by game remaining. Big edge = the market moved more than score + time justify (uncalibrated v0 baseline).</div>
+  <div class="leg">
+    <span class="chip TRIGGER">EDGE</span> live line ≥4 pts from fair — market and baseline disagree; check the game before acting
+    &nbsp;·&nbsp; <span class="chip NEAR">SWING</span> line moved ≥4 pts in ~10 min beyond the score change — injury news or overreaction
+    &nbsp;·&nbsp; <span class="chip watch">watch</span> tracked, no signal
+  </div>
   <div id="cfb"></div>
   <h2 id="watchtitle" style="font-size:15px;margin:26px 0 10px">Players to watch</h2>
   <div class="meta" style="margin:-6px 0 10px">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week. These are the matchups the live model hunts in.</div>

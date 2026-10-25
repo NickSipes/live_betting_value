@@ -26,6 +26,8 @@ SPORT = "nfl" if "--sport" in sys.argv and sys.argv[sys.argv.index("--sport") + 
 ODDS_SPORT = {"cfb": "americanfootball_ncaaf", "nfl": "americanfootball_nfl"}[SPORT]
 ESPN_PATH = {"cfb": "college-football", "nfl": "nfl"}[SPORT]
 ODDS = f"https://api.the-odds-api.com/v4/sports/{ODDS_SPORT}/odds"
+HIST_ODDS = f"https://api.the-odds-api.com/v4/historical/sports/{ODDS_SPORT}/odds"
+BACKFILL_MAX = 40   # bulk snapshots per sweep, 10 credits each (all games per snapshot)
 ESPN = f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/scoreboard" + \
     ("?groups=80&limit=250" if SPORT == "cfb" else "")
 STATE = {"cfb": "cfb_state.json", "nfl": "nfl_spreads_state.json"}[SPORT]
@@ -66,6 +68,35 @@ def parse_pregame(odds_list, home_abbr):
             fav, num = m.group(1), float(m.group(2))
             return num if fav == home_abbr else -num
     return None
+
+def iso_ts(s):
+    return datetime.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+
+def espn_timeline(espn_id):
+    """(wall_ts, gc, home_score, away_score) for every play so far."""
+    s = get(f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/summary?event={espn_id}")
+    out = []
+    drives = s.get("drives", {})
+    for d in drives.get("previous", []) + ([drives["current"]] if drives.get("current") else []):
+        for pl in d.get("plays", []):
+            if pl.get("wallclock") and pl.get("homeScore") is not None:
+                out.append((iso_ts(pl["wallclock"]),
+                            clock_elapsed(pl.get("period", {}).get("number", 1), pl.get("clock", {}).get("displayValue")),
+                            pl["homeScore"], pl["awayScore"]))
+    return sorted(set(out))
+
+def home_spread(event, home_name):
+    """FD-preferred home spread for the odds-API event matching an ESPN home team."""
+    if not (home_name in event["home_team"] or event["home_team"] in home_name):
+        return None
+    best = None
+    for b in event.get("bookmakers", []):
+        for m in b.get("markets", []):
+            for o in m.get("outcomes", []):
+                if o["name"] == event["home_team"] and o.get("point") is not None:
+                    if b["key"] == "fanduel" or best is None:
+                        best = float(o["point"])
+    return best
 
 def merge_json(path, updates):
     d = json.load(open(path)) if os.path.exists(path) else {}
@@ -186,7 +217,50 @@ class CFB:
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
         self.next_t = 0    # last fetch of next week's schedule
+        self.bf_path = f"{DATA}/backfilled_{SPORT}.json"
+        self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}
+
+    def backfill(self, need, live):
+        """Joined games after kickoff: rebuild the line + margin from kickoff using
+        bulk historical snapshots (one request covers every game) and ESPN plays."""
+        self.backfilled |= set(need)
+        json.dump(sorted(self.backfilled), open(self.bf_path, "w"))
+        kick = {gid: iso_ts(self.reg[gid]["date"]) for gid in need if gid in self.reg}
+        if not kick:
+            return
+        timelines = {gid: espn_timeline(gid) for gid in kick}
+        stop = time.time() - 240
+        t = max(min(kick.values()) - 1500, stop - BACKFILL_MAX * 300)
+        series = {gid: [] for gid in kick}
+        for _ in range(BACKFILL_MAX):
+            if t >= stop:
+                break
+            stamp = datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            try:
+                d = get(f"{HIST_ODDS}?apiKey={KEY}&date={stamp}&bookmakers=draftkings,fanduel"
+                        f"&markets=spreads&oddsFormat=american")
+            except Exception as e:
+                print("backfill fetch failed", stamp, repr(e))
+                break
+            snap_t = iso_ts(d.get("timestamp", stamp))
+            for gid in kick:
+                L = next((v for e in d.get("data", []) if (v := home_spread(e, live[gid]["home"])) is not None), None)
+                done = [p for p in timelines[gid] if p[0] <= snap_t]
+                if snap_t < kick[gid] or not done:
+                    series[gid].append((0, L, 0, None))
+                else:
+                    series[gid].append((done[-1][1], L, done[-1][2] - done[-1][3], None))
+            nxt = d.get("next_timestamp")
+            t = iso_ts(nxt) if nxt else t + 300
+        for gid, pts in series.items():
+            h = self.hist.setdefault(gid, {"snaps": [], "pregame": live[gid]["pregame"]})
+            first_live = h["snaps"][0][0] if h["snaps"] else float("inf")
+            h["snaps"] = [p for p in pts if p[0] < first_live] + h["snaps"]
+            pre = [p[1] for p in pts if p[0] == 0 and p[1] is not None]
+            if h.get("pregame") is None and pre:
+                h["pregame"] = pre[-1]   # last pre-kick quote = the closing line
+        print(f"backfilled {len(series)} {SPORT} games")
 
     def update_registry(self, sb):
         """Merge this week's (and, every 30 min, next week's) schedule."""
@@ -257,6 +331,12 @@ class CFB:
             }
         if not live:
             return rows
+        need = [gid for gid, g in live.items() if g["gc"] > 300 and gid not in self.backfilled]
+        if need:
+            try:
+                self.backfill(need, live)
+            except Exception as e:
+                print("backfill error", repr(e))
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
         fresh_cut = (datetime.datetime.now(datetime.timezone.utc)
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")

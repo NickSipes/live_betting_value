@@ -7,48 +7,79 @@
 <style>
   :root {
     color-scheme: light dark;
-    --surface: #fcfcfb; --page: #f9f9f7; --ink-1: #0b0b0b; --ink-2: #52514e; --muted: #898781;
-    --border: rgba(11,11,11,0.10); --grid: #e1e0d9;
+    --surface: #fcfcfb; --surface-2: #f3f3f0; --page: #f9f9f7;
+    --ink-1: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --border: rgba(11,11,11,0.10); --grid: #e1e0d9; --baseline: #c3c2b7;
     --green: #1baf7a; --orange: #eb6834; --blue: #2a78d6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --surface: #1a1a19; --page: #0d0d0d; --ink-1: #f0efec; --ink-2: #c3c2b7;
-      --border: rgba(255,255,255,0.10); --grid: #2c2c2a;
+      --surface: #1a1a19; --surface-2: #232322; --page: #0d0d0d;
+      --ink-1: #f0efec; --ink-2: #c3c2b7;
+      --border: rgba(255,255,255,0.10); --grid: #2c2c2a; --baseline: #383835;
       --green: #199e70; --orange: #d95926; --blue: #3987e5;
     }
   }
+  * { box-sizing: border-box; }
   body { margin:0; background:var(--page); color:var(--ink-1);
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
-  .wrap { max-width: 1000px; margin:0 auto; padding:24px 16px; }
-  h1 { font-size:18px; margin:0; }
-  .top { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
+  .wrap { max-width:1060px; margin:0 auto; padding:20px 16px 60px; }
+  .top { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+  h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
   .meta { font-size:12.5px; color:var(--ink-2); }
-  .games { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
-  .gamechip { background:var(--surface); border:1px solid var(--border); border-radius:8px;
-              padding:6px 12px; font-size:12.5px; color:var(--ink-2); }
-  .gamechip b { color:var(--ink-1); font-variant-numeric:tabular-nums; }
-  table { width:100%; border-collapse:collapse; background:var(--surface);
-          border:1px solid var(--border); border-radius:12px; overflow:hidden; font-size:13.5px; }
-  th { text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em;
-       color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--grid); font-weight:600; }
-  td { padding:9px 12px; border-bottom:1px solid var(--grid); font-variant-numeric:tabular-nums; }
-  tr:last-child td { border-bottom:none; }
-  tr.TRIGGER { background:color-mix(in srgb, var(--green) 10%, transparent); }
-  tr.NEAR    { background:color-mix(in srgb, var(--orange) 8%, transparent); }
-  .chip { font-size:11px; font-weight:600; border-radius:9px; padding:2px 8px; }
-  .leg { font-size:12px; color:var(--ink-2); margin:6px 0 12px; line-height:1.9; }
-  .leg .chip { margin-right:4px; }
-  .chip.TRIGGER { color:#fff; background:var(--green); }
-  .chip.NEAR { color:#fff; background:var(--orange); }
-  .chip.watch { color:var(--muted); border:1px solid var(--muted); }
-  .pbar { display:inline-block; width:70px; height:6px; border-radius:3px; background:var(--grid);
-          vertical-align:2px; margin-right:7px; }
-  .pbar i { display:block; height:100%; border-radius:3px; background:var(--blue); }
-  #empty { color:var(--muted); padding:30px; text-align:center; background:var(--surface);
-           border:1px solid var(--border); border-radius:12px; font-size:14px; }
   button { background:var(--surface); color:var(--ink-1); border:1px solid var(--border);
            border-radius:8px; padding:5px 12px; font-size:12.5px; cursor:pointer; }
+  #stale { display:none; margin:12px 0; padding:10px 14px; border-radius:10px; font-size:13px;
+           background:color-mix(in srgb, var(--orange) 12%, transparent); border:1px solid var(--orange); }
+  details.sect { margin-top:18px; }
+  details.sect > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px;
+    font-size:15px; font-weight:650; padding:10px 2px; border-bottom:1px solid var(--grid); user-select:none; }
+  details.sect > summary::-webkit-details-marker { display:none; }
+  details.sect > summary::before { content:"▸"; color:var(--muted); font-size:12px; transition:transform .15s; }
+  details.sect[open] > summary::before { transform:rotate(90deg); }
+  .count { font-size:12px; color:var(--muted); font-weight:500; }
+  .leg { font-size:12px; color:var(--ink-2); margin:10px 0 2px; line-height:2; }
+  .chip { font-size:10.5px; font-weight:650; border-radius:9px; padding:2px 8px; letter-spacing:.02em; }
+  .chip.hot { color:#fff; background:var(--green); }
+  .chip.warm { color:#fff; background:var(--orange); }
+  .chip.watch { color:var(--muted); border:1px solid var(--baseline); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:12px; margin-top:12px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px;
+          padding:13px 15px; cursor:pointer; transition:transform .1s, box-shadow .1s;
+          border-left:3px solid transparent; }
+  .card:hover { transform:translateY(-1px); box-shadow:0 3px 14px rgba(0,0,0,.14); }
+  .card.hot { border-left-color:var(--green); }
+  .card.warm { border-left-color:var(--orange); }
+  .trow { display:flex; align-items:center; gap:8px; margin:2px 0; }
+  .trow img { width:22px; height:22px; object-fit:contain; }
+  .trow .ab { font-weight:650; width:48px; }
+  .trow .sc { font-size:17px; font-weight:700; margin-left:auto; font-variant-numeric:tabular-nums; }
+  .sub { font-size:12px; color:var(--ink-2); margin-top:7px; display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; }
+  .nums { display:flex; gap:14px; margin-top:9px; font-size:12.5px; font-variant-numeric:tabular-nums; flex-wrap:wrap; }
+  .nums div span { display:block; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; }
+  .nums b { font-weight:650; }
+  .pbar { width:100%; height:5px; border-radius:3px; background:var(--grid); margin-top:10px; }
+  .pbar i { display:block; height:100%; border-radius:3px; background:var(--blue); }
+  .empty { color:var(--muted); padding:26px; text-align:center; background:var(--surface);
+           border:1px solid var(--border); border-radius:14px; font-size:13.5px; margin-top:12px; }
+  table { width:100%; border-collapse:collapse; background:var(--surface);
+          border:1px solid var(--border); border-radius:14px; overflow:hidden; font-size:13px; margin-top:12px; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+       color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--grid); }
+  td { padding:8px 12px; border-bottom:1px solid var(--grid); }
+  tr:last-child td { border-bottom:none; }
+  #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50;
+             align-items:center; justify-content:center; padding:16px; }
+  #modal { background:var(--surface); border:1px solid var(--border); border-radius:16px;
+           max-width:760px; width:100%; max-height:88vh; overflow:auto; padding:20px 22px; }
+  #modal h3 { margin:0 0 2px; font-size:16px; display:flex; align-items:center; gap:8px; }
+  #modal h3 img { width:24px; height:24px; }
+  #modal .meta { margin-bottom:10px; }
+  svg { display:block; width:100%; height:auto; }
+  svg text { font-family:inherit; }
+  .tick { font-size:10.5px; fill:var(--muted); }
+  .evrow { font-size:12.5px; padding:6px 0; border-top:1px solid var(--grid); color:var(--ink-2); }
+  .evrow b { color:var(--ink-1); }
 </style>
 </head>
 <body>
@@ -60,51 +91,45 @@
       updated <span id="updated">—</span>
     </span>
   </div>
-  <div id="stale" style="display:none; margin:12px 0; padding:10px 14px; border-radius:8px;
-       background:color-mix(in srgb, var(--orange) 12%, transparent);
-       border:1px solid var(--orange); font-size:13px;"></div>
-  <div class="games" id="games"></div>
-  <div class="leg">
-    <span class="chip TRIGGER">TRIGGER</span> model gives the over ≥60% at the current line — the bet signal (still validating)
-    &nbsp;·&nbsp; <span class="chip NEAR">NEAR</span> ≥50% and approaching the trigger — start watching
-    &nbsp;·&nbsp; <span class="chip watch">watch</span> tracked, no signal
-  </div>
-  <div id="content"></div>
-  <h2 style="font-size:15px;margin:26px 0 10px">College football — live spreads vs fair line</h2>
-  <div class="meta" style="margin:-6px 0 10px">Fair = current margin + possession value (field position) + pregame spread scaled by game remaining. Big edge = the market moved more than score, possession, and time justify (uncalibrated v0 baseline).</div>
-  <div class="leg">
-    <span class="chip TRIGGER">EDGE</span> live line ≥4 pts from fair — market and baseline disagree; check the game before acting
-    &nbsp;·&nbsp; <span class="chip NEAR">SWING</span> line moved ≥4 pts in ~10 min beyond the score change — injury news or overreaction
-    &nbsp;·&nbsp; <span class="chip watch">watch</span> tracked, no signal
-  </div>
-  <div id="cfb"></div>
-  <h2 id="watchtitle" style="font-size:15px;margin:26px 0 10px">Players to watch</h2>
-  <div class="meta" style="margin:-6px 0 10px">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week. These are the matchups the live model hunts in.</div>
-  <div id="watch"></div>
-</div>
-<script>
-let known = {};   // id -> last status, for browser notifications
-let lastTs = { nfl: null, cfb: null };
+  <div id="stale"></div>
 
-function ageText(ts) {
-  if (!ts) return "unknown age";
-  const m = (Date.now() / 1000 - ts) / 60;
-  return m < 1 ? "just now" : m < 90 ? `${Math.round(m)}m ago` : `${(m / 60).toFixed(1)}h ago`;
-}
-function renderAges() {
-  const nfl = lastTs.nfl, cfb = lastTs.cfb;
-  document.getElementById("updated").textContent =
-    `NFL ${ageText(nfl)} · CFB ${ageText(cfb)}`;
-  const stale = [];
-  if (nfl && (Date.now() / 1000 - nfl) > 900) stale.push(`NFL data is ${ageText(nfl).replace(" ago","")} old`);
-  if (cfb && (Date.now() / 1000 - cfb) > 900) stale.push(`CFB data is ${ageText(cfb).replace(" ago","")} old`);
-  const el = document.getElementById("stale");
-  if (stale.length) {
-    el.style.display = "block";
-    el.textContent = "⚠ " + stale.join(" · ") + " — lines shown are likely outdated. Do not act on stale rows.";
-  } else el.style.display = "none";
-}
-setInterval(renderAges, 5000);
+  <details class="sect" open id="sect-nfl">
+    <summary>NFL player props <span class="count" id="nfl-count"></span></summary>
+    <div class="leg">
+      <span class="chip hot">TRIGGER</span> model gives the over ≥60% at the current line — the bet signal (still validating)
+      &nbsp;·&nbsp; <span class="chip warm">NEAR</span> ≥50%, approaching &nbsp;·&nbsp; <span class="chip watch">WATCH</span> tracked, no signal
+      &nbsp;·&nbsp; click a card for the line vs production chart
+    </div>
+    <div class="grid" id="nfl-grid"></div>
+    <div id="nfl-empty" class="empty" style="display:none">No live tracked players right now — cards appear as NFL games go live.</div>
+  </details>
+
+  <details class="sect" open id="sect-cfb">
+    <summary>College football — live spreads <span class="count" id="cfb-count"></span></summary>
+    <div class="leg">
+      <span class="chip hot">EDGE</span> live line ≥4 pts from fair (margin + possession + pregame×remaining) — check the game before acting
+      &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score — injury or overreaction
+      &nbsp;·&nbsp; <span class="chip watch">WATCH</span> no signal &nbsp;·&nbsp; click a card for line movement + key plays
+    </div>
+    <div class="grid" id="cfb-grid"></div>
+    <div id="cfb-empty" class="empty" style="display:none">No live college games right now.</div>
+  </details>
+
+  <details class="sect" id="sect-watch">
+    <summary>Players to watch <span class="count" id="watchtitle"></span></summary>
+    <div class="leg">Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position this week — the matchups the live model hunts in.</div>
+    <div id="watch"></div>
+  </details>
+</div>
+
+<div id="overlay" onclick="if(event.target===this) closeModal()">
+  <div id="modal"></div>
+</div>
+
+<script>
+let known = {}, knownCfb = {};
+let lastTs = { nfl: null, cfb: null };
+let S = { nfl: null, cfb: null, nflHist: {}, cfbHist: {} };
 
 function askNotif() {
   Notification.requestPermission().then(p => {
@@ -114,103 +139,198 @@ function askNotif() {
 if ("Notification" in window && Notification.permission === "granted")
   document.getElementById("notifbtn").textContent = "notifications: granted";
 
-async function refresh() {
-  let d;
-  try { d = await (await fetch("state.json?" + Date.now())).json(); }
-  catch (e) { return; }
-  lastTs.nfl = d.ts;
-  renderAges();
-  document.getElementById("games").innerHTML = (d.games || []).map(g =>
-    `<span class="gamechip">${g.label} <b>${g.score}</b> · ${g.clock}</span>`).join("");
-  const opps = d.opps || [];
-  if (!opps.length) {
-    document.getElementById("content").innerHTML =
-      `<div id="empty">No live tracked players right now. The table fills in as games go live.</div>`;
-    return;
-  }
-  let rows = opps.map(o => `
-    <tr class="${o.status}">
-      <td><b>${o.player}</b> <span style="color:var(--muted)">${o.market}</span></td>
-      <td>${o.game}</td><td>${o.clock}</td>
-      <td>O ${o.line}</td><td>${o.cum}</td><td>${o.events}</td><td>${o.drought}m</td>
-      <td><span class="pbar"><i style="width:${Math.min(o.p/0.8*100,100)}%"></i></span>${o.p.toFixed(2)}</td>
-      <td><span class="chip ${o.status}">${o.status}</span></td>
-    </tr>`).join("");
-  document.getElementById("content").innerHTML = `
-    <table><thead><tr>
-      <th>player</th><th>game</th><th>clock</th><th>line</th><th>yds</th>
-      <th>tgt/car</th><th>drought</th><th>P(over)</th><th>status</th>
-    </tr></thead><tbody>${rows}</tbody></table>`;
-  for (const o of opps) {
-    if ((o.status === "NEAR" || o.status === "TRIGGER") && known[o.id] !== o.status
-        && "Notification" in window && Notification.permission === "granted") {
-      new Notification((o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + o.player,
-        { body: `${o.market} O${o.line} · ${o.cum} yds · P=${o.p.toFixed(2)} · ${o.clock}` });
-    }
-    known[o.id] = o.status;
-  }
+const ageText = ts => {
+  if (!ts) return "—";
+  const m = (Date.now() / 1000 - ts) / 60;
+  return m < 1 ? "just now" : m < 90 ? `${Math.round(m)}m ago` : `${(m / 60).toFixed(1)}h ago`;
+};
+function renderAges() {
+  document.getElementById("updated").textContent = `NFL ${ageText(lastTs.nfl)} · CFB ${ageText(lastTs.cfb)}`;
+  const stale = [];
+  for (const [k, ts] of Object.entries(lastTs))
+    if (ts && (Date.now() / 1000 - ts) > 900) stale.push(`${k.toUpperCase()} data is ${ageText(ts).replace(" ago", "")} old`);
+  const el = document.getElementById("stale");
+  el.style.display = stale.length ? "block" : "none";
+  el.textContent = stale.length ? "⚠ " + stale.join(" · ") + " — lines shown are likely outdated." : "";
 }
-let knownCfb = {};
+setInterval(renderAges, 5000);
+
+const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" || s === "SWING" ? "warm" : "watch";
+const fmtS = (v, g) => v === null || v === undefined ? "—" :
+  v === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
+const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:22px"></span>`;
+
+function notifyIf(store, id, status, title, body) {
+  if ((status === "NEAR" || status === "TRIGGER" || status === "EDGE" || status === "SWING")
+      && store[id] !== status && "Notification" in window && Notification.permission === "granted")
+    new Notification(title, { body });
+  store[id] = status;
+}
+
+async function refreshNfl() {
+  let d;
+  try { d = await (await fetch("state.json?" + Date.now())).json(); } catch (e) { return; }
+  S.nfl = d; lastTs.nfl = d.ts; renderAges();
+  const opps = d.opps || [];
+  document.getElementById("nfl-count").textContent =
+    `${(d.games || []).map(g => g.label).join(" · ") || "no live games"}`;
+  document.getElementById("nfl-empty").style.display = opps.length ? "none" : "block";
+  document.getElementById("nfl-grid").innerHTML = opps.map(o => `
+    <div class="card ${chipCls(o.status)}" onclick="openNfl('${o.id.replace(/'/g, "\\'")}')">
+      <div class="trow">${logoImg(o.logo)}
+        <span class="ab" style="width:auto;font-size:14px">${o.player}</span>
+        <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status.toUpperCase()}</span>
+      </div>
+      <div class="sub"><span>${o.game} · ${o.clock}</span><span>${o.market === "rec" ? "receiving" : "rushing"}</span></div>
+      <div class="nums">
+        <div><span>line</span><b>O ${o.line}</b></div>
+        <div><span>yards</span><b>${o.cum}</b></div>
+        <div><span>tgt/car</span><b>${o.events}</b></div>
+        <div><span>drought</span><b>${o.drought}m</b></div>
+        <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
+      </div>
+      <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
+    </div>`).join("");
+  for (const o of opps)
+    notifyIf(known, o.id, o.status,
+      (o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + o.player,
+      `${o.market} O${o.line} · ${o.cum} yds · P=${o.p.toFixed(2)} · ${o.clock}`);
+}
+
 async function refreshCfb() {
   let d;
-  try { d = await (await fetch("cfb_state.json?" + Date.now())).json(); }
-  catch (e) { return; }
-  lastTs.cfb = d.ts;
-  renderAges();
-  const fmtS = (v, g) => {
-    if (v === null || v === undefined) return "—";
-    if (!g.habbr) return v;                       // older state rows
-    if (v === 0) return "PK";
-    return v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
-  };
-  const rows = (d.games || []).map(g => `
-    <tr class="${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : ""}">
-      <td><b>${g.game}</b></td><td>${g.clock}</td><td>${g.score}</td>
-      <td style="color:var(--muted)">${g.poss ?? "—"}</td>
-      <td>${fmtS(g.pregame, g)}</td><td>${fmtS(g.line, g)}</td><td>${fmtS(g.fair, g)}</td>
-      <td>${g.edge ?? "—"}${g.side ? ` <span style="color:var(--muted)">(${g.side})</span>` : ""}</td>
-      <td>${g.dline10 ?? "—"}</td>
-      <td><span class="chip ${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : "watch"}">${g.status}</span></td>
-    </tr>`).join("");
-  document.getElementById("cfb").innerHTML = rows ? `
-    <table><thead><tr>
-      <th>game</th><th>clock</th><th>score</th><th>ball</th><th>pregame</th><th>live</th>
-      <th>fair</th><th>edge</th><th>Δline 10m</th><th>status</th>
-    </tr></thead><tbody>${rows}</tbody></table>`
-    : `<div id="empty">No live college games right now.</div>`;
-  for (const g of d.games || []) {
-    if (g.status !== "watch" && knownCfb[g.id] !== g.status
-        && "Notification" in window && Notification.permission === "granted")
-      new Notification(`CFB ${g.status}: ${g.game}`,
-        { body: `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}` });
-    knownCfb[g.id] = g.status;
+  try { d = await (await fetch("cfb_state.json?" + Date.now())).json(); } catch (e) { return; }
+  S.cfb = d; lastTs.cfb = d.ts; renderAges();
+  const games = d.games || [];
+  document.getElementById("cfb-count").textContent = `${games.length} live`;
+  document.getElementById("cfb-empty").style.display = games.length ? "none" : "block";
+  document.getElementById("cfb-grid").innerHTML = games.map(g => {
+    const [as, hs] = (g.score || "0-0").split("-");
+    return `
+    <div class="card ${chipCls(g.status)}" onclick="openCfb('${g.id}')">
+      <div class="trow">${logoImg(g.alogo)}<span class="ab">${g.aabbr ?? ""}</span>
+        ${g.poss_side === "away" ? "🏈" : ""}<span class="sc">${as}</span></div>
+      <div class="trow">${logoImg(g.hlogo)}<span class="ab">${g.habbr ?? ""}</span>
+        ${g.poss_side === "home" ? "🏈" : ""}<span class="sc">${hs}</span></div>
+      <div class="sub"><span>${g.clock}</span><span>${g.poss ?? ""}</span>
+        <span class="chip ${chipCls(g.status)}">${g.status.toUpperCase()}</span></div>
+      <div class="nums">
+        <div><span>pregame</span><b>${fmtS(g.pregame, g)}</b></div>
+        <div><span>live</span><b>${fmtS(g.line, g)}</b></div>
+        <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
+        <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
+      </div>
+    </div>`;
+  }).join("");
+  for (const g of games)
+    notifyIf(knownCfb, g.id, g.status, `CFB ${g.status}: ${g.game}`,
+      `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}`);
+}
+
+async function loadAux() {
+  try { S.cfbHist = await (await fetch("cfb_history.json?" + Date.now())).json(); } catch (e) {}
+  try { S.nflHist = await (await fetch("nfl_history.json?" + Date.now())).json(); } catch (e) {}
+  try {
+    const d = await (await fetch("watchlist.json?" + Date.now())).json();
+    document.getElementById("watchtitle").textContent = `week ${d.week} · ${d.entries.length} matchups`;
+    document.getElementById("watch").innerHTML = (d.entries || []).length ? `
+      <table><thead><tr><th>player</th><th>market</th><th>season</th><th>game</th><th>matchup</th><th>kickoff</th></tr></thead>
+      <tbody>${d.entries.map(e => `
+        <tr><td><b>${e.player}</b> <span style="color:var(--muted)">${e.pos} #${e.rank}</span></td>
+        <td>${e.market === "rec" ? "receiving" : "rushing"}</td><td>${e.ypg} ypg</td><td>${e.game}</td>
+        <td>vs ${e.opp} <span style="color:var(--muted)">#${e.def_rank} worst vs ${e.pos}, ${e.def_ypg} ypg</span></td>
+        <td>${e.kick}</td></tr>`).join("")}</tbody></table>` : `<div class="empty">No qualifying matchups.</div>`;
+  } catch (e) {}
+}
+
+// ---------- modal charts ----------
+const GL = 3600;
+function svgChart(series, events, yLabelFmt) {
+  // series: [{pts: [[gc, v]...], color, name, dash?}]; events: [[gc, label, text]]
+  const W = 700, H = 320, M = { t: 26, r: 14, b: 30, l: 40 };
+  const pw = W - M.l - M.r, ph = H - M.t - M.b;
+  const all = series.flatMap(s => s.pts.map(p => p[1])).filter(v => v !== null && v !== undefined);
+  if (!all.length) return `<div class="empty">No history captured yet for this one.</div>`;
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const pad = Math.max(3, (hi - lo) * 0.15); lo -= pad; hi += pad;
+  const X = g => M.l + Math.min(g, GL) / GL * pw;
+  const Y = v => M.t + ph - (v - lo) / (hi - lo) * ph;
+  let s = `<svg viewBox="0 0 ${W} ${H}">`;
+  for (let q = 0; q < 4; q++) {
+    if (q % 2 === 0) s += `<rect x="${X(q * 900)}" y="${M.t}" width="${pw / 4}" height="${ph}" fill="rgba(128,128,128,0.05)"/>`;
+    s += `<text class="tick" x="${X(q * 900 + 450)}" y="${M.t - 8}" text-anchor="middle">Q${q + 1}</text>`;
   }
+  const step = (hi - lo) > 40 ? 14 : 7;
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    s += `<line x1="${M.l}" x2="${M.l + pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>`;
+    s += `<text class="tick" x="${M.l - 6}" y="${Y(v) + 3}" text-anchor="end">${yLabelFmt(v)}</text>`;
+  }
+  if (lo < 0 && hi > 0) s += `<line x1="${M.l}" x2="${M.l + pw}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--baseline)" stroke-width="1.4"/>`;
+  for (const ser of series) {
+    const pts = ser.pts.filter(p => p[1] !== null && p[1] !== undefined);
+    if (!pts.length) continue;
+    let d = `M${X(pts[0][0])},${Y(pts[0][1])}`;
+    for (let i = 1; i < pts.length; i++) d += `H${X(pts[i][0])}V${Y(pts[i][1])}`;
+    s += `<path d="${d}" fill="none" stroke="${ser.color}" stroke-width="2.2" stroke-linejoin="round" ${ser.dash ? 'stroke-dasharray="5,4"' : ""}/>`;
+    const last = pts[pts.length - 1];
+    s += `<text x="${X(last[0]) + 4}" y="${Y(last[1]) + 4}" fill="${ser.color}" font-size="11" font-weight="600">${ser.name}</text>`;
+  }
+  const spread = series[0].pts;
+  for (const [gc, label, text] of events || []) {
+    const near = spread.filter(p => p[0] <= gc && p[1] !== null);
+    const y = near.length ? Y(near[near.length - 1][1]) : M.t + ph / 2;
+    s += `<circle cx="${X(gc)}" cy="${y}" r="5" fill="var(--orange)" stroke="var(--surface)" stroke-width="1.5"><title>${label}: ${text}</title></circle>`;
+  }
+  return s + "</svg>";
 }
-async function loadWatch() {
-  let d;
-  try { d = await (await fetch("watchlist.json?" + Date.now())).json(); }
-  catch (e) { return; }
-  document.getElementById("watchtitle").textContent = `Players to watch — week ${d.week}`;
-  const rows = (d.entries || []).map(e => `
-    <tr>
-      <td><b>${e.player}</b> <span style="color:var(--muted)">${e.pos} #${e.rank}</span></td>
-      <td>${e.market === "rec" ? "receiving" : "rushing"}</td>
-      <td>${e.ypg} ypg</td>
-      <td>${e.game}</td>
-      <td>vs ${e.opp} <span style="color:var(--muted)">#${e.def_rank} worst vs ${e.pos}, ${e.def_ypg} ypg</span></td>
-      <td>${e.kick}</td>
-    </tr>`).join("");
-  document.getElementById("watch").innerHTML = rows ? `
-    <table><thead><tr>
-      <th>player</th><th>market</th><th>season</th><th>game</th><th>matchup</th><th>kickoff</th>
-    </tr></thead><tbody>${rows}</tbody></table>`
-    : `<div id="empty">No qualifying matchups this week.</div>`;
+
+function openCfb(id) {
+  const h = S.cfbHist[id], g = (S.cfb.games || []).find(x => x.id === id);
+  if (!h) return;
+  const snaps = h.snaps || [];
+  const line = snaps.map(s => [s[0], s[1]]);
+  const margin = snaps.map(s => [s[0], s[2]]);
+  const evs = (h.events || []).map(e => [e[0], (e[2] === "home" ? h.meta.habbr : h.meta.aabbr) + " " + e[1], e[3]]);
+  const chart = svgChart(
+    [{ pts: line, color: "var(--blue)", name: "live spread" },
+     { pts: margin, color: "var(--green)", name: "margin" },
+     { pts: [[0, -(h.pregame ?? 0)], [GL, -(h.pregame ?? 0)]], color: "var(--muted)", name: "pregame pace", dash: 1 }],
+    evs, v => v > 0 ? `${h.meta.habbr}+${v}` : `${h.meta.habbr}${v}`);
+  showModal(`
+    <h3>${logoImg(h.meta.alogo)} ${h.meta.aabbr} @ ${logoImg(h.meta.hlogo)} ${h.meta.habbr}</h3>
+    <div class="meta">${g ? g.score + " · " + g.clock + " · " : ""}pregame ${h.pregame ?? "—"} (home) ·
+      blue = live home spread, green = home margin, dots = scoring plays (hover)</div>
+    ${chart}
+    ${evs.slice().reverse().map(e => `<div class="evrow"><b>${e[1]}</b> — ${e[2]}</div>`).join("")}`);
 }
-refresh();
-refreshCfb();
-loadWatch();
-setInterval(refresh, 10000);
+
+function openNfl(id) {
+  const h = S.nflHist[id], o = (S.nfl.opps || []).find(x => x.id === id);
+  if (!h) return;
+  const snaps = h.snaps || [];
+  const line = snaps.map(s => [s[0], s[3]]);
+  const cum = snaps.map(s => [s[0], s[1]]);
+  const chart = svgChart(
+    [{ pts: line, color: "var(--blue)", name: "O/U line" },
+     { pts: cum, color: "var(--green)", name: "yards" }],
+    [], v => v);
+  showModal(`
+    <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${h.market === "rec" ? "receiving" : "rushing"} · ${h.game}</span></h3>
+    <div class="meta">${o ? `O ${o.line} · ${o.cum} yds · P(over) ${o.p.toFixed(2)} · ${o.clock}` : ""}</div>
+    ${chart}`);
+}
+
+function showModal(html) {
+  document.getElementById("modal").innerHTML = html;
+  document.getElementById("overlay").style.display = "flex";
+}
+function closeModal() { document.getElementById("overlay").style.display = "none"; }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+refreshNfl(); refreshCfb(); loadAux();
+setInterval(refreshNfl, 10000);
 setInterval(refreshCfb, 10000);
+setInterval(loadAux, 30000);
 </script>
 </body>
 </html>

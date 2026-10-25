@@ -85,6 +85,7 @@ class Monitor:
                 "home": teams["home"]["team"]["displayName"], "away": teams["away"]["team"]["displayName"],
                 "home_abbr": teams["home"]["team"]["abbreviation"], "away_abbr": teams["away"]["team"]["abbreviation"],
                 "hs": int(teams["home"]["score"]), "as": int(teams["away"]["score"]),
+                "hlogo": teams["home"]["team"].get("logo"), "alogo": teams["away"]["team"].get("logo"),
                 "gc": clock_to_elapsed(st["period"], st.get("displayClock")),
                 "clock": f'Q{st["period"]} {st.get("displayClock","")}',
             }
@@ -145,9 +146,9 @@ class Monitor:
         h = self.hist.setdefault(hkey, {"l0": L, "last_change": 0 if cum == 0 else gc, "snaps": []})
         if h["snaps"] and cum > h["snaps"][-1][1]:
             h["last_change"] = gc
-        h["snaps"].append((gc, cum, nev))
-        h["snaps"] = h["snaps"][-80:]
-        old = next(((g, c, n) for g, c, n in reversed(h["snaps"]) if g <= gc - 600), (0, 0, 0))
+        h["snaps"].append((gc, cum, nev, L))
+        h["snaps"] = h["snaps"][-120:]
+        old = next((s for s in reversed(h["snaps"]) if s[0] <= gc - 600), (0, 0, 0, None))
         e10, y10 = nev - old[2], cum - old[1]
         home = team == game["home"]
         diff = (game["hs"] - game["as"]) if home else (game["as"] - game["hs"])
@@ -166,19 +167,20 @@ class Monitor:
              ts_["rush_yds"] / ts_["rush_att"] if ts_["rush_att"] else 0,
              plays / (gc / 60), 1.0 if kind == "rush" else 0.0,
              needed, needed / (pr["ypg"] * rem_frac + 1), L / h["l0"]]
-        return x, cum, nev, (gc - h["last_change"]) / 60, opp
+        return x, cum, nev, (gc - h["last_change"]) / 60, opp, hkey
 
     def cycle(self):
-        opps, games_out = [], []
+        opps, games_out, histout = [], [], {}
         live = self.espn_live()
         if not live:
-            return opps, games_out
+            return opps, games_out, histout
         odds_events = get(f"{ODDS}/events?apiKey={KEY}")
         for game in live.values():
             oe = next((e for e in odds_events
                        if game["home"] in e["home_team"] or e["home_team"] in game["home"]), None)
             games_out.append({"label": f'{game["away_abbr"]} @ {game["home_abbr"]}',
-                              "score": f'{game["as"]}-{game["hs"]}', "clock": game["clock"]})
+                              "score": f'{game["as"]}-{game["hs"]}', "clock": game["clock"],
+                              "hlogo": game.get("hlogo"), "alogo": game.get("alogo")})
             if not oe:
                 continue
             try:
@@ -191,11 +193,16 @@ class Monitor:
                 f = self.features(name, kind, L, game, players, tstats)
                 if not f:
                     continue
-                x, cum, nev, drought, opp = f
+                x, cum, nev, drought, opp, hkey = f
                 p = score_row(x)
                 oid = f'{name}|{kind}'
+                pteam = players[name]["team"]
+                logo = game.get("hlogo") if pteam == game["home"] else game.get("alogo")
+                histout[oid] = {"player": name, "market": kind, "logo": logo,
+                                "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
+                                "snaps": self.hist[hkey]["snaps"][-100:]}
                 status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
-                opps.append({"id": oid, "player": name, "market": kind, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
+                opps.append({"id": oid, "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,
                              "drought": round(drought), "p": round(p, 3), "status": status, "vs": opp})
                 prev = self.status.get(oid)
@@ -207,7 +214,7 @@ class Monitor:
                             csv.writer(lf).writerow([datetime.datetime.utcnow().isoformat(), name, kind,
                                                      L, cum, nev, round(p, 3), game["clock"]])
                 self.status[oid] = status
-        return opps, games_out
+        return opps, games_out, histout
 
     def run(self, demo=False, once=False):
         while True:
@@ -224,10 +231,11 @@ class Monitor:
                              {"label": "LA @ SEA", "score": "7-13", "clock": "Q2 3:40"}]
             else:
                 try:
-                    opps, games_out = self.cycle()
+                    opps, games_out, histout = self.cycle()
                 except Exception as e:
                     print("cycle error", repr(e))
-                    opps, games_out = [], []
+                    opps, games_out, histout = [], [], {}
+                json.dump(histout, open(f"{HERE}/../docs/nfl_history.json", "w"))
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "ts": time.time(),

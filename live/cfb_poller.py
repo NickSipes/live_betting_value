@@ -54,6 +54,26 @@ def parse_pregame(odds_list, home_abbr):
             return num if fav == home_abbr else -num
     return None
 
+def espn_events(espn_id, home_id):
+    """Scoring plays as (gc, label, side, text); defensive/long TDs tagged."""
+    out = []
+    try:
+        s = get(f"https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event={espn_id}")
+        for p in s.get("scoringPlays", []):
+            gc = clock_elapsed(p["period"]["number"], p.get("clock", {}).get("displayValue"))
+            text = p.get("text", "")
+            kind = p.get("scoringType", {}).get("displayName", "score")
+            low = text.lower()
+            if "interception" in low or "fumble" in low:
+                kind = "DEF TD"
+            elif (m := re.search(r"(\d+)\s*y(ar)?d", low)) and int(m.group(1)) >= 30:
+                kind = f"⚡ {kind}"
+            side = "home" if str(p.get("team", {}).get("id")) == str(home_id) else "away"
+            out.append([gc, kind, side, text[:120]])
+    except Exception:
+        pass
+    return out
+
 def pickcenter_pregame(espn_id):
     """Pregame home spread from the game summary (scoreboard drops odds once live)."""
     try:
@@ -88,6 +108,8 @@ class CFB:
                 "poss_side": ids.get(sit.get("possession")),   # 'home'/'away'/None
                 "yl": sit.get("yardLine"),                      # yards from own goal
                 "poss_text": sit.get("possessionText"),
+                "hlogo": t["home"]["team"].get("logo"), "alogo": t["away"]["team"].get("logo"),
+                "hid": t["home"]["id"],
                 "home": t["home"]["team"]["displayName"], "away": t["away"]["team"]["displayName"],
                 "habbr": t["home"]["team"]["abbreviation"], "aabbr": t["away"]["team"]["abbreviation"],
                 "hs": int(t["home"]["score"]), "as": int(t["away"]["score"]),
@@ -112,6 +134,10 @@ class CFB:
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})
+            h["t"] = time.time()
+            h["meta"] = {"game": f'{g["aabbr"]} @ {g["habbr"]}', "habbr": g["habbr"],
+                         "aabbr": g["aabbr"], "hlogo": g["hlogo"], "alogo": g["alogo"]}
+            h["events"] = espn_events(gid, g["hid"])
             if h["pregame"] is None:
                 h["pregame"] = g["pregame"] if g["pregame"] is not None else pickcenter_pregame(gid)
             S0 = h["pregame"]
@@ -141,7 +167,9 @@ class CFB:
                      "SWING" if swing else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
+                         "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',
+                         "poss_side": side,
                          "clock": g["clock"],
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
@@ -168,7 +196,14 @@ class CFB:
                        "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},
                       open(f"{HERE}/../docs/cfb_state.json", "w"))
+            # prune games idle >24h, publish slim history for the dashboard charts
+            cut = time.time() - 86400
+            self.hist = {k: v for k, v in self.hist.items() if v.get("t", 0) > cut}
             json.dump(self.hist, open(self.hist_path, "w"))
+            json.dump({k: {"meta": v.get("meta"), "pregame": v.get("pregame"),
+                           "snaps": v.get("snaps", []), "events": v.get("events", [])}
+                       for k, v in self.hist.items() if v.get("meta")},
+                      open(f"{HERE}/../docs/cfb_history.json", "w"))
             print(f'{datetime.datetime.now():%H:%M:%S} {len(rows)} live CFB games, '
                   f'{sum(1 for r in rows if r["status"]!="watch")} flagged')
             if once:

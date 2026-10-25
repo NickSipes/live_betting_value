@@ -17,6 +17,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
     open(os.path.join(HERE, "..", ".env")).read().split("ODDS_API_KEY=")[1].strip()
 ODDS = "https://api.the-odds-api.com/v4/sports/americanfootball_nfl"
+HIST_ODDS = "https://api.the-odds-api.com/v4/historical/sports/americanfootball_nfl"
+BACKFILL_MAX = 40   # snapshots per game (20 credits each: 2 markets x DK+FD)
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
 NEAR, TRIG = 0.50, 0.60
@@ -49,6 +51,47 @@ def clock_to_elapsed(period, display):
         return (period - 1) * 900 + (900 - rem)
     return 3600 + (600 - rem)
 
+def iso_ts(s):
+    return datetime.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+
+def short_name(full):
+    """'Brandon Lance Jr.' -> 'b.lance' (ESPN play text uses 'B.Lance')."""
+    parts = [w for w in full.replace(".", " ").split() if w.lower() not in ("jr", "sr", "ii", "iii", "iv", "v")]
+    return f"{parts[0][0]}.{parts[-1]}".lower() if len(parts) >= 2 else full.lower()
+
+PASS_TO = re.compile(r"pass (?:incomplete )?(?:short |deep )?(?:left |right |middle )?to ([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)")
+ELIGIBLE = re.compile(r"[A-Z][\w.'\-]+ reported in as eligible\.\s*")
+GAINED = re.compile(r"for (-?\d+) yards?|for (no gain)")
+RUSHER = re.compile(r"^(?:\([^)]*\)\s*)*([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)\s")
+
+def espn_plays(espn_id):
+    """Every target/carry so far: (wall_ts, gc, kind, short_name, yards, counts_yards)."""
+    s = get(f"{ESPN}/summary?event={espn_id}")
+    out = []
+    drives = s.get("drives", {})
+    for d in drives.get("previous", []) + ([drives["current"]] if drives.get("current") else []):
+        for pl in d.get("plays", []):
+            text, t = pl.get("text", ""), pl.get("type", {}).get("text", "")
+            if not pl.get("wallclock") or "no play" in text.lower():
+                continue
+            gc = clock_to_elapsed(pl.get("period", {}).get("number", 1), pl.get("clock", {}).get("displayValue"))
+            text = ELIGIBLE.sub("", text)
+            # yards from the text: statYardage folds in penalty yards, the box score doesn't
+            g = GAINED.search(text)
+            yds = 0 if not g or g.group(2) else int(g.group(1))
+            if "Pass" in t or "Interception" in t:
+                m = PASS_TO.search(text)
+                if m:
+                    out.append((iso_ts(pl["wallclock"]), gc, "rec", m.group(1).replace(" ", "").lower(),
+                                yds, t == "Pass Reception" or "Touchdown" in t))
+            elif t.startswith("Rush") or t == "Rushing Touchdown":
+                m = RUSHER.search(text)
+                if m:
+                    out.append((iso_ts(pl["wallclock"]), gc, "rush", m.group(1).replace(" ", "").lower(), yds, True))
+    out.sort()
+    # ESPN sometimes repeats the live drive in previous + current
+    return [p for i, p in enumerate(out) if i == 0 or p != out[i - 1]]
+
 def score_row(x):
     z = [(x[i] - W["mu"][i]) / W["sd"][i] for i in range(len(x))]
     s = sum(zi * wi for zi, wi in zip(z, W["w"])) + W["b"]
@@ -72,7 +115,60 @@ class Monitor:
         self.poll = poll
         self.hist_path = f"{DATA}/history.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
+        self.bf_path = f"{DATA}/backfilled.json"
+        self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
+
+    def backfill(self, game, oe):
+        """Joined a game after kickoff: rebuild each quoted player's line + production
+        from historical odds snapshots and ESPN play-by-play. Runs once per game."""
+        eid = game["espn_id"]
+        self.backfilled.add(eid)
+        json.dump(sorted(self.backfilled), open(self.bf_path, "w"))
+        plays = espn_plays(eid)
+        if not plays:
+            return
+        t = iso_ts(oe["commence_time"]) - 1500
+        stop = time.time() - 240
+        series = {}   # hkey -> [(gc, cum, nev, L)]
+        for _ in range(BACKFILL_MAX):
+            if t >= stop:
+                break
+            stamp = datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            try:
+                d = get(f"{HIST_ODDS}/events/{oe['id']}/odds?apiKey={KEY}&date={stamp}"
+                        f"&bookmakers=draftkings,fanduel&markets={MARKETS['rec']},{MARKETS['rush']}&oddsFormat=american")
+            except Exception as e:
+                print("backfill fetch failed", stamp, repr(e))
+                break
+            snap_t = iso_ts(d.get("timestamp", stamp))
+            done = [p for p in plays if p[0] <= snap_t]
+            gc = done[-1][1] if done else 0
+            quotes = {}
+            for b in (d.get("data") or {}).get("bookmakers", []):
+                for m in b.get("markets", []):
+                    kind = "rec" if m["key"] == MARKETS["rec"] else "rush"
+                    for o in m.get("outcomes", []):
+                        if o["name"] == "Over" and o.get("point") is not None:
+                            k = (o["description"], kind)
+                            if b["key"] == "fanduel" or k not in quotes:
+                                quotes[k] = float(o["point"])
+            for (name, kind), L in quotes.items():
+                sn = short_name(name)
+                mine = [p for p in done if p[2] == kind and p[3] == sn]
+                cum = sum(p[4] for p in mine if p[5])
+                series.setdefault(f"{eid}|{name}|{kind}", []).append((gc, cum, len(mine), L))
+            nxt = d.get("next_timestamp")
+            t = iso_ts(nxt) if nxt else t + 300
+        for hkey, pts in series.items():
+            h = self.hist.setdefault(hkey, {"l0": pts[0][3], "last_change": 0, "snaps": []})
+            first_live = h["snaps"][0][0] if h["snaps"] else float("inf")
+            h["snaps"] = [p for p in pts if p[0] < first_live] + h["snaps"]
+            h["l0"] = pts[0][3]          # the true pregame line, not the first live quote
+            for a, b in zip(h["snaps"], h["snaps"][1:]):
+                if b[1] > a[1]:
+                    h["last_change"] = b[0]
+        print(f"backfilled {len(series)} players for {game['away_abbr']} @ {game['home_abbr']}")
 
     def espn_live(self):
         sb = get(f"{ESPN}/scoreboard")
@@ -153,7 +249,7 @@ class Monitor:
         if h["snaps"] and cum > h["snaps"][-1][1]:
             h["last_change"] = gc
         h["snaps"].append((gc, cum, nev, L))
-        h["snaps"] = h["snaps"][-120:]
+        h["snaps"] = h["snaps"][-220:]
         old = next((s for s in reversed(h["snaps"]) if s[0] <= gc - 600), (0, 0, 0, None))
         e10, y10 = nev - old[2], cum - old[1]
         home = team == game["home"]
@@ -210,6 +306,11 @@ class Monitor:
                               "hlogo": game.get("hlogo"), "alogo": game.get("alogo")})
             if not oe:
                 continue
+            if game["gc"] > 300 and game["espn_id"] not in self.backfilled:
+                try:
+                    self.backfill(game, oe)
+                except Exception as e:
+                    print("backfill error", repr(e))
             try:
                 players, tstats = self.espn_players(game["espn_id"])
                 quotes = self.odds_quotes(oe)
@@ -228,7 +329,7 @@ class Monitor:
                 meta = {"player": name, "market": kind, "logo": logo,
                         "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 self.hist[hkey]["meta"] = meta
-                histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"][-100:]}
+                histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
                 status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
                 opps.append({"id": oid, "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,

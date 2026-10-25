@@ -21,7 +21,9 @@ HIST_ODDS = "https://api.the-odds-api.com/v4/historical/sports/americanfootball_
 BACKFILL_MAX = 40   # snapshots per game (20 credits each: 2 markets x DK+FD)
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
-NEAR, TRIG = 0.50, 0.60
+SIGNAL = 0.50              # first time a prop is worth showing (Past scorecard "flag")
+NEAR, TRIG = 0.55, 0.70    # card status + notifications
+CALL = TRIG                # a "call": if the player then clears that line, it's a win
 PORT = int(os.environ.get("PORT", 8766))
 HOST = os.environ.get("HOST", "127.0.0.1")
 DOCS = os.environ.get("DOCS_DIR", f"{HERE}/../docs")   # served site + published state
@@ -64,12 +66,14 @@ ELIGIBLE = re.compile(r"[A-Z][\w.'\-]+ reported in as eligible\.\s*")
 GAINED = re.compile(r"for (-?\d+) yards?|for (no gain)")
 RUSHER = re.compile(r"^(?:\([^)]*\)\s*)*([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)\s")
 
-def espn_plays(espn_id):
-    """Every target/carry so far: (wall_ts, gc, kind, short_name, yards, counts_yards)."""
+def espn_timeline(espn_id):
+    """Player plays: (wall_ts, gc, kind, short_name, yards, counts_yards) per target/carry.
+    Team plays: (wall_ts, gc, offense, 'pass'|'rush', yards, completed, home_score, away_score)."""
     s = get(f"{ESPN}/summary?event={espn_id}")
-    out = []
+    out, team = [], []
     drives = s.get("drives", {})
     for d in drives.get("previous", []) + ([drives["current"]] if drives.get("current") else []):
+        offense = d.get("team", {}).get("displayName")
         for pl in d.get("plays", []):
             text, t = pl.get("text", ""), pl.get("type", {}).get("text", "")
             if not pl.get("wallclock") or "no play" in text.lower():
@@ -79,6 +83,11 @@ def espn_plays(espn_id):
             # yards from the text: statYardage folds in penalty yards, the box score doesn't
             g = GAINED.search(text)
             yds = 0 if not g or g.group(2) else int(g.group(1))
+            if "Sack" not in t and ("Pass" in t or "Interception" in t or t.startswith("Rush") or t == "Rushing Touchdown"):
+                kind = "rush" if t.startswith("Rush") or t == "Rushing Touchdown" else "pass"
+                team.append((iso_ts(pl["wallclock"]), gc, offense, kind, yds,
+                             kind == "rush" or t == "Pass Reception" or t == "Passing Touchdown",
+                             pl.get("homeScore", 0), pl.get("awayScore", 0)))
             if "Pass" in t or "Interception" in t:
                 m = PASS_TO.search(text)
                 if m:
@@ -88,9 +97,30 @@ def espn_plays(espn_id):
                 m = RUSHER.search(text)
                 if m:
                     out.append((iso_ts(pl["wallclock"]), gc, "rush", m.group(1).replace(" ", "").lower(), yds, True))
-    out.sort()
     # ESPN sometimes repeats the live drive in previous + current
-    return [p for i, p in enumerate(out) if i == 0 or p != out[i - 1]]
+    return sorted(set(out)), sorted(set(team))
+
+def espn_plays(espn_id):
+    return espn_timeline(espn_id)[0]
+
+def gc_label(gc):
+    q = min(int(gc // 900) + 1, 4)
+    rem = round(max(0, q * 900 - gc))
+    return f"Q{q} {rem // 60}:{rem % 60:02d}"
+
+def feature_vec(pr, kind, dv, gc, cum, nev, drought, e10, y10, diff, ts_, L, l0):
+    """The model's 19 inputs; shared by live scoring and the P rebuild."""
+    gc = max(gc, 60)
+    ef = min(gc / 3600.0, 0.99)
+    plays = ts_["pass_att"] + ts_["rush_att"]
+    needed = L - cum
+    return [ef, pr["ypg"], pr["ype"], dv, nev, cum, drought,
+            e10, y10, diff, diff * ef,
+            ts_["pass_att"] / plays if plays else 0.5,
+            ts_["pass_yds"] / ts_["pass_att"] if ts_["pass_att"] else 0,
+            ts_["rush_yds"] / ts_["rush_att"] if ts_["rush_att"] else 0,
+            plays / (gc / 60), 1.0 if kind == "rush" else 0.0,
+            needed, needed / (pr["ypg"] * (1 - ef) + 1), L / l0]
 
 def score_row(x):
     z = [(x[i] - W["mu"][i]) / W["sd"][i] for i in range(len(x))]
@@ -241,9 +271,6 @@ class Monitor:
         cum, nev = pdata[kind]
         team = pdata["team"]
         gc = max(game["gc"], 60)
-        glen = 3600.0
-        ef = min(gc / glen, 0.99)
-        rem_frac = 1 - ef
         hkey = f'{game["espn_id"]}|{name}|{kind}'
         h = self.hist.setdefault(hkey, {"l0": L, "last_change": 0 if cum == 0 else gc, "snaps": []})
         if h["snaps"] and cum > h["snaps"][-1][1]:
@@ -255,21 +282,66 @@ class Monitor:
         home = team == game["home"]
         diff = (game["hs"] - game["as"]) if home else (game["as"] - game["hs"])
         ts_ = tstats.get(team, {"pass_att": 0, "rush_att": 0, "pass_yds": 0, "rush_yds": 0})
-        plays = ts_["pass_att"] + ts_["rush_att"]
         opp = game["away"] if home else game["home"]
         opp_abbr = game["away_abbr"] if home else game["home_abbr"]
         dv = DEF.get(f'{kind}|{opp_abbr}|{pr["pos"]}', 0)
         needed = L - cum
         if needed < 3 or L < 15:
             return None
-        x = [ef, pr["ypg"], pr["ype"], dv, nev, cum, (gc - h["last_change"]) / 60,
-             e10, y10, diff, diff * ef,
-             ts_["pass_att"] / plays if plays else 0.5,
-             ts_["pass_yds"] / ts_["pass_att"] if ts_["pass_att"] else 0,
-             ts_["rush_yds"] / ts_["rush_att"] if ts_["rush_att"] else 0,
-             plays / (gc / 60), 1.0 if kind == "rush" else 0.0,
-             needed, needed / (pr["ypg"] * rem_frac + 1), L / h["l0"]]
+        x = feature_vec(pr, kind, dv, gc, cum, nev, (gc - h["last_change"]) / 60,
+                        e10, y10, diff, ts_, L, h["l0"])
         return x, cum, nev, (gc - h["last_change"]) / 60, opp, hkey
+
+    def rescore(self, game, players):
+        """Score the snapshots that have no P yet (backfilled, or saved before P was
+        recorded) by rebuilding every model input at that moment from the play log."""
+        eid = game["espn_id"]
+        todo = [k for k, h in self.hist.items()
+                if k.startswith(eid + "|") and any(len(s) < 5 for s in h["snaps"])]
+        if not todo:
+            return
+        pplays, tplays = espn_timeline(eid)
+        for hkey in todo:
+            _, name, kind = hkey.split("|", 2)
+            h = self.hist[hkey]
+            pr = PRIORS.get(name, {}).get(kind)
+            team = players.get(name, {}).get("team")
+            home = team == game["home"]
+            dv = DEF.get(f'{kind}|{game["away_abbr"] if home else game["home_abbr"]}|{pr["pos"]}', 0) if pr else 0
+            mine = [q for q in pplays if q[2] == kind and q[3] == short_name(name)]
+            out = []
+            for s in h["snaps"]:
+                if len(s) >= 5:
+                    out.append(s)
+                    continue
+                gc, cum, nev, L = s[:4]
+                p = None
+                if pr and team and gc > 0 and L is not None and L - cum >= 3 and L >= 15:
+                    upto = [q for q in mine if q[1] <= gc]
+                    gains = [q[1] for q in upto if q[5] and q[4] > 0]
+                    recent = [q for q in upto if q[1] > gc - 600]
+                    tp = [q for q in tplays if q[1] <= gc]
+                    hs, as_ = (tp[-1][6], tp[-1][7]) if tp else (0, 0)
+                    mt = [q for q in tp if q[2] == team]
+                    ts_ = {"pass_att": sum(q[3] == "pass" for q in mt), "rush_att": sum(q[3] == "rush" for q in mt),
+                           "pass_yds": sum(q[4] for q in mt if q[3] == "pass" and q[5]),
+                           "rush_yds": sum(q[4] for q in mt if q[3] == "rush")}
+                    x = feature_vec(pr, kind, dv, gc, cum, nev, (max(gc, 60) - (gains[-1] if gains else 0)) / 60,
+                                    len(recent), sum(q[4] for q in recent if q[5]),
+                                    (hs - as_) if home else (as_ - hs), ts_, L, h["l0"])
+                    p = round(score_row(x), 3)
+                out.append(list(s[:4]) + [p])
+            h["snaps"] = out
+            # rebuilt points all precede the live-scored ones, so they hold the earliest crossings
+            for key, thr in (("signal", SIGNAL), ("call", CALL)):
+                first = next((s for s in out if s[4] is not None and s[4] >= thr), None)
+                if first:
+                    h[key] = {"clock": gc_label(first[0]), "line": first[3], "cum": first[1],
+                              "p": first[4], "rebuilt": True}
+            scored = [s[4] for s in out if s[4] is not None]
+            if scored:
+                h["pmax"] = max([h.get("pmax", 0)] + scored)
+        print(f"rescored {len(todo)} props for {game['away_abbr']} @ {game['home_abbr']}")
 
     def archive_finals(self):
         """Move tracked players from finished games into docs/archive/props_w{week}.json."""
@@ -283,7 +355,8 @@ class Monitor:
             last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
                                              "final": last[1], "close": last[3],
-                                             "pmax": h.get("pmax", 0), "signal": h.get("signal")}
+                                             "pmax": h.get("pmax", 0), "signal": h.get("signal"),
+                                             "call": h.get("call")}
         for wk, recs in done.items():
             path = f"{DOCS}/archive/props_w{wk}.json"
             d = json.load(open(path)) if os.path.exists(path) else {}
@@ -318,6 +391,10 @@ class Monitor:
             except Exception as e:
                 print("fetch error", game["home_abbr"], repr(e))
                 continue
+            try:
+                self.rescore(game, players)
+            except Exception as e:
+                print("rescore error", repr(e))
             for (name, kind), L in quotes.items():
                 f = self.features(name, kind, L, game, players, tstats)
                 if not f:
@@ -326,8 +403,11 @@ class Monitor:
                 p = score_row(x)
                 h = self.hist[hkey]
                 h["pmax"] = max(h.get("pmax", 0), round(p, 3))
-                if p >= NEAR and "signal" not in h:   # first time the model liked the over
-                    h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3)}
+                if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
+                    h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
+                if p >= CALL and "call" not in h:
+                    h["call"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
+                h["snaps"][-1] = list(h["snaps"][-1][:4]) + [round(p, 3)]   # (gc, cum, nev, L, P)
                 oid = f'{name}|{kind}'
                 pteam = players[name]["team"]
                 logo = game.get("hlogo") if pteam == game["home"] else game.get("alogo")
@@ -338,7 +418,8 @@ class Monitor:
                 status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
                 opps.append({"id": oid, "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,
-                             "drought": round(drought), "p": round(p, 3), "status": status, "vs": opp})
+                             "drought": round(drought), "p": round(p, 3), "status": status, "vs": opp,
+                             "call": h.get("call")})
                 prev = self.status.get(oid)
                 if status != prev and status in ("NEAR", "TRIGGER"):
                     notify(f"{'🔔 TRIGGER' if status=='TRIGGER' else 'Approaching'}: {name}",

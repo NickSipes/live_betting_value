@@ -82,7 +82,12 @@ class CFB:
                 continue
             comp = ev["competitions"][0]
             t = {c["homeAway"]: c for c in comp["competitors"]}
+            sit = comp.get("situation", {})
+            ids = {c["id"]: c["homeAway"] for c in comp["competitors"]}
             live[ev["id"]] = {
+                "poss_side": ids.get(sit.get("possession")),   # 'home'/'away'/None
+                "yl": sit.get("yardLine"),                      # yards from own goal
+                "poss_text": sit.get("possessionText"),
                 "home": t["home"]["team"]["displayName"], "away": t["away"]["team"]["displayName"],
                 "habbr": t["home"]["team"]["abbreviation"], "aabbr": t["away"]["team"]["abbreviation"],
                 "hs": int(t["home"]["score"]), "as": int(t["away"]["score"]),
@@ -112,7 +117,16 @@ class CFB:
             S0 = h["pregame"]
             margin = g["hs"] - g["as"]
             rem = max(0.0, 1 - g["gc"] / 3600)
-            fair = None if S0 is None else -(margin + (-S0) * rem)
+            # possession value: EP ~ 0.065*yardline - 1.3 (own 20 ~ 0, midfield ~ 2,
+            # opp 20 ~ 3.9). ponytail: linear EP; swap for a fitted curve at calibration
+            if g["poss_side"]:
+                h["poss"] = (g["poss_side"], g["yl"] if g["yl"] is not None else 50,
+                             g["poss_text"])
+            side, yl, ptxt = h.get("poss") or (None, 50, None)
+            ep = (0.065 * yl - 1.3) if side else 0.0
+            ep = ep if side != "away" else -ep
+            ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
+            fair = None if S0 is None else -(margin + ep + (-S0) * rem)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
             old = next(((gc, sp, mg) for gc, sp, mg in reversed(h["snaps"])
@@ -127,6 +141,7 @@ class CFB:
                      "SWING" if swing else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
+                         "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',
                          "clock": g["clock"],
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,

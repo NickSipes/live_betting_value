@@ -298,7 +298,8 @@ class Monitor:
         Also fills in the inputs for calls saved before calls recorded them."""
         eid = game["espn_id"]
         todo = [k for k, h in self.hist.items() if k.startswith(eid + "|") and (
-            any(len(s) < 5 for s in h["snaps"]) or (h.get("call") and "x" not in h["call"]))]
+            any(len(s) < 5 for s in h["snaps"]) or
+            (h.get("call") and ("x" not in h["call"] or "score" not in h["call"])))]
         if not todo:
             return
         pplays, tplays = espn_timeline(eid)
@@ -353,6 +354,11 @@ class Monitor:
                 elif cur and not cur.get("x") and i in xs:   # older record: attach its inputs
                     cur["x"] = [round(v, 4) for v in xs[i]]
                     cur.setdefault("gc", out[i][0])
+            c = h.get("call")
+            if c and "score" not in c and c.get("gc") is not None:
+                tp = [q for q in tplays if q[1] <= c["gc"]]
+                hs, as_ = (tp[-1][6], tp[-1][7]) if tp else (0, 0)
+                c["score"] = f'{game["away_abbr"]} {as_} – {game["home_abbr"]} {hs}'
             scored = [s[4] for s in out if s[4] is not None]
             if scored:
                 h["pmax"] = max([h.get("pmax", 0)] + scored)
@@ -446,7 +452,8 @@ class Monitor:
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
                 if p >= CALL and "call" not in h:
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
-                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x]}
+                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x],
+                                 "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum)

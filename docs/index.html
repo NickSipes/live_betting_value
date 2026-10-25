@@ -150,6 +150,13 @@
   .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
   .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
   .star { color:var(--yellow); margin-left:5px; font-size:13px; }
+  .cbets { margin:2px 0 6px; }
+  .cbets .ttl { font-size:12px; font-weight:650; color:var(--ink-1); margin-bottom:4px; }
+  .cbets table { margin-top:0; font-size:12.5px; border-radius:10px; }
+  .cbets th { font-size:10px; padding:6px 10px; }
+  .cbets td { padding:7px 10px; font-variant-numeric:tabular-nums; }
+  .cbets th, .cbets td { white-space:nowrap; }
+  @media (max-width: 640px) { .cbets th, .cbets td { padding:6px 7px; } }
 </style>
 </head>
 <body>
@@ -244,7 +251,6 @@ const P_MIN = 0.5;   // cards below this P(over) are hidden
 // a 70% call wins once the player clears the line from the moment of the call;
 // the poller settles it (result) live on a win, or at the final on a loss
 const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
-const callLine = c => `called O ${c.line} at ${Math.round(c.p * 100)}% · ${c.clock} · had ${c.cum} yds${c.rebuilt ? " (rebuilt)" : ""}`;
 const onWatch = (player, market) => (S.watch?.entries || []).some(w => w.player === player && w.market === market);
 const star = (player, market) => onWatch(player, market) ? `<span class="star" title="Good Matchup" aria-label="Good Matchup">★</span>` : "";
 
@@ -269,7 +275,6 @@ function propLiveCard(o) {
       <span class="chip ${w ? "hot" : o.call ? "warm" : chipCls(o.status)}" style="margin-left:auto">${w ? "WIN ✓" : o.call ? "CALLED" : o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
     </div>
     <div class="mk">${MKT(o.market)}<b>O ${o.line}</b></div>
-    ${o.call ? `<div class="sub"><span>${w ? `✓ won at ${o.call.won_at ?? o.clock} · ` : "pending · "}${callLine(o.call)}</span></div>` : ""}
     ${o.noline ? `<div class="sub"><span>line off the board · last O ${o.line}</span></div>` : ""}
     <div class="sub"><span>${o.game} · ${o.clock}</span></div>
     <div class="nums">
@@ -345,13 +350,8 @@ function pastPropCard(wk, key, rec) {
       <span class="ab" style="width:auto;font-size:14px">${rec.player}${star(rec.player, rec.market)}</span>
       <span class="chip ${hit ? "hot" : "watch"}" style="margin-left:auto">${label}</span>
     </div>
-    <div class="mk">${MKT(rec.market)}<b>O ${sg.line}</b></div>
-    <div class="sub"><span>${rec.game} · ${rec.call ? callLine(rec.call) : `flagged ${sg.clock} at ${sg.cum} yds`}</span></div>
-    <div class="nums">
-      <div><span>${rec.call ? "P at call" : "P at flag"}</span><b>${sg.p.toFixed(2)}</b></div>
-      <div><span>final yards</span><b>${rec.final}</b></div>
-      <div><span>pregame</span><b>O ${rec.l0 ?? "—"}</b></div>
-    </div>
+    <div class="mk">${MKT(rec.market)}<b>${rec.final} yds</b></div>
+    <div class="sub"><span>${rec.game}</span><span>pregame O ${rec.l0 ?? "—"}</span></div>
   </div>`;
 }
 
@@ -590,8 +590,15 @@ function svgChart(cfg) {
       let d = `M${X(R.pts[0][0])},${Yr(R.pts[0][1])}`;
       for (let i = 1; i < R.pts.length; i++) d += `H${X(R.pts[i][0])}V${Yr(R.pts[i][1])}`;
       s += `<path d="${d}" fill="none" stroke="${R.color}" stroke-width="2" stroke-linejoin="round"/>`;
-      if (R.mark) s += `<circle cx="${X(R.mark[0])}" cy="${Yr(R.mark[1])}" r="4.5" fill="var(--green)" stroke="var(--surface)" stroke-width="2"/>`;
     }
+  }
+  if (cfg.star) {   // where the bet was called: x = game clock, y = the line at the call
+    const [cx, cy] = [X(cfg.star[0]), Y(cfg.star[1])], pts = [];
+    for (let k = 0; k < 10; k++) {
+      const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 3.6 : 8.5;
+      pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
+    }
+    s += `<polygon points="${pts.join(" ")}" fill="var(--yellow)" stroke="var(--surface)" stroke-width="1.5"/>`;
   }
   // usage rug: one tick per target/carry (approximate timing from poll deltas)
   if (cfg.rug) for (const g of cfg.rug)
@@ -779,7 +786,8 @@ function openProp(id, rec) {
       { pts: ydsPts, color: "var(--green)", name: "yards", noclean: 1 },
     ],
     rug, events: [],
-    right: { pts: pPts, color: "var(--orange)", mark: call?.gc !== undefined ? [Math.max(call.gc, 1), call.p] : null },
+    right: { pts: pPts, color: "var(--orange)" },
+    star: call?.gc !== undefined ? [Math.max(call.gc, 1), call.line] : null,
     tip: gc => {
       const pv = stepVal(pPts, gc), n = stepVal(nevPts, gc);
       return {
@@ -791,9 +799,15 @@ function openProp(id, rec) {
     },
   });
 
-  const verdict = !call ? "" : cum > call.line
-    ? `<span class="chip hot">WIN</span> called O ${call.line} at ${Math.round(call.p * 100)}% (${call.clock}${call.rebuilt ? ", rebuilt" : ""}) · now ${cum} yds`
-    : `called O ${call.line} at ${Math.round(call.p * 100)}% (${call.clock}${call.rebuilt ? ", rebuilt" : ""}) · needs ${Math.round((call.line - cum) * 10) / 10} more`;
+  const result = !call ? "" : won(call, cum) ? "WIN ✓" : call.result === "loss" ? "LOSS" : "pending";
+  const verdict = !call ? "" : won(call, cum) ? `<span class="chip hot">WIN</span> cleared O ${call.line}`
+    : call.result === "loss" ? `<span class="chip watch">LOSS</span> finished ${cum} vs O ${call.line}`
+    : `<span class="chip warm">CALLED</span> needs ${Math.round((call.line - cum) * 10) / 10} more yds`;
+  const bets = !call ? "" : `
+    <div class="cbets"><div class="ttl">Called Bets</div>
+      <table><thead><tr><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
+      <tbody><tr><td>${call.score ?? "—"}</td><td>${call.clock}${call.rebuilt ? ` <span style="color:var(--muted);font-size:11px">rebuilt</span>` : ""}</td>
+        <td>${call.cum}</td><td>O ${call.line}</td><td><b>${result}</b></td></tr></tbody></table></div>`;
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${MKT(h.market)} · ${h.game}</span></h3>
     <div class="meta">${verdict || (rec ? `final ${rec.final} yds vs pregame O ${rec.l0}` : "")}</div>
@@ -802,7 +816,9 @@ function openProp(id, rec) {
     <div class="mleg"><span><i style="background:var(--blue)"></i>book line</span>
       <span><i style="background:var(--green)"></i>yards</span>
       <span><i style="background:var(--orange)"></i>P(over) · right axis</span>
-      <span>ticks = ${unit}</span></div>`);
+      ${call ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
+      <span>ticks = ${unit}</span></div>
+    ${bets}`);
   bindChart();
 }
 

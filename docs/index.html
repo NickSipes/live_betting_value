@@ -58,6 +58,9 @@
       updated <span id="updated">—</span>
     </span>
   </div>
+  <div id="stale" style="display:none; margin:12px 0; padding:10px 14px; border-radius:8px;
+       background:color-mix(in srgb, var(--orange) 12%, transparent);
+       border:1px solid var(--orange); font-size:13px;"></div>
   <div class="games" id="games"></div>
   <div id="content"></div>
   <h2 style="font-size:15px;margin:26px 0 10px">College football — live spreads vs fair line</h2>
@@ -69,6 +72,27 @@
 </div>
 <script>
 let known = {};   // id -> last status, for browser notifications
+let lastTs = { nfl: null, cfb: null };
+
+function ageText(ts) {
+  if (!ts) return "unknown age";
+  const m = (Date.now() / 1000 - ts) / 60;
+  return m < 1 ? "just now" : m < 90 ? `${Math.round(m)}m ago` : `${(m / 60).toFixed(1)}h ago`;
+}
+function renderAges() {
+  const nfl = lastTs.nfl, cfb = lastTs.cfb;
+  document.getElementById("updated").textContent =
+    `NFL ${ageText(nfl)} · CFB ${ageText(cfb)}`;
+  const stale = [];
+  if (nfl && (Date.now() / 1000 - nfl) > 900) stale.push(`NFL data is ${ageText(nfl).replace(" ago","")} old`);
+  if (cfb && (Date.now() / 1000 - cfb) > 900) stale.push(`CFB data is ${ageText(cfb).replace(" ago","")} old`);
+  const el = document.getElementById("stale");
+  if (stale.length) {
+    el.style.display = "block";
+    el.textContent = "⚠ " + stale.join(" · ") + " — lines shown are likely outdated. Do not act on stale rows.";
+  } else el.style.display = "none";
+}
+setInterval(renderAges, 5000);
 
 function askNotif() {
   Notification.requestPermission().then(p => {
@@ -82,7 +106,8 @@ async function refresh() {
   let d;
   try { d = await (await fetch("state.json?" + Date.now())).json(); }
   catch (e) { return; }
-  document.getElementById("updated").textContent = d.updated;
+  lastTs.nfl = d.ts;
+  renderAges();
   document.getElementById("games").innerHTML = (d.games || []).map(g =>
     `<span class="gamechip">${g.label} <b>${g.score}</b> · ${g.clock}</span>`).join("");
   const opps = d.opps || [];
@@ -118,6 +143,8 @@ async function refreshCfb() {
   let d;
   try { d = await (await fetch("cfb_state.json?" + Date.now())).json(); }
   catch (e) { return; }
+  lastTs.cfb = d.ts;
+  renderAges();
   const rows = (d.games || []).map(g => `
     <tr class="${g.status === "EDGE" ? "TRIGGER" : g.status === "SWING" ? "NEAR" : ""}">
       <td><b>${g.game}</b></td><td>${g.clock}</td><td>${g.score}</td>

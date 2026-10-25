@@ -230,6 +230,7 @@ class Monitor:
                     opps, games_out = [], []
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
+                       "ts": time.time(),
                        "near": NEAR, "trigger": TRIG, "games": games_out, "opps": opps},
                       open(f"{HERE}/../docs/state.json", "w"))
             json.dump(self.hist, open(self.hist_path, "w"))

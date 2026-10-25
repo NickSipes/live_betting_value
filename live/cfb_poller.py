@@ -149,6 +149,7 @@ class CFB:
                 rows = []
             rows.sort(key=lambda r: -(abs(r["edge"]) if r["edge"] is not None else -1))
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
+                       "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},
                       open(f"{HERE}/../docs/cfb_state.json", "w"))
             json.dump(self.hist, open(self.hist_path, "w"))

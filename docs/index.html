@@ -150,23 +150,10 @@
   .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
   .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
   .star { color:var(--yellow); margin-left:5px; font-size:13px; }
-  .calls { background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-top:12px; overflow:hidden; }
-  .callrow { padding:10px 14px; border-bottom:1px solid var(--grid); cursor:pointer; }
-  .callrow:last-child { border-bottom:none; }
-  .callrow:hover { background:var(--surface-2); }
-  .cr1 { display:flex; align-items:baseline; gap:8px; }
-  .cr1 .who { font-weight:650; font-size:14px; }
-  .cr1 .what { font-size:12.5px; color:var(--ink-2); }
-  .cr1 .res { margin-left:auto; font-size:12px; font-weight:650; color:var(--muted); white-space:nowrap; }
-  .cr1 .res.win { color:var(--green); }
-  .ctag { font-size:10px; font-weight:650; letter-spacing:.04em; border-radius:6px; padding:1px 6px;
-          border:1px solid var(--baseline); color:var(--ink-2); }
-  .ctag.pre { border-color:var(--yellow); color:var(--yellow); }
-  .cr2 { font-size:11.5px; color:var(--muted); margin-top:3px; font-variant-numeric:tabular-nums; }
   @keyframes callflash { 0%, 100% { background:transparent; }
                          50% { background:color-mix(in srgb, var(--green) 24%, transparent); } }
   details.sect.flash > summary { animation:callflash .75s ease-in-out 4; border-radius:8px; }
-  .callrow.new { animation:callflash .75s ease-in-out 4; }
+  .card.new { animation:callflash .75s ease-in-out 4; }
   .cbets { margin:2px 0 6px; }
   .cbets .ttl { font-size:12px; font-weight:650; color:var(--ink-1); margin-bottom:4px; }
   .cbets table { margin-top:0; font-size:12.5px; border-radius:10px; }
@@ -301,30 +288,28 @@ function propLiveCard(o) {
     <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
   </div>`;
 }
-function callRow(c, open, isNew) {
-  // c: {player, market, line, p, clock, score, cum (yards at call), now, result}
-  const res = c.result === "win" ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
+// same layout as propLiveCard, but for the called line: progress bar = yards toward it
+function callCard(c, isNew) {
+  const o = c.o, pre = c.type === "pregame";
   return `
-  <div class="callrow ${isNew ? "new" : ""}" ${on(open)}>
-    <div class="cr1">
-      <span class="who">${c.player}${star(c.player, c.market)}</span>
-      <span class="ctag ${c.type === "pregame" ? "pre" : ""}">${c.type === "pregame" ? "PREGAME" : "70%"}</span>
-      <span class="what">${MKT(c.market)} O ${c.line}</span>
-      <span class="res ${c.result === "win" ? "win" : ""}">${res}</span>
+  <div class="card ${pre ? "" : "hot"} click ${isNew ? "new" : ""}" ${on(() => openProp(o.id))}>
+    <div class="trow">${logoImg(o.logo)}
+      <span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
+      <span class="chip ${pre ? "pre" : "hot"}" style="margin-left:auto">${pre ? "PREGAME" : "70% CALL"}</span>
     </div>
-    <div class="cr2">${c.type === "pregame" ? "Good Matchup · pregame line" : `${c.clock} · ${c.score ?? ""} · had ${c.cum}`}
-      → ${c.result === "win" ? "cleared at" : c.result === "loss" ? "finished" : "now"} ${c.now} yds${c.p != null ? ` · ${Math.round(c.p * 100)}%` : ""}</div>
+    <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
+    <div class="sub"><span>${o.game} · ${o.clock}</span></div>
+    <div class="nums">
+      <div><span>yards</span><b>${o.cum}</b></div>
+      <div><span>needed</span><b>${Math.max(0, Math.ceil(c.line - o.cum))}</b></div>
+      <div><span>called</span><b>${pre ? "pregame" : c.clock}</b></div>
+      <div><span>P(over)</span><b>${o.p ? o.p.toFixed(2) : "—"}</b></div>
+    </div>
+    <div class="pbar"><i style="width:${Math.min(o.cum / c.line * 100, 100)}%"></i></div>
   </div>`;
 }
 const callsOf = o => [o.pre, o.call].filter(Boolean).map(c => ({
-  ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`,
-  now: c.result === "win" ? c.won_yds ?? o.cum : o.cum,
-  key: `${o.eid}|${o.player}|${o.market}|${c.type || "live"}`, t: c.settled_t || c.t, open: () => openProp(o.id) }));
-async function openLedgerCall(c) {
-  await loadArchive("nfl", c.week);
-  const key = `${c.espn_id}|${c.player}|${c.market}`, rec = S.parch[c.week]?.[key];
-  if (rec) openProp(key, rec);
-}
+  ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`, o }));
 function propPreCard(w, chip = "PREGAME") {
   return `
   <div class="card final">
@@ -381,8 +366,8 @@ function finalCard(sport, id, r) {
   </div>`;
 }
 function pastPropCard(wk, key, rec) {
-  const sg = rec.call || rec.signal, hit = rec.call ? won(rec.call, rec.final) : rec.final > sg.line;
-  const label = rec.call ? (hit ? "WIN ✓" : "LOSS") : (hit ? "HIT" : "MISS");
+  const call = rec.call || rec.pre, sg = call || rec.signal, hit = call ? won(call, rec.final) : rec.final > sg.line;
+  const label = call ? (hit ? "WIN ✓" : "LOSS") : (hit ? "HIT" : "MISS");
   return `
   <div class="card ${hit ? "hot" : ""} click" ${on(() => openProp(key, rec))}>
     <div class="trow">${logoImg(rec.logo)}
@@ -435,31 +420,12 @@ function viewLive() {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
-    html += `
-      <details class="sect ${Date.now() < flashUntil ? "flash" : ""}" ${closed.has("nfl-active-calls") ? "" : "open"}
-               ontoggle="secToggle('nfl-active-calls', this.open)">
-        <summary>Active calls <span class="count">${active.length} pending</span></summary>
-        <div class="leg">Calls that haven't settled, newest first. <b>PREGAME</b>: a watchlist matchup, the over at the pregame line. <b>70%</b>: the model's live call. Each wins once the player clears the called line, or loses at the final. Tap one for its chart.</div>
-        ${active.length ? `<div class="calls">${active.map(c => callRow(c, c.open, freshCalls.has(c.id))).join("")}</div>`
-          : `<div class="empty">No open calls right now.</div>`}
-      </details>`;
-    const liveWins = mine.filter(c => c.result);
-    const have = new Set(liveWins.map(c => c.key));
-    const wk = S.watch?.week;
-    const ledger = (S.calls?.calls || []).map(c => ({ ...c, type: c.type || "live" }))
-      .filter(c => c.week === wk && !have.has(`${c.espn_id}|${c.player}|${c.market}|${c.type}`))
-      .map(c => ({ ...c, now: c.final, t: c.settled_t || Date.parse(c.settled) / 1000 }));
-    const past = [...liveWins.map(c => ({ c, open: c.open })),
-                  ...ledger.map(c => ({ c, open: () => openLedgerCall(c) }))]
-      .sort((a, b) => (b.c.t || 0) - (a.c.t || 0));
-    if (past.length) {
-      const pw = past.filter(x => x.c.result === "win").length;
-      html += `
-      <details class="sect" ${closed.has("nfl-past-calls") ? "" : "open"} ontoggle="secToggle('nfl-past-calls', this.open)">
-        <summary>Past calls <span class="count">week ${wk} · ${pw}–${past.length - pw}</span></summary>
-        <div class="calls">${past.map(x => callRow(x.c, x.open, false)).join("")}</div>
-      </details>`;
-    }
+    html += section("nfl-active-calls", "Active calls", `${active.length} pending`,
+      `Calls that haven't settled, newest first. <span class="chip pre">PREGAME</span> a watchlist matchup, the over at the pregame line
+       &nbsp;·&nbsp; <span class="chip hot">70% CALL</span> the model's live call. Each wins once the player clears the called line
+       (bar = yards toward it), or loses at the final; settled calls move to Past.`,
+      active.map(c => callCard(c, freshCalls.has(c.id))), "No open calls right now.")
+      .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     const opps = all.filter(o => o.p >= P_MIN && !o.noline).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
     const hidden = all.filter(o => !o.noline).length - opps.length;
@@ -497,8 +463,8 @@ function viewPast() {
     .sort((a, b) => (b[1].has_hist ? 1 : 0) - (a[1].has_hist ? 1 : 0));   // charted games first
   let html = "";
   if (R.sport === "nfl") {
-    const props = Object.entries(S.parch[wk] || {}).filter(([, r]) => r.signal || r.call)
-      .sort((a, b) => !!b[1].call - !!a[1].call);
+    const props = Object.entries(S.parch[wk] || {}).filter(([, r]) => r.signal || r.call || r.pre)
+      .sort((a, b) => !!(b[1].call || b[1].pre) - !!(a[1].call || a[1].pre));
     const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
     const leans = props.filter(([, r]) => !r.call), hits = leans.filter(([, r]) => r.final > r.signal.line).length;
     const led = S.calls?.calls || [];

@@ -622,6 +622,9 @@ class Monitor:
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *a):   # the dashboard polls every 10s; don't log each fetch
         pass
+    def end_headers(self):   # revalidate every load, so a deploy reaches open tabs and phones
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
 
 def serve():
     HTTPServer((HOST, PORT), functools.partial(QuietHandler, directory=DOCS)).serve_forever()

@@ -463,10 +463,14 @@ function viewPast() {
     .sort((a, b) => (b[1].has_hist ? 1 : 0) - (a[1].has_hist ? 1 : 0));   // charted games first
   let html = "";
   if (R.sport === "nfl") {
+    // grouped by game in kickoff order; calls first within a game
+    const kick = key => S.games.nfl?.[key.split("|")[0]]?.date || "";
     const props = Object.entries(S.parch[wk] || {}).filter(([, r]) => r.signal || r.call || r.pre)
-      .sort((a, b) => !!(b[1].call || b[1].pre) - !!(a[1].call || a[1].pre));
+      .sort((a, b) => kick(a[0]).localeCompare(kick(b[0])) || a[1].game.localeCompare(b[1].game)
+        || !!(b[1].call || b[1].pre) - !!(a[1].call || a[1].pre));
     const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
-    const leans = props.filter(([, r]) => !r.call), hits = leans.filter(([, r]) => r.final > r.signal.line).length;
+    const pres = props.filter(([, r]) => !r.call && r.pre), pwins = pres.filter(([, r]) => won(r.pre, r.final)).length;
+    const leans = props.filter(([, r]) => !r.call && !r.pre && r.signal), hits = leans.filter(([, r]) => r.final > r.signal.line).length;
     const led = S.calls?.calls || [];
     const rec = t => { const r = led.filter(c => (c.type || "live") === t), w = r.filter(c => c.result === "win").length;
                        return r.length ? `${t === "live" ? "70% calls" : "pregame calls"} ${w}–${r.length - w} (${Math.round(w / r.length * 100)}%)` : ""; };
@@ -474,7 +478,8 @@ function viewPast() {
       html += `<div class="leg" style="margin-top:14px"><b>Season record: ${[rec("live"), rec("pregame")].filter(Boolean).join(" · ")}</b>
         <br>every settled call, with the model's inputs for 70% calls, is saved in calls.json</div>`;
     html += section("nfl-past-props", "Player props flagged ≥50%",
-      [calls.length ? `70% calls ${wins}–${calls.length - wins}` : "", leans.length ? `50–70% ${hits}/${leans.length} hit` : ""]
+      [calls.length ? `70% calls ${wins}–${calls.length - wins}` : "",
+       pres.length ? `pregame ${pwins}–${pres.length - pwins}` : "", leans.length ? `50–70% ${hits}/${leans.length} hit` : ""]
         .filter(Boolean).join(" · "),
       "WIN/LOSS: the model called the over at ≥70% and the player did or didn't clear the line from that moment. HIT/MISS: the same check for props that only reached 50–70%.",
       props.map(([key, rec]) => pastPropCard(wk, key, rec)), "No props reached the 50% signal this week.");

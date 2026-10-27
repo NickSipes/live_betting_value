@@ -502,7 +502,7 @@ function viewPast() {
       const [id, r] = game, mine = byGame[id] || [];
       return `<div class="leg" style="margin-top:14px"><a href="#nfl/past/${wk}" style="color:var(--ink-1)">‹ Week ${wk} games</a></div>`
         + section(`nfl-past-game`, `${r.aabbr} ${r.as} @ ${r.habbr} ${r.hs}`, `${mine.length} props`,
-          "WIN/LOSS: a model pick (live) or pregame call on the over, and whether the player did or didn't clear the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
+          "WIN/LOSS: a model pick (live) or pregame call on the over, and whether the player cleared the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
           [spreadLinkCard("nfl", id, r), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
     }
     const led = S.calls?.calls || [];

@@ -43,7 +43,9 @@ and `live/def_priors.json` (repo).
 From week 8 on (post week-7 review): P is isotonic-calibrated on week-7 snapshots
 (`live/calib.json`, fitted by `analysis/fit_calib.py`; raw 0.70 ≈ calibrated 0.37, so calls now
 need raw ≈ 0.85), and a call/TRIGGER additionally requires the game-state gate: score_diff ≥ −3
-and (3+ targets/carries or yards ≥ 60% of the line). Week-7 P values in the archives are raw.
+and (3+ targets/carries or yards ≥ 60% of the line). The call/TRIGGER threshold is now
+calibrated P ≥ 0.60 (−110 breakeven is 0.524); NEAR = 0.55–0.59. Week-7 archive P values are raw
+and were called at raw P ≥ 0.70.
 
 The 19 model inputs, in order (`calls.json → feats`; every `x` array follows it):
 `elapsed` (fraction of game), `ypg` (player season yds/game), `ype` (yds per target/carry),

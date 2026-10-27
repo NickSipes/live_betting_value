@@ -22,7 +22,7 @@ BACKFILL_MAX = 40   # snapshots per game (20 credits each: 2 markets x DK+FD)
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
 SIGNAL = 0.50              # first time a prop is worth showing (Past scorecard "flag")
-NEAR, TRIG = 0.55, 0.70    # card status + notifications
+NEAR, TRIG = 0.55, 0.60    # card status + notifications (calibrated P; -110 breakeven is 0.524)
 CALL = TRIG                # a "call": if the player then clears that line, it's a win
 SCORE_WINDOW = (600, 3060)  # game-clock seconds the v2 model was trained on (10:00-51:00 elapsed);
                             # outside it the inputs (pace, team rates) are unstable and P isn't trustworthy

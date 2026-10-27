@@ -383,8 +383,9 @@ function spreadLinkCard(sport, id, r) {
   </div>`;
 }
 function pastPropCard(wk, key, rec) {
-  const call = rec.call || rec.pre, sg = call || rec.signal, hit = call ? won(call, rec.final) : rec.final > sg.line;
-  const label = call ? (hit ? "WIN ✓" : "LOSS") : (hit ? "HIT" : "MISS");
+  // only calls get a result; a prop that reached 50% without a call was just watched
+  const call = rec.call || rec.pre, hit = !!call && won(call, rec.final);
+  const label = call ? (hit ? "WIN ✓" : "LOSS") : "WATCHED";
   return `
   <div class="card ${hit ? "hot" : ""} click" ${on(() => openProp(key, rec))}>
     <div class="trow">${logoImg(rec.logo)}
@@ -493,16 +494,16 @@ function viewPast() {
     for (const p of props) (byGame[p[0].split("|")[0]] ||= []).push(p);
     const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
     const pres = props.filter(([, r]) => !r.call && r.pre), pwins = pres.filter(([, r]) => won(r.pre, r.final)).length;
-    const leans = props.filter(([, r]) => !r.call && !r.pre && r.signal), hits = leans.filter(([, r]) => r.final > r.signal.line).length;
+    const leans = props.filter(([, r]) => !r.call && !r.pre && r.signal);
     summary = [calls.length ? `70% calls ${wins}–${calls.length - wins}` : "",
-               pres.length ? `pregame ${pwins}–${pres.length - pwins}` : "", leans.length ? `50–70% ${hits}/${leans.length} hit` : ""]
+               pres.length ? `pregame ${pwins}–${pres.length - pwins}` : "", leans.length ? `${leans.length} watched` : ""]
       .filter(Boolean).join(" · ");
     const game = R.game && finals.find(([id]) => id === R.game);
     if (game) {
       const [id, r] = game, mine = byGame[id] || [];
       return `<div class="leg" style="margin-top:14px"><a href="#nfl/past/${wk}" style="color:var(--ink-1)">‹ Week ${wk} games</a></div>`
         + section(`nfl-past-game`, `${r.aabbr} ${r.as} @ ${r.habbr} ${r.hs}`, `${mine.length} props`,
-          "WIN/LOSS: the over was called (70% live, or pregame on a watchlist matchup) and the player did or didn't clear the line from that moment. HIT/MISS: the same check for props that only reached 50–70%. Tap a card for line vs production.",
+          "WIN/LOSS: the over was called (70% live, or pregame on a watchlist matchup) and the player did or didn't clear the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
           [spreadLinkCard("nfl", id, r), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
     }
     const led = S.calls?.calls || [];

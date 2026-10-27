@@ -278,7 +278,7 @@ const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLow
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
 const mkt = m => m === "rec" ? "receiving" : "rushing";
 const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
-const P_MIN = 0.55;  // Watchlist: props at 55%+ that haven't been called yet
+const P_MIN = 0.55;  // Picks on Deck: props at 55%+ that haven't been called yet
 // a 70% call wins once the player clears the line from the moment of the call;
 // the poller settles it (result) live on a win, or at the final on a loss
 const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
@@ -465,15 +465,13 @@ function viewLive() {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
-    html += section("nfl-active-calls", "Active calls", `${active.length} pending`,
-      legend(`<span class="chip pre">PREGAME</span> a Good Matchup, the over at the pregame line`,
-        `<span class="chip hot">MODEL PICK</span> the model's live call.`),
-      active.map(c => callCard(c, freshCalls.has(c.id))), "No open calls right now.")
+    html += section("nfl-active-calls", "Active Picks", `${active.length} pending`, "",
+      active.map(c => callCard(c, freshCalls.has(c.id))), "No open picks right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
-    // called props (model pick or pregame) live in Active calls, so they leave the Watchlist
+    // called props (model pick or pregame) live in Active Picks, so they leave Picks on Deck
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
-    html += section("nfl-live-props", "Watchlist", `${opps.length} watching`, PROP_LEG,
+    html += section("nfl-live-props", "Picks on Deck", `${opps.length} watching`, PROP_LEG,
       opps.map(propLiveCard), all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,

@@ -40,6 +40,11 @@ Logistic model, P(player finishes over the current live line). It scores only in
 TRIGGER = ≥ 0.70. Deployed weights: `live/model_weights.json` (repo); priors: `live/priors.json`
 and `live/def_priors.json` (repo).
 
+From week 8 on (post week-7 review): P is isotonic-calibrated on week-7 snapshots
+(`live/calib.json`, fitted by `analysis/fit_calib.py`; raw 0.70 ≈ calibrated 0.37, so calls now
+need raw ≈ 0.85), and a call/TRIGGER additionally requires the game-state gate: score_diff ≥ −3
+and (3+ targets/carries or yards ≥ 60% of the line). Week-7 P values in the archives are raw.
+
 The 19 model inputs, in order (`calls.json → feats`; every `x` array follows it):
 `elapsed` (fraction of game), `ypg` (player season yds/game), `ype` (yds per target/carry),
 `def_ypg` (opponent yds/game allowed at the position), `ev_sofar` (targets or carries so far),

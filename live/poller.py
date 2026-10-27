@@ -45,6 +45,24 @@ DATA = os.environ.get("DATA_DIR", HERE)                # private state (history,
 W = json.load(open(f"{HERE}/model_weights.json"))
 PRIORS = json.load(open(f"{HERE}/priors.json"))     # name -> {kind:{ypg,ype,epg,pos}}
 DEF = json.load(open(f"{HERE}/def_priors.json"))    # "kind|team|pos" -> ypg allowed
+try:  # isotonic P calibration (analysis/fit_calib.py); delete the file to run raw
+    CAL = json.load(open(f"{HERE}/calib.json"))
+except Exception:
+    CAL = None
+
+def calibrate(p):
+    if not CAL:
+        return p
+    xs, ys = CAL["p"], CAL["cal"]
+    i = bisect.bisect_right(xs, p) - 1
+    if i >= len(xs) - 1:
+        return ys[-1]
+    return ys[i] + (ys[i + 1] - ys[i]) * (p - xs[i]) / (xs[i + 1] - xs[i])
+
+def call_gate(x, cum, L):
+    """Week-7 review: every losing call was on a trailing team or a player whose
+    volume never showed up. No call while down > 3 unless usage is already there."""
+    return x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
 
 def get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -138,7 +156,7 @@ def feature_vec(pr, kind, dv, gc, cum, nev, drought, e10, y10, diff, ts_, L, l0)
 def score_row(x):
     z = [(x[i] - W["mu"][i]) / W["sd"][i] for i in range(len(x))]
     s = sum(zi * wi for zi, wi in zip(z, W["w"])) + W["b"]
-    return 1 / (1 + math.exp(-s))
+    return calibrate(1 / (1 + math.exp(-s)))
 
 def team_stats(box_team):
     st = {s["name"]: s.get("displayValue", "") for s in box_team.get("statistics", [])}
@@ -387,7 +405,8 @@ class Monitor:
                     out.append(list(s[:4]) + [None if x is None else round(score_row(x), 3)])
             h["snaps"] = out
             for key, thr in (("signal", SIGNAL), ("call", CALL)):
-                i = next((i for i, s in enumerate(out) if s[4] is not None and s[4] >= thr), None)
+                i = next((j for j, s in enumerate(out) if s[4] is not None and s[4] >= thr
+                          and (key != "call" or (j in xs and call_gate(xs[j], s[1], s[3])))), None)
                 if i is None:
                     continue
                 cur = h.get(key)
@@ -510,7 +529,7 @@ class Monitor:
                 h["pmax"] = max(h.get("pmax", 0), round(p, 3))
                 if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
-                if p >= CALL and "call" not in h:
+                if p >= CALL and "call" not in h and call_gate(x, cum, L):
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
                                  "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
@@ -525,7 +544,8 @@ class Monitor:
                         "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 self.hist[hkey]["meta"] = meta
                 histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
-                status = "TRIGGER" if p >= TRIG else "NEAR" if p >= NEAR else "watch"
+                status = ("TRIGGER" if p >= TRIG and call_gate(x, cum, L)
+                          else "NEAR" if p >= NEAR else "watch")
                 listed.add(oid)
                 opps.append({"id": oid, "eid": game["espn_id"], "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                              "clock": game["clock"], "line": L, "cum": cum, "events": nev,

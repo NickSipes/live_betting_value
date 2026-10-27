@@ -252,7 +252,7 @@ const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLow
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
 const mkt = m => m === "rec" ? "receiving" : "rushing";
 const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
-const P_MIN = 0.5;   // cards below this P(over) are hidden
+const P_MIN = 0.55;  // Watchlist: props at 55%+ that haven't been called yet
 // a 70% call wins once the player clears the line from the moment of the call;
 // the poller settles it (result) live on a win, or at the final on a loss
 const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
@@ -273,10 +273,10 @@ const on = fn => `onclick="H[${H.push(fn) - 1}]()"`;
 // ---------- cards ----------
 function propLiveCard(o) {
   return `
-  <div class="card ${chipCls(o.status)} click" ${on(() => openProp(o.id))}>
+  <div class="card warm click" ${on(() => openProp(o.id))}>
     <div class="trow">${logoImg(o.logo)}
       <span class="ab" style="width:auto;font-size:14px">${o.player}${star(o.player, o.market)}</span>
-      <span class="chip ${chipCls(o.status)}" style="margin-left:auto">${o.status === "watch" ? "LIVE" : o.status.toUpperCase()}</span>
+      <span class="chip warm" style="margin-left:auto">WATCHING</span>
     </div>
     <div class="mk">${MKT(o.market)}<b>O ${o.line}</b></div>
     <div class="sub"><span>${o.game} · ${o.clock}</span></div>
@@ -405,9 +405,8 @@ function section(key, title, count, legend, cards, empty) {
     ${cards.length ? `<div class="grid">${cards.join("")}</div>` : `<div class="empty">${empty}</div>`}
   </details>`;
 }
-const PROP_LEG = `Only props the model gives ≥50% to go over are shown.
-  <span class="chip hot">TRIGGER</span> ≥70% &nbsp;·&nbsp; <span class="chip warm">NEAR</span> 55–69%
-  &nbsp;·&nbsp; <span class="star">★</span> Good Matchup (top player vs bottom-10 defense) &nbsp;·&nbsp; tap a card for line vs production`;
+const PROP_LEG = `Bets that the model is watching.
+  &nbsp;·&nbsp; <span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`;
 const SPREAD_LEG = `<span class="chip hot">EDGE</span> live line ≥4 pts from fair
   &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
   &nbsp;·&nbsp; tap a card for line movement + key plays`;
@@ -443,13 +442,11 @@ function viewLive() {
        &nbsp;·&nbsp; <span class="chip hot">MODEL PICK</span> the model's live call.`,
       active.map(c => callCard(c, freshCalls.has(c.id))), "No open calls right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
-    const opps = all.filter(o => o.p >= P_MIN && !o.noline).sort((a, b) =>
+    // called props (model pick or pregame) live in Active calls, so they leave the Watchlist
+    const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
-    const hidden = all.filter(o => !o.noline).length - opps.length;
-    html += section("nfl-live-props", "Player props",
-      [`${opps.length} shown`, hidden ? `${hidden} below 50% hidden` : ""].filter(Boolean).join(" · "), PROP_LEG,
-      opps.map(propLiveCard),
-      all.length ? "No live prop is at ≥50% right now." : "No player props live right now — see Upcoming for this week's watchlist.");
+    html += section("nfl-live-props", "Watchlist", `${opps.length} watching`, PROP_LEG,
+      opps.map(propLiveCard), all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,
     games.map(g => spreadLiveCard(kind, g)), `No live ${SPORTNAME[R.sport]} games right now.`);

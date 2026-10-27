@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Live Prop Monitor</title>
+<title>Live Bet Predictor</title>
 <style>
   :root {
     color-scheme: light dark;
@@ -24,8 +24,12 @@
   body { margin:0; background:var(--page); color:var(--ink-1);
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
   .wrap { max-width:1060px; margin:0 auto; padding:20px 16px 60px; }
-  .top { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+  .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
+  .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
+  .tabrow { display:flex; flex-wrap:wrap; column-gap:18px; }
+  .leg .li + .li::before { content:"·"; margin:0 8px; color:var(--muted); }
+  .weeks:empty { display:none; }
   .meta { font-size:12.5px; color:var(--ink-2); }
   button { background:var(--surface); color:var(--ink-1); border:1px solid var(--border);
            border-radius:8px; padding:5px 12px; font-size:12.5px; cursor:pointer; }
@@ -160,21 +164,37 @@
   .cbets th { font-size:10px; padding:6px 10px; }
   .cbets td { padding:7px 10px; font-variant-numeric:tabular-nums; }
   .cbets th, .cbets td { white-space:nowrap; }
-  @media (max-width: 640px) { .cbets th, .cbets td { padding:6px 7px; } }
+  @media (max-width: 640px) {
+    .cbets th, .cbets td { padding:6px 7px; }
+    .wrap { padding:12px 16px 48px; }
+    .nav { margin:-12px 0 4px; padding:10px 0 8px; }
+    h1 { font-size:18px; }
+    .tabrow { column-gap:10px; }
+    .tabs { gap:5px; margin-top:8px; }
+    .tabs button, .tabs.sport button { padding:6px 12px; font-size:13px; }
+    details.sect { margin-top:10px; }
+    .leg { line-height:1.5; }
+    .leg .li { display:block; margin:5px 0; }
+    .leg .li + .li::before { content:none; }
+    .grid { grid-template-columns:1fr; gap:10px; }
+    .card { padding:12px 14px; }
+    .card:hover { transform:none; box-shadow:none; }
+    .nums { justify-content:space-between; gap:8px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="nav">
     <div class="top">
-      <h1>Live Prop Monitor</h1>
-      <span class="meta">
-        <button id="notifbtn" onclick="askNotif()">enable notifications</button>
-        updated <span id="updated">—</span>
-      </span>
+      <h1>Live Bet Predictor</h1>
+      <button id="notifbtn" onclick="askNotif()" hidden>🔔 Notify me</button>
+      <span class="meta" id="updated"></span>
     </div>
-    <div class="tabs sport" id="sporttabs"></div>
-    <div class="tabs" id="viewtabs"></div>
+    <div class="tabrow">
+      <div class="tabs sport" id="sporttabs"></div>
+      <div class="tabs" id="viewtabs"></div>
+    </div>
   </div>
   <div id="stale"></div>
   <div class="weeks" id="weeks"></div>
@@ -219,13 +239,18 @@ function secToggle(key, open) {
   try { localStorage.setItem("closedSections", JSON.stringify([...closed])); } catch (e) {}
 }
 
+// desktop only: phone browsers either lack the Notification API (iOS outside a home-screen app)
+// or refuse page notifications without a service worker (Android Chrome).
+// ponytail: alerts fire only while this tab is open; real push needs a service worker + push server
+const NOTIF_OK = "Notification" in window && !/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+const notifLabel = () => ({ granted: "🔔 Notifications on", denied: "🔕 Notifications blocked" })[Notification.permission] || "🔔 Notify me";
 function askNotif() {
-  Notification.requestPermission().then(p => {
-    document.getElementById("notifbtn").textContent = "notifications: " + p;
-  });
+  Notification.requestPermission().then(() => { document.getElementById("notifbtn").textContent = notifLabel(); });
 }
-if ("Notification" in window && Notification.permission === "granted")
-  document.getElementById("notifbtn").textContent = "notifications: granted";
+if (NOTIF_OK) {
+  const b = document.getElementById("notifbtn");
+  b.hidden = false; b.textContent = notifLabel();
+}
 
 const ageText = ts => {
   if (!ts) return "—";
@@ -233,8 +258,9 @@ const ageText = ts => {
   return m < 1 ? "just now" : m < 90 ? `${Math.round(m)}m ago` : `${(m / 60).toFixed(1)}h ago`;
 };
 function renderAges() {
-  document.getElementById("updated").textContent =
-    `props ${ageText(lastTs.props)} · NFL ${ageText(lastTs.nflsp)} · CFB ${ageText(lastTs.cfb)}`;
+  const seen = Object.values(lastTs).filter(Boolean);   // the stalest feed, so "now" is never optimistic
+  document.getElementById("updated").textContent = seen.length
+    ? "updated " + ageText(Math.min(...seen)).replace("just now", "now") : "";
   const stale = [];
   for (const [k, ts] of Object.entries(lastTs))
     if (ts && (Date.now() / 1000 - ts) > 900) stale.push(`${k} data is ${ageText(ts).replace(" ago", "")} old`);
@@ -261,7 +287,7 @@ const star = (player, market) => onWatch(player, market) ? `<span class="star" t
 
 function notifyIf(id, status, title, body) {
   if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
-      && "Notification" in window && Notification.permission === "granted")
+      && NOTIF_OK && Notification.permission === "granted")
     new Notification(title, { body });
   notifStore[id] = status;
 }
@@ -405,11 +431,13 @@ function section(key, title, count, legend, cards, empty) {
     ${cards.length ? `<div class="grid">${cards.join("")}</div>` : `<div class="empty">${empty}</div>`}
   </details>`;
 }
-const PROP_LEG = `Bets that the model is watching.
-  &nbsp;·&nbsp; <span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`;
-const SPREAD_LEG = `<span class="chip hot">EDGE</span> live line ≥4 pts from fair
-  &nbsp;·&nbsp; <span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score
-  &nbsp;·&nbsp; tap a card for line movement + key plays`;
+// legend items: inline with dot separators on desktop, one per line on phones
+const legend = (...items) => items.map(t => `<span class="li">${t}</span>`).join("");
+const PROP_LEG = legend("Bets that the model is watching.",
+  `<span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`);
+const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts from fair`,
+  `<span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score`,
+  "tap a card for line movement + key plays");
 
 // ---------- data helpers ----------
 const regList = (sport, state) => Object.entries(S.games[sport] || {})
@@ -438,8 +466,8 @@ function viewLive() {
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
     html += section("nfl-active-calls", "Active calls", `${active.length} pending`,
-      `<span class="chip pre">PREGAME</span> a watchlist matchup, the over at the pregame line
-       &nbsp;·&nbsp; <span class="chip hot">MODEL PICK</span> the model's live call.`,
+      legend(`<span class="chip pre">PREGAME</span> a Good Matchup, the over at the pregame line`,
+        `<span class="chip hot">MODEL PICK</span> the model's live call.`),
       active.map(c => callCard(c, freshCalls.has(c.id))), "No open calls right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) live in Active calls, so they leave the Watchlist
@@ -458,9 +486,9 @@ function viewUpcoming() {
   let html = "";
   if (R.sport === "nfl") {
     const w = watchUpcoming();
-    html += section("nfl-up-props", "Player props to watch", `week ${S.watch?.week ?? ""} · ${w.length} players`,
+    html += section("nfl-up-props", "Good Matchups", `week ${S.watch?.week ?? ""} · ${w.length} players`,
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
-      w.map(x => propPreCard(x)), "No upcoming watchlist matchups.");
+      w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
   }
   const weeks = [...new Set(pre.map(([, r]) => r.week))].sort((a, b) => a - b);
   for (const wk of weeks) {
@@ -568,7 +596,7 @@ function checkNewCalls() {
   if (!fresh.length) return;
   for (const c of fresh) {
     seenCalls.add(c.id); freshCalls.add(c.id);
-    if (c.type === "live" && "Notification" in window && Notification.permission === "granted")
+    if (c.type === "live" && NOTIF_OK && Notification.permission === "granted")
       new Notification(`New call: ${c.player}`, { body: `${MKT(c.market)} O ${c.line} at ${Math.round(c.p * 100)}% · ${c.clock}` });
   }
   flashUntil = Date.now() + 4500;

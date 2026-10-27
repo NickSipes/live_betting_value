@@ -50,10 +50,11 @@ try:  # isotonic P calibration (analysis/fit_calib.py); delete the file to run r
 except Exception:
     CAL = None
 
-def calibrate(p):
-    if not CAL:
+def calibrate(p, kind):
+    c = CAL.get(kind) if CAL else None
+    if not c:
         return p
-    xs, ys = CAL["p"], CAL["cal"]
+    xs, ys = c["p"], c["cal"]
     i = bisect.bisect_right(xs, p) - 1
     if i >= len(xs) - 1:
         return ys[-1]
@@ -154,9 +155,11 @@ def feature_vec(pr, kind, dv, gc, cum, nev, drought, e10, y10, diff, ts_, L, l0)
             needed, needed / (pr["ypg"] * (1 - ef) + 1), L / l0]
 
 def score_row(x):
-    z = [(x[i] - W["mu"][i]) / W["sd"][i] for i in range(len(x))]
-    s = sum(zi * wi for zi, wi in zip(z, W["w"])) + W["b"]
-    return calibrate(1 / (1 + math.exp(-s)))
+    kind = "rush" if x[15] else "rec"   # is_rush; weights and calibration are per market
+    m = W[kind]
+    z = [(x[i] - m["mu"][i]) / m["sd"][i] for i in range(len(x))]
+    s = sum(zi * wi for zi, wi in zip(z, m["w"])) + m["b"]
+    return calibrate(1 / (1 + math.exp(-s)), kind)
 
 def team_stats(box_team):
     st = {s["name"]: s.get("displayValue", "") for s in box_team.get("statistics", [])}

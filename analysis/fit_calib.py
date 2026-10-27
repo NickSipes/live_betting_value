@@ -1,37 +1,42 @@
 #!/usr/bin/env python3
-"""Fit an isotonic calibration of the live model's P on archived week snapshots.
+"""Fit per-market isotonic calibrations of the live model's P.
 
-Label: did the player's yards ever pass that snapshot's line afterwards (the
-live-win settlement rule). Each prop's snapshots share one outcome, so every
-prop gets total weight 1 (1/n per snapshot) to stop long games dominating.
+rec:  on archived week snapshots (the archive P values came from the deployed
+      rec scorer, so they match what the poller will produce). Label: yards
+      ever passed that snapshot's line afterwards (the live-win rule).
+rush: on the rush model's out-of-sample week-7 predictions
+      (data/week7/oos_preds.json from analysis/retrain_markets.py; the archive
+      snapshots were scored by the old pooled model, which no longer scores rush).
+      Label there is final > line — slightly stricter than the live-win rule.
 
-Writes live/calib.json: {"p": [...], "cal": [...]} breakpoints; the poller
-interpolates linearly between them. Delete the file to run uncalibrated.
+Each prop/player-game gets total weight 1 (1/n per snapshot) so long games
+don't dominate. Writes live/calib.json: {"rec": {p, cal}, "rush": {p, cal}};
+the poller interpolates linearly. Delete the file to run uncalibrated.
 
 Usage: python3 analysis/fit_calib.py [weeks...]   (default: 7)
 """
-import json, os, sys
+import json, os, sys, bisect
+from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 def pav(pairs):
     """Weighted pool-adjacent-violators. pairs: sorted (p, label, weight)."""
-    blocks = [[p, y * w, w] for p, y, w in pairs]   # [max_p, sum y*w, sum w]
     out = []
-    for b in blocks:
-        out.append(b)
+    for p, y, w in pairs:
+        out.append([p, y * w, w])
         while len(out) > 1 and out[-2][1] / out[-2][2] >= out[-1][1] / out[-1][2]:
             a = out.pop()
             out[-1] = [a[0], out[-1][1] + a[1], out[-1][2] + a[2]]
     return [(b[0], b[1] / b[2]) for b in out]
 
-def samples(weeks):
+def rec_samples(weeks):
     for wk in weeks:
         path = f"{ROOT}/data/fly/docs/archive/props_w{wk}.json"
         for prop in json.load(open(path)).values():
             final = prop.get("final")
-            if final is None:
+            if prop["market"] != "rec" or final is None:
                 continue
             rows, seen = [], set()
             for gc, yds, ev, line, p in prop["snaps"]:
@@ -43,23 +48,33 @@ def samples(weeks):
             for p, y in rows:
                 yield p, y, 1.0 / len(rows)
 
-def main(weeks):
-    pairs = sorted(samples(weeks))
-    print(f"{len(pairs)} snapshots from weeks {weeks}")
+def rush_samples():
+    d = json.load(open(f"{ROOT}/data/week7/oos_preds.json"))["rush"]
+    n = defaultdict(int)
+    for m in d["meta"]:
+        n[(m[1], m[2])] += 1
+    for p, y, m in zip(d["p"], d["y"], d["meta"]):
+        yield p, y, 1.0 / n[(m[1], m[2])]
+
+def fit(samples, label):
+    pairs = sorted(samples)
     curve = pav(pairs)
-    # anchor the ends so interpolation covers [0, 1]
     pts = [(0.0, 0.0)] + curve + [(1.0, 1.0)]
-    out = {"weeks": weeks, "p": [round(p, 4) for p, _ in pts],
-           "cal": [round(c, 4) for _, c in pts]}
-    json.dump(out, open(f"{ROOT}/live/calib.json", "w"), indent=1)
-    for raw in (0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9):
-        import bisect
+    out = {"p": [round(p, 4) for p, _ in pts], "cal": [round(c, 4) for _, c in pts]}
+    print(f"{label}: {len(pairs)} samples, {len(pts)} breakpoints")
+    for raw in (0.5, 0.6, 0.7, 0.8, 0.9):
         i = bisect.bisect_right(out["p"], raw) - 1
-        p0, p1 = out["p"][i], out["p"][min(i + 1, len(out["p"]) - 1)]
-        c0, c1 = out["cal"][i], out["cal"][min(i + 1, len(out["p"]) - 1)]
+        j = min(i + 1, len(out["p"]) - 1)
+        p0, p1, c0, c1 = out["p"][i], out["p"][j], out["cal"][i], out["cal"][j]
         c = c0 if p1 == p0 else c0 + (c1 - c0) * (raw - p0) / (p1 - p0)
         print(f"  raw {raw:.2f} -> calibrated {c:.2f}")
-    print(f"wrote live/calib.json ({len(pts)} breakpoints)")
+    return out
+
+def main(weeks):
+    out = {"weeks": weeks, "rec": fit(rec_samples(weeks), "rec"),
+           "rush": fit(rush_samples(), "rush (w7 out-of-sample)")}
+    json.dump(out, open(f"{ROOT}/live/calib.json", "w"), indent=1)
+    print("wrote live/calib.json")
 
 if __name__ == "__main__":
     main([int(w) for w in sys.argv[1:]] or [7])

@@ -494,7 +494,7 @@ function viewPast() {
     const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
     const pres = props.filter(([, r]) => !r.call && r.pre), pwins = pres.filter(([, r]) => won(r.pre, r.final)).length;
     const leans = props.filter(([, r]) => !r.call && !r.pre && r.signal);
-    summary = [calls.length ? `70% calls ${wins}–${calls.length - wins}` : "",
+    summary = [calls.length ? `model picks ${wins}–${calls.length - wins}` : "",
                pres.length ? `pregame ${pwins}–${pres.length - pwins}` : "", leans.length ? `${leans.length} watched` : ""]
       .filter(Boolean).join(" · ");
     const game = R.game && finals.find(([id]) => id === R.game);
@@ -502,15 +502,15 @@ function viewPast() {
       const [id, r] = game, mine = byGame[id] || [];
       return `<div class="leg" style="margin-top:14px"><a href="#nfl/past/${wk}" style="color:var(--ink-1)">‹ Week ${wk} games</a></div>`
         + section(`nfl-past-game`, `${r.aabbr} ${r.as} @ ${r.habbr} ${r.hs}`, `${mine.length} props`,
-          "WIN/LOSS: the over was called (70% live, or pregame on a watchlist matchup) and the player did or didn't clear the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
+          "WIN/LOSS: a model pick (live) or pregame call on the over, and whether the player did or didn't clear the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
           [spreadLinkCard("nfl", id, r), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
     }
     const led = S.calls?.calls || [];
     const rec = t => { const r = led.filter(c => (c.type || "live") === t), w = r.filter(c => c.result === "win").length;
-                       return r.length ? `${t === "live" ? "70% calls" : "pregame calls"} ${w}–${r.length - w} (${Math.round(w / r.length * 100)}%)` : ""; };
+                       return r.length ? `${t === "live" ? "Model picks" : "pregame calls"} ${w}–${r.length - w} (${Math.round(w / r.length * 100)}%)` : ""; };
     if (led.length)
       html += `<div class="leg" style="margin-top:14px"><b>Season record: ${[rec("live"), rec("pregame")].filter(Boolean).join(" · ")}</b>
-        <br>every settled call, with the model's inputs for 70% calls, is saved in calls.json</div>`;
+        <br>every settled call, with the model's inputs for model picks, is saved in calls.json</div>`;
   }
   html += section(`${R.sport}-past-games`, "Games", [`${finals.length} final`, summary].filter(Boolean).join(" · "),
     R.sport === "nfl" ? "Tap a game for its player props and spread chart." : "Games with a line chart were tracked live; the rest show the final score only.",
@@ -888,7 +888,7 @@ function openProp(id, rec) {
   const bets = !(call || pre) ? "" : `
     <div class="cbets"><div class="ttl">Called Bets</div>
       <table><thead><tr><th>call</th><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
-      <tbody>${[pre, call].filter(Boolean).map(c => `<tr><td>${c.type === "pregame" ? "pregame" : "70%"}</td>
+      <tbody>${[pre, call].filter(Boolean).map(c => `<tr><td>${c.type === "pregame" ? "pregame" : "model pick"}</td>
         <td>${c.score ?? "—"}</td><td>${c.clock}</td><td>${c.cum}</td><td>O ${c.line}</td><td><b>${res(c)}</b></td></tr>`).join("")}
       </tbody></table></div>`;
   showModal(`

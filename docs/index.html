@@ -875,7 +875,7 @@ function openProp(id, rec) {
         sub: n === null ? "" : `${n} ${unit}`,
         stats: [["line", stepVal(linePts, gc) === null ? "—" : `O ${stepVal(linePts, gc)}`],
                 ["yards", stepVal(ydsPts, gc) ?? "—"],
-                ["P(over)", pv === null ? "—" : `${Math.round(pv * 100)}%`]],
+                ["Probability", pv === null ? "—" : `${Math.round(pv * 100)}%`]],
       };
     },
   });
@@ -898,7 +898,7 @@ function openProp(id, rec) {
     ${chart}
     <div class="mleg"><span><i style="background:var(--blue)"></i>book line</span>
       <span><i style="background:var(--green)"></i>yards</span>
-      <span><i style="background:var(--orange)"></i>P(over) · right axis</span>
+      <span><i style="background:var(--orange)"></i>Probability · right axis</span>
       ${call || pre ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
       <span>ticks = ${unit}</span></div>
     ${bets}`);

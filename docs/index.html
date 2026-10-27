@@ -296,7 +296,7 @@ function callCard(c, isNew) {
   <div class="card ${pre ? "" : "hot"} click ${isNew ? "new" : ""}" ${on(() => openProp(o.id))}>
     <div class="trow">${logoImg(o.logo)}
       <span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
-      <span class="chip ${pre ? "pre" : "hot"}" style="margin-left:auto">${pre ? "PREGAME" : "70% CALL"}</span>
+      <span class="chip ${pre ? "pre" : "hot"}" style="margin-left:auto">${pre ? "PREGAME" : "MODEL PICK"}</span>
     </div>
     <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
     <div class="sub"><span>${o.game} · ${o.clock}</span></div>
@@ -439,9 +439,8 @@ function viewLive() {
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
     html += section("nfl-active-calls", "Active calls", `${active.length} pending`,
-      `Calls that haven't settled, newest first. <span class="chip pre">PREGAME</span> a watchlist matchup, the over at the pregame line
-       &nbsp;·&nbsp; <span class="chip hot">70% CALL</span> the model's live call. Each wins once the player clears the called line
-       (bar = yards toward it), or loses at the final; settled calls move to Past.`,
+      `<span class="chip pre">PREGAME</span> a watchlist matchup, the over at the pregame line
+       &nbsp;·&nbsp; <span class="chip hot">MODEL PICK</span> the model's live call.`,
       active.map(c => callCard(c, freshCalls.has(c.id))), "No open calls right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     const opps = all.filter(o => o.p >= P_MIN && !o.noline).sort((a, b) =>

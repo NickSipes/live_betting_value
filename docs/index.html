@@ -284,7 +284,7 @@ function propLiveCard(o) {
       <div><span>yards</span><b>${o.cum}</b></div>
       <div><span>tgt/car</span><b>${o.events}</b></div>
       <div><span>drought</span><b>${o.drought}m</b></div>
-      <div><span>P(over)</span><b>${o.p.toFixed(2)}</b></div>
+      <div><span>Probability</span><b>${o.p.toFixed(2)}</b></div>
     </div>
     <div class="pbar"><i style="width:${Math.min(o.p / 0.8 * 100, 100)}%"></i></div>
   </div>`;
@@ -304,7 +304,7 @@ function callCard(c, isNew) {
       <div><span>yards</span><b>${o.cum}</b></div>
       <div><span>needed</span><b>${Math.max(0, Math.ceil(c.line - o.cum))}</b></div>
       <div><span>called</span><b>${pre ? "pregame" : c.clock}</b></div>
-      <div><span>P(over)</span><b>${o.p ? o.p.toFixed(2) : "—"}</b></div>
+      <div><span>Probability</span><b>${o.p ? o.p.toFixed(2) : "—"}</b></div>
     </div>
     <div class="pbar"><i style="width:${Math.min(o.cum / c.line * 100, 100)}%"></i></div>
   </div>`;

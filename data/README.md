@@ -47,9 +47,15 @@ week-7 archive; week-7 out-of-sample AUC 0.605) — the pooled model's is_rush p
 live rush calls impossible. P is isotonic-calibrated per market (`live/calib.json`, fitted by
 `analysis/fit_calib.py`: rec on week-7 archive snapshots, raw 0.70 ≈ 0.36; rush on its week-7
 out-of-sample predictions, plateau ≈ 0.58–0.60), and a call/TRIGGER additionally requires the
-game-state gate: score_diff ≥ −3 and (3+ targets/carries or yards ≥ 60% of the line). The
-call/TRIGGER threshold is calibrated P ≥ 0.60 (−110 breakeven is 0.524); NEAR = 0.55–0.59.
-Week-7 archive P values are raw pooled-model scores, called at raw P ≥ 0.70.
+game-state gate: score_diff ≥ −3 and (3+ targets/carries or yards ≥ 60% of the line), and
+never fires against a top-3 defense going into the week (the 3 stingiest per market/position
+in `live/def_priors.json`). The call/TRIGGER threshold is calibrated P ≥ 0.60 (−110 breakeven
+is 0.524); NEAR = 0.55–0.59. Week-7 archive P values are raw pooled-model scores, called at
+raw P ≥ 0.70; the top-3-defense rule was applied retroactively, removing two week-7 calls
+(Garrett Wilson and Omar Cooper Jr., both rec overs into MIA's top-3 WR defense, 1-1).
+`docs/watchlist.json` is now written by the poller itself: it advances to the upcoming week
+automatically once the current slate finishes (schedule from ESPN; player teams and ranks
+from `live/priors.json`, which `analysis/export_live.py` exports).
 
 The 19 model inputs, in order (`calls.json → feats`; every `x` array follows it):
 `elapsed` (fraction of game), `ypg` (player season yds/game), `ype` (yds per target/carry),

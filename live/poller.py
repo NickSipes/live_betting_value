@@ -9,7 +9,7 @@ Usage:  python3 poller.py [--poll 300] [--demo]
 Needs live/model_weights.json + live/priors.json (run analysis/export_live.py).
 Costs 2 credits per live game per poll (2 markets, DK+FD).
 """
-import json, os, sys, time, csv, math, bisect, datetime, subprocess, threading, re
+import json, os, sys, time, csv, math, bisect, datetime, subprocess, threading, re, zoneinfo
 import urllib.request, functools
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
@@ -45,6 +45,14 @@ DATA = os.environ.get("DATA_DIR", HERE)                # private state (history,
 W = json.load(open(f"{HERE}/model_weights.json"))
 PRIORS = json.load(open(f"{HERE}/priors.json"))     # name -> {kind:{ypg,ype,epg,pos}}
 DEF = json.load(open(f"{HERE}/def_priors.json"))    # "kind|team|pos" -> ypg allowed
+
+def _top3_def():
+    by = {}
+    for k, v in DEF.items():
+        kind, team, pos = k.split("|")
+        by.setdefault((kind, pos), []).append((v, k))
+    return {k for rows in by.values() for _, k in sorted(rows)[:3]}
+TOP3_DEF = _top3_def()   # the 3 stingiest defenses per market/position: never call an over into them
 try:  # isotonic P calibration (analysis/fit_calib.py); delete the file to run raw
     CAL = json.load(open(f"{HERE}/calib.json"))
 except Exception:
@@ -60,10 +68,77 @@ def calibrate(p, kind):
         return ys[-1]
     return ys[i] + (ys[i + 1] - ys[i]) * (p - xs[i]) / (xs[i + 1] - xs[i])
 
-def call_gate(x, cum, L):
+def call_gate(x, cum, L, dkey):
     """Week-7 review: every losing call was on a trailing team or a player whose
-    volume never showed up. No call while down > 3 unless usage is already there."""
-    return x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
+    volume never showed up. No call while down > 3 unless usage is already there,
+    and never an over against a top-3 defense (going into the week)."""
+    return dkey not in TOP3_DEF and x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
+
+TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}   # watchlist: top-N player vs bottom-10 defense
+NFLV = {v: k for k, v in ALIAS.items()}     # ESPN -> nflverse team codes (priors/DEF keys)
+
+def refresh_watchlist():
+    """Advance docs/watchlist.json to the upcoming week once the current slate ends.
+    Same picks as analysis/export_live.py used to make: top-N player (season ypg rank
+    from priors) vs bottom-10 defense; the schedule comes from ESPN. Player ranks go
+    stale between exports, which only shuffles the fringe of the top-N cutoffs."""
+    try:
+        cur_wk = json.load(open(f"{DOCS}/watchlist.json")).get("week")
+    except Exception:
+        cur_wk = None
+    sb = get(f"{ESPN}/scoreboard")
+    wk = (sb.get("week") or {}).get("number")
+    if wk is None:
+        return
+    evs = sb.get("events", [])
+    nxt = wk + 1 if evs and all(e["status"]["type"]["state"] == "post" for e in evs) else wk
+    if nxt == cur_wk:
+        return
+    sched = {}
+    for ev in get(f"{ESPN}/scoreboard?week={nxt}").get("events", []):
+        teams = {c["homeAway"]: NFLV.get(c["team"]["abbreviation"], c["team"]["abbreviation"])
+                 for c in ev["competitions"][0]["competitors"]}
+        dt = datetime.datetime.fromisoformat(ev["date"].replace("Z", "+00:00")) \
+            .astimezone(zoneinfo.ZoneInfo("America/New_York"))
+        lbl, kick, iso = f'{teams["away"]} @ {teams["home"]}', dt.strftime("%a %H:%M ET"), dt.isoformat()
+        sched[teams["home"]] = (teams["away"], lbl, kick, iso)
+        sched[teams["away"]] = (teams["home"], lbl, kick, iso)
+    if not sched:
+        return
+    ranks, bypos, dranks, dbypos = {}, {}, {}, {}
+    for name, kinds in PRIORS.items():
+        for kind, st in kinds.items():
+            if isinstance(st, dict):
+                bypos.setdefault((kind, st["pos"]), []).append((-st["ypg"], name))
+    for (kind, pos), rows in bypos.items():
+        for i, (_, name) in enumerate(sorted(rows)):
+            ranks[(kind, pos, name)] = i + 1
+    for k, v in DEF.items():
+        kind, team, pos = k.split("|")
+        dbypos.setdefault((kind, pos), []).append((-v, team))
+    for kp, rows in dbypos.items():
+        for i, (_, team) in enumerate(sorted(rows)):
+            dranks[(*kp, team)] = i + 1   # 1 = most yards allowed (worst defense)
+    watch = []
+    for name, kinds in PRIORS.items():
+        team = kinds.get("team")
+        if team not in sched:
+            continue
+        opp, lbl, kick, kick_iso = sched[team]
+        for kind, st in kinds.items():
+            if not isinstance(st, dict):
+                continue
+            pos = st["pos"]
+            if (ranks.get((kind, pos, name), 999) <= TOP_N_WL.get(pos, 0)
+                    and dranks.get((kind, pos, opp), 999) <= 10):
+                watch.append({"player": name, "pos": pos, "rank": ranks[(kind, pos, name)],
+                              "ypg": st["ypg"], "market": kind, "team": team, "opp": opp,
+                              "def_rank": dranks[(kind, pos, opp)],
+                              "def_ypg": DEF.get(f"{kind}|{opp}|{pos}", 0), "game": lbl,
+                              "kick": kick, "kick_iso": kick_iso})
+    watch.sort(key=lambda w: (w["kick_iso"], w["def_rank"], w["rank"]))
+    json.dump({"week": nxt, "entries": watch}, open(f"{DOCS}/watchlist.json", "w"), indent=1)
+    print(f"watchlist advanced to week {nxt}: {len(watch)} matchups")
 
 def get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -346,14 +421,15 @@ class Monitor:
         ts_ = tstats.get(team, {"pass_att": 0, "rush_att": 0, "pass_yds": 0, "rush_yds": 0})
         opp = game["away"] if home else game["home"]
         opp_abbr = game["away_abbr"] if home else game["home_abbr"]
-        dv = DEF.get(f'{kind}|{opp_abbr}|{pr["pos"]}', 0)
+        dkey = f'{kind}|{opp_abbr}|{pr["pos"]}'
+        dv = DEF.get(dkey, 0)
         needed = L - cum
         if needed < 3 or L < 15 or not in_window(gc):
             h["snaps"][-1] = [gc, cum, nev, L, None]
             return None
         x = feature_vec(pr, kind, dv, gc, cum, nev, (gc - h["last_change"]) / 60,
                         e10, y10, diff, ts_, L, h["l0"])
-        return x, cum, nev, (gc - h["last_change"]) / 60, opp, hkey
+        return x, cum, nev, (gc - h["last_change"]) / 60, opp, hkey, dkey
 
     def rescore(self, game, players):
         """Score the snapshots that have no P yet (backfilled, or saved before P was
@@ -375,7 +451,8 @@ class Monitor:
             pr = PRIORS.get(name, {}).get(kind)
             team = players.get(name, {}).get("team")
             home = team == game["home"]
-            dv = DEF.get(f'{kind}|{game["away_abbr"] if home else game["home_abbr"]}|{pr["pos"]}', 0) if pr else 0
+            dkey = f'{kind}|{game["away_abbr"] if home else game["home_abbr"]}|{pr["pos"]}' if pr else ""
+            dv = DEF.get(dkey, 0)
             mine = [q for q in pplays if q[2] == kind and q[3] == short_name(name)]
 
             def inputs(s):
@@ -409,7 +486,7 @@ class Monitor:
             h["snaps"] = out
             for key, thr in (("signal", SIGNAL), ("call", CALL)):
                 i = next((j for j, s in enumerate(out) if s[4] is not None and s[4] >= thr
-                          and (key != "call" or (j in xs and call_gate(xs[j], s[1], s[3])))), None)
+                          and (key != "call" or (j in xs and call_gate(xs[j], s[1], s[3], dkey)))), None)
                 if i is None:
                     continue
                 cur = h.get(key)
@@ -526,13 +603,13 @@ class Monitor:
                                                "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 if not f:
                     continue
-                x, cum, nev, drought, opp, hkey = f
+                x, cum, nev, drought, opp, hkey, dkey = f
                 p = score_row(x)
                 h = self.hist[hkey]
                 h["pmax"] = max(h.get("pmax", 0), round(p, 3))
                 if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
-                if p >= CALL and "call" not in h and call_gate(x, cum, L):
+                if p >= CALL and "call" not in h and call_gate(x, cum, L, dkey):
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
                                  "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
@@ -547,7 +624,7 @@ class Monitor:
                         "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 self.hist[hkey]["meta"] = meta
                 histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
-                status = ("TRIGGER" if p >= TRIG and call_gate(x, cum, L)
+                status = ("TRIGGER" if p >= TRIG and call_gate(x, cum, L, dkey)
                           else "NEAR" if p >= NEAR else "watch")
                 listed.add(oid)
                 opps.append({"id": oid, "eid": game["espn_id"], "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
@@ -629,6 +706,10 @@ class Monitor:
                 except Exception as e:
                     print("cycle error", repr(e))
                     opps, games_out, histout = [], [], {}
+                try:
+                    refresh_watchlist()
+                except Exception as e:
+                    print("watchlist refresh error", repr(e))
                 json.dump(histout, open(f"{DOCS}/nfl_history.json", "w"))
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),

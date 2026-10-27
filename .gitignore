@@ -2,3 +2,4 @@ data/*
 !data/props_series/
 .env
 .venv/
+!data/README.md

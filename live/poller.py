@@ -691,6 +691,8 @@ class Monitor:
                 meta = {"player": name, "market": kind, "logo": logo,
                         "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 self.hist[hkey]["meta"] = meta
+                if dkey.rsplit("|", 1)[0] in TOP3_DEF:
+                    continue   # top-3 form defense: keep collecting snaps, never show the over
                 histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
                 status = ("TRIGGER" if p >= TRIG and call_gate(x, cum, L, dkey)
                           else "NEAR" if p >= NEAR else "watch")

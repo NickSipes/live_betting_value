@@ -50,7 +50,9 @@ out-of-sample predictions, plateau ≈ 0.58–0.60), and a call/TRIGGER addition
 game-state gate: score_diff ≥ −3 and (3+ targets/carries or yards ≥ 60% of the line), and
 never fires against a top-3 defense **by last-3-games form** (team yards allowed per game over
 the 3 most recent games played — a bye pushes the window back; `live/def_form.json`, exported
-weekly by `analysis/export_live.py`, season-to-date fallback if absent). The call/TRIGGER
+weekly by `analysis/export_live.py`, season-to-date fallback if absent). Props against those
+defenses never appear on the live board at all (no watch/NEAR card, no notification); their
+snapshots are still recorded in the history and archive. The call/TRIGGER
 threshold is calibrated P ≥ 0.60 (−110 breakeven is 0.524); NEAR = 0.55–0.59. Week-7 archive
 P values are raw pooled-model scores, called at raw P ≥ 0.70; the form-based veto was applied
 retroactively (entering-w7 form top-3: rush JAX/CHI/CAR, rec MIN/SEA/NYG), removing eight

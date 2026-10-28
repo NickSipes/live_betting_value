@@ -338,14 +338,18 @@ function callCard(c, isNew) {
 const callsOf = o => [o.pre, o.call].filter(Boolean).map(c => ({
   ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`, o }));
 function propPreCard(w, chip = "PREGAME") {
+  const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
+    title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
   return `
   <div class="card final">
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
+      ${inj}
       <span class="chip pre" style="margin-left:auto">${chip}</span>
     </div>
     <div class="mk">${MKT(w.market)}<b>${w.ypg} ypg</b></div>
-    <div class="sub"><span>${w.pos} #${w.rank} at position</span></div>
+    <div class="sub"><span>${w.pos} #${w.rank} at position</span>
+      <span>${w.line != null ? "line O " + w.line : "no line yet"}</span></div>
     <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>

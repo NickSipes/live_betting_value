@@ -76,6 +76,17 @@ def call_gate(x, cum, L, dkey):
 
 TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}   # watchlist: top-N player vs bottom-10 defense
 NFLV = {v: k for k, v in ALIAS.items()}     # ESPN -> nflverse team codes (priors/DEF keys)
+INJ_OUT = ("Out", "Injured Reserve", "Doubtful", "Suspension")   # no pregame call
+
+def espn_injuries():
+    """League-wide injury report: short player name -> status."""
+    out = {}
+    for t in get(f"{ESPN}/injuries").get("injuries", []):
+        for i in t.get("injuries", []):
+            nm = (i.get("athlete") or {}).get("displayName")
+            if nm and i.get("status") and i["status"] != "Active":   # Active = playing, not news
+                out[short_name(nm)] = i["status"]
+    return out
 
 def refresh_watchlist():
     """Advance docs/watchlist.json to the upcoming week once the current slate ends.
@@ -83,26 +94,29 @@ def refresh_watchlist():
     from priors) vs bottom-10 defense; the schedule comes from ESPN. Player ranks go
     stale between exports, which only shuffles the fringe of the top-N cutoffs."""
     try:
-        cur_wk = json.load(open(f"{DOCS}/watchlist.json")).get("week")
+        cur = json.load(open(f"{DOCS}/watchlist.json"))
     except Exception:
-        cur_wk = None
+        cur = {}
+    cur_wk = cur.get("week")
     sb = get(f"{ESPN}/scoreboard")
     wk = (sb.get("week") or {}).get("number")
     if wk is None:
         return
     evs = sb.get("events", [])
     nxt = wk + 1 if evs and all(e["status"]["type"]["state"] == "post" for e in evs) else wk
-    if nxt == cur_wk:
+    if cur_wk == nxt and all("home_full" in e for e in cur.get("entries", [])):
         return
     sched = {}
     for ev in get(f"{ESPN}/scoreboard?week={nxt}").get("events", []):
+        comps = ev["competitions"][0]["competitors"]
         teams = {c["homeAway"]: NFLV.get(c["team"]["abbreviation"], c["team"]["abbreviation"])
-                 for c in ev["competitions"][0]["competitors"]}
+                 for c in comps}
+        home_full = next(c["team"]["displayName"] for c in comps if c["homeAway"] == "home")
         dt = datetime.datetime.fromisoformat(ev["date"].replace("Z", "+00:00")) \
             .astimezone(zoneinfo.ZoneInfo("America/New_York"))
         lbl, kick, iso = f'{teams["away"]} @ {teams["home"]}', dt.strftime("%a %H:%M ET"), dt.isoformat()
-        sched[teams["home"]] = (teams["away"], lbl, kick, iso)
-        sched[teams["away"]] = (teams["home"], lbl, kick, iso)
+        sched[teams["home"]] = (teams["away"], lbl, kick, iso, home_full)
+        sched[teams["away"]] = (teams["home"], lbl, kick, iso, home_full)
     if not sched:
         return
     ranks, bypos, dranks, dbypos = {}, {}, {}, {}
@@ -124,7 +138,7 @@ def refresh_watchlist():
         team = kinds.get("team")
         if team not in sched:
             continue
-        opp, lbl, kick, kick_iso = sched[team]
+        opp, lbl, kick, kick_iso, home_full = sched[team]
         for kind, st in kinds.items():
             if not isinstance(st, dict):
                 continue
@@ -135,7 +149,7 @@ def refresh_watchlist():
                               "ypg": st["ypg"], "market": kind, "team": team, "opp": opp,
                               "def_rank": dranks[(kind, pos, opp)],
                               "def_ypg": DEF.get(f"{kind}|{opp}|{pos}", 0), "game": lbl,
-                              "kick": kick, "kick_iso": kick_iso})
+                              "kick": kick, "kick_iso": kick_iso, "home_full": home_full})
     watch.sort(key=lambda w: (w["kick_iso"], w["def_rank"], w["rank"]))
     json.dump({"week": nxt, "entries": watch}, open(f"{DOCS}/watchlist.json", "w"), indent=1)
     print(f"watchlist advanced to week {nxt}: {len(watch)} matchups")
@@ -259,6 +273,7 @@ class Monitor:
         self.bf_path = f"{DATA}/backfilled.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
+        self.wl_lines_t = 0   # last watchlist line refresh (hourly; 2 credits a game)
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -563,6 +578,51 @@ class Monitor:
             json.dump(d, open(path, "w"))
             print(f"archived {len(recs)} player props to week {wk}")
 
+    def watchlist_extras(self):
+        """Annotate Good Matchups with the injury report (every cycle, free) and the
+        current pregame prop line (hourly, 2 credits per game, upcoming games only)."""
+        try:
+            wl = json.load(open(f"{DOCS}/watchlist.json"))
+        except Exception:
+            return
+        entries = wl.get("entries", [])
+        if not entries:
+            return
+        changed = False
+        try:
+            inj = espn_injuries()
+            for w in entries:
+                st = inj.get(short_name(w["player"]))
+                if w.get("inj") != st:
+                    w["inj"] = st   # None clears a healed player
+                    changed = True
+        except Exception as e:
+            print("injury fetch error", repr(e))
+        if time.time() - self.wl_lines_t > 3600:
+            self.wl_lines_t = time.time()
+            try:
+                evs = get(f"{ODDS}/events?apiKey={KEY}")
+                qbyg = {}
+                for w in entries:
+                    if w.get("kick_iso") and \
+                            datetime.datetime.fromisoformat(w["kick_iso"]).timestamp() < time.time():
+                        continue   # kicked off: the live board takes over
+                    if w["game"] not in qbyg:
+                        full = w.get("home_full", "")
+                        oe = next((e for e in evs if full and
+                                   (full in e["home_team"] or e["home_team"] in full)), None)
+                        qbyg[w["game"]] = self.odds_quotes(oe) if oe else {}
+                    L = next((v for (nm, kd), v in qbyg[w["game"]].items()
+                              if kd == w["market"] and short_name(nm) == short_name(w["player"])), None)
+                    if w.get("line") != L:
+                        w["line"] = L
+                        changed = True
+            except Exception as e:
+                print("watchlist line fetch error", repr(e))
+        if changed:
+            json.dump(wl, open(f"{DOCS}/watchlist.json", "w"), indent=1)
+            print("watchlist extras updated (injuries/lines)")
+
     def cycle(self):
         opps, games_out, histout = [], [], {}
         live = self.espn_live()
@@ -648,6 +708,8 @@ class Monitor:
                 if hk in self.hist and not self.hist[hk].get("l0_closing"):
                     self.hist[hk].update(l0=line, l0_closing=True)
             for w in watchlist():
+                if w.get("inj") in INJ_OUT:
+                    continue   # injury report says no bet
                 k = next((k for k in closing if k.endswith("|" + w["market"]) and
                           short_name(k.rsplit("|", 1)[0]) == short_name(w["player"])), None)
                 if not k:
@@ -708,6 +770,7 @@ class Monitor:
                     opps, games_out, histout = [], [], {}
                 try:
                     refresh_watchlist()
+                    self.watchlist_extras()
                 except Exception as e:
                     print("watchlist refresh error", repr(e))
                 json.dump(histout, open(f"{DOCS}/nfl_history.json", "w"))

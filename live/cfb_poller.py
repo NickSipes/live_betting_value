@@ -368,8 +368,12 @@ class CFB:
             # opp 20 ~ 3.9). ponytail: linear EP; swap for a fitted curve at calibration
             if g["poss_side"]:
                 h["poss"] = (g["poss_side"], g["yl"] if g["yl"] is not None else 50,
-                             g["poss_text"])
-            side, yl, ptxt = h.get("poss") or (None, 50, None)
+                             g["poss_text"], margin)
+            p = h.get("poss")
+            if p and len(p) > 3 and p[3] != margin:
+                p = None   # someone scored since the last known possession: the cached
+                           # side already banked those points, don't also count its EP
+            side, yl, ptxt = (p or (None, 50, None))[:3]
             ep = (0.065 * yl - 1.3) if side else 0.0
             ep = ep if side != "away" else -ep
             ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun

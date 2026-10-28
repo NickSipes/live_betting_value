@@ -5,11 +5,33 @@ Weights are owned by analysis/retrain_markets.py; the watchlist is built by the
 poller itself (refresh_watchlist) from these priors and the ESPN schedule.
 Run from analysis/: ../.venv/bin/python export_live.py
 """
-import json, os, collections, csv
+import json, os, collections, csv, gzip
 
 exec(open(os.path.join(os.path.dirname(__file__), "v2_model.py")).read())
 
 LIVE = f"{ROOT}/live"
+
+# defense form for the live veto: yds allowed per game over the last 3 games
+# PLAYED (a bye just pushes the window back a week), per market, team level
+form = {"rush": collections.defaultdict(dict), "rec": collections.defaultdict(dict)}
+with gzip.open(f"{ROOT}/data/pbp_2026.csv.gz", "rt") as fh:
+    for r in csv.DictReader(fh):
+        if r["defteam"]:
+            wk = int(r["week"])
+            for kind, col in (("rush", "rushing_yards"), ("rec", "receiving_yards")):
+                try:
+                    form[kind][r["defteam"]][wk] = form[kind][r["defteam"]].get(wk, 0.0) + float(r[col])
+                except ValueError:
+                    pass
+dform = {}
+for kind in ("rush", "rec"):
+    dform[kind] = {}
+    for team, weeks in form[kind].items():
+        last3 = sorted(weeks)[-3:]
+        dform[kind][team] = round(sum(weeks[w] for w in last3) / len(last3), 1)
+json.dump(dform, open(f"{LIVE}/def_form.json", "w"), indent=1)
+for kind in ("rush", "rec"):
+    print(f"def form top-3 {kind}: {sorted(dform[kind], key=dform[kind].get)[:3]}")
 
 # upcoming week = first week in the schedule with unplayed games
 w_next = min(int(r["week"]) for r in csv.DictReader(open(f"{ROOT}/data/games.csv"))

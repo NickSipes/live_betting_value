@@ -47,12 +47,20 @@ PRIORS = json.load(open(f"{HERE}/priors.json"))     # name -> {kind:{ypg,ype,epg
 DEF = json.load(open(f"{HERE}/def_priors.json"))    # "kind|team|pos" -> ypg allowed
 
 def _top3_def():
-    by = {}
-    for k, v in DEF.items():
-        kind, team, pos = k.split("|")
-        by.setdefault((kind, pos), []).append((v, k))
-    return {k for rows in by.values() for _, k in sorted(rows)[:3]}
-TOP3_DEF = _top3_def()   # the 3 stingiest defenses per market/position: never call an over into them
+    """'kind|team' for the 3 stingiest defenses per market by last-3-games form
+    (live/def_form.json, analysis/export_live.py). Season-to-date fallback."""
+    try:
+        d = json.load(open(f"{HERE}/def_form.json"))
+        return {f"{kind}|{t}" for kind in ("rush", "rec")
+                for t in sorted(d[kind], key=d[kind].get)[:3]}
+    except Exception:
+        by = {}
+        for k, v in DEF.items():
+            kind, team, _pos = k.split("|")
+            by[(kind, team)] = by.get((kind, team), 0.0) + v
+        return {f"{kind}|{t}" for kind in ("rush", "rec")
+                for _, t in sorted((v, t) for (kd, t), v in by.items() if kd == kind)[:3]}
+TOP3_DEF = _top3_def()   # never call an over into a top-3 form defense
 try:  # isotonic P calibration (analysis/fit_calib.py); delete the file to run raw
     CAL = json.load(open(f"{HERE}/calib.json"))
 except Exception:
@@ -72,7 +80,7 @@ def call_gate(x, cum, L, dkey):
     """Week-7 review: every losing call was on a trailing team or a player whose
     volume never showed up. No call while down > 3 unless usage is already there,
     and never an over against a top-3 defense (going into the week)."""
-    return dkey not in TOP3_DEF and x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
+    return dkey.rsplit("|", 1)[0] not in TOP3_DEF and x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
 
 TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}   # watchlist: top-N player vs bottom-10 defense
 NFLV = {v: k for k, v in ALIAS.items()}     # ESPN -> nflverse team codes (priors/DEF keys)

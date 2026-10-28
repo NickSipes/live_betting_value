@@ -133,10 +133,11 @@ week and next. Keyed by ESPN id: `week, date` (kickoff UTC), `state` (`pre`/`in`
 
 **`live/nfl_spread_log.csv`** (no header) — one row per EDGE/SWING flag:
 `utc_time, game, clock, score ("as-hs"), pregame, live, fair, edge, status`.
-`fair` = −(margin + possession value + (−pregame) × fraction of game left), in home-spread sign;
-`edge = live − fair` (positive edge favors the home side). EDGE = |edge| ≥ 4;
-SWING = line moved ≥ 4 in ~10 game minutes beyond the score change. The fair line is an
-uncalibrated baseline.
+`fair` = −(margin × (1 − 0.28 × rem) + possession value + (−pregame) × rem), rem = fraction of
+game left, in home-spread sign; `edge = live − fair` (positive edge favors the home side).
+EDGE = |edge| ≥ 4; SWING = line moved ≥ 4 in ~10 game minutes beyond the score change.
+The 0.28 margin damping is the pooled 2025–26 drive-end fit from `analysis/momentum.py`
+(leads give back ~14% at halftime); rows logged before 2026-10-27 used the undamped fair line.
 
 **`live/hist_nfl_spreads.json`**, `hist_cfb_spreads.json` — working state for spreads in games
 not yet final (same layout as the archive plus `poss`, `t`).

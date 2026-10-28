@@ -373,7 +373,10 @@ class CFB:
             ep = (0.065 * yl - 1.3) if side else 0.0
             ep = ep if side != "away" else -ep
             ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
-            fair = None if S0 is None else -(margin + ep + (-S0) * rem)
+            # leads leak: pooled 2025-26 NFL drive-end fit (analysis/momentum.py) gives
+            # E[final] = margin*(1 - 0.28*rem) + pregame*rem; possession ~ +0.9 validated
+            # ponytail: NFL coefficient applied to CFB too; refit per sport when CFB data allows
+            fair = None if S0 is None else -(margin * (1 - 0.28 * rem) + ep + (-S0) * rem)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
             old = next(((s[0], s[1], s[2]) for s in reversed(h["snaps"])

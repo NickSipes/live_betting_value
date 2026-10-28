@@ -54,7 +54,8 @@ weekly by `analysis/export_live.py`, season-to-date fallback if absent). The cal
 threshold is calibrated P ≥ 0.60 (−110 breakeven is 0.524); NEAR = 0.55–0.59. Week-7 archive
 P values are raw pooled-model scores, called at raw P ≥ 0.70; the form-based veto was applied
 retroactively (entering-w7 form top-3: rush JAX/CHI/CAR, rec MIN/SEA/NYG), removing eight
-rec calls into MIN/NYG that went 1-7 — week 7 live stands 22-15 after cleanup.
+rec calls into MIN/NYG that went 1-7 and restoring the two MIA calls (1-1) the superseded
+season-to-date rule had removed — week 7 live stands 23-16 after cleanup.
 `docs/watchlist.json` is now written by the poller itself: it advances to the upcoming week
 automatically once the current slate finishes (schedule from ESPN; player teams and ranks
 from `live/priors.json`, which `analysis/export_live.py` exports).

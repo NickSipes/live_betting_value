@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 WORKDIR /app
-# pollers use only the standard library; model weights and priors ship in the image
+# pollers use only the standard library, except Web Push (live/push.py); model weights and priors ship in the image
+RUN pip install --no-cache-dir pywebpush==2.5.0
 COPY live/*.py live/model_weights.json live/calib.json live/priors.json live/def_priors.json live/def_form.json live/start.sh live/
 COPY docs/ docs/
 RUN chmod +x live/start.sh

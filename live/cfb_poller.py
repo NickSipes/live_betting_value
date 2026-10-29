@@ -18,6 +18,7 @@ line history into docs/archive/{sport}_w{week}.json when it goes final.
 Appends flags to live/{sport}_spread_log.csv.
 """
 import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
+import push
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -410,6 +411,10 @@ class CFB:
             if status != self.status.get(gid) and status != "watch":
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
+                # ponytail: status lives in memory, so a restart re-sends games already flagged
+                push.send(f"{SPORT.upper()} {status}: {lbl}",
+                          f'live {L} vs fair {fair:.1f} · {g["as"]}-{g["hs"]} · {g["clock"]}',
+                          tag=f"{SPORT}{gid}", url=f"./#{SPORT}/live")
                 with open(f"{DATA}/{SPORT}_spread_log.csv", "a") as lf:
                     csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), lbl, g["clock"],
                                              f'{g["as"]}-{g["hs"]}', S0, L, fair, edge, status])

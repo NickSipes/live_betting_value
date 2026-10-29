@@ -6,7 +6,7 @@ set -u
 mkdir -p "$DOCS_DIR/archive" "$DATA_DIR"
 
 # the dashboard always comes from the deployed image; the poller owns watchlist.json
-cp /app/docs/index.html "$DOCS_DIR/"
+cp /app/docs/index.html /app/docs/sw.js /app/docs/manifest.json /app/docs/icon-*.png "$DOCS_DIR/"
 cp -n /app/docs/watchlist.json "$DOCS_DIR/" 2>/dev/null || true
 # first boot only: seed the schedule and archives collected on the Mac
 cp -n /app/docs/*_games.json "$DOCS_DIR/" 2>/dev/null || true

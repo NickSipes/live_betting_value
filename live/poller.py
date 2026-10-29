@@ -11,7 +11,8 @@ Costs 2 credits per live game per poll (2 markets, DK+FD).
 """
 import json, os, sys, time, csv, math, bisect, datetime, subprocess, threading, re, zoneinfo
 import urllib.request, functools
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+import push
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -682,6 +683,8 @@ class Monitor:
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
                                  "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
+                    push.send(f"New call: {name}", f'{"Receiving" if kind == "rec" else "Rushing"} yds O {L} '
+                              f'at {round(p * 100)}% · {game["clock"]}', tag=hkey, url="./#nfl/live")
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
@@ -797,20 +800,69 @@ class Monitor:
                 break
             time.sleep(self.poll)
 
+SCOREBOARDS = {"nfl": f"{ESPN}/scoreboard",
+               "cfb": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=250"}
+
+def live_score(ev):
+    comp = ev["competitions"][0]
+    t = {c["homeAway"]: c for c in comp["competitors"]}
+    sit = comp.get("situation", {})
+    side = {c["id"]: c["homeAway"] for c in comp["competitors"]}.get(sit.get("possession"))
+    st = ev["status"]
+    out = {"state": st["type"]["state"], "detail": st["type"].get("shortDetail"),
+           "as": int(t["away"]["score"] or 0), "hs": int(t["home"]["score"] or 0),
+           "clock": f'Q{st["period"]} {st.get("displayClock", "")}'}
+    if side:
+        ab = t[side]["team"]["abbreviation"]
+        out.update(poss_side=side, poss=f'{ab} ball' + (f', {sit["possessionText"]}' if sit.get("possessionText") else ""))
+    return out
+
+def scores_loop():
+    """Score/clock/possession from ESPN's free scoreboards every 10s, so the board moves
+    between odds polls (which stay at --poll to save credits). The page overlays it."""
+    while True:
+        out, live = {}, False
+        for sport, url in SCOREBOARDS.items():
+            try:
+                evs = get(url, timeout=8).get("events", [])
+                out[sport] = {ev["id"]: live_score(ev) for ev in evs if ev["status"]["type"]["state"] != "pre"}
+                live = live or any(v["state"] == "in" for v in out[sport].values())
+            except Exception as e:
+                print("scores error", sport, repr(e)[:120])
+        tmp = f"{DOCS}/scores.json.tmp"
+        json.dump({"ts": time.time(), **out}, open(tmp, "w"))
+        os.replace(tmp, f"{DOCS}/scores.json")   # the page reads this every 10s; never half-written
+        time.sleep(10 if live else 60)
+
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *a):   # the dashboard polls every 10s; don't log each fetch
         pass
     def end_headers(self):   # revalidate every load, so a deploy reaches open tabs and phones
         self.send_header("Cache-Control", "no-cache")
         super().end_headers()
+    def do_POST(self):   # /api/subscribe and /api/unsubscribe, a PushSubscription as JSON
+        n = int(self.headers.get("Content-Length") or 0)
+        try:
+            body = json.loads(self.rfile.read(n)) if 0 < n <= 4096 else None
+        except ValueError:
+            body = None
+        ok = False
+        if self.path == "/api/subscribe":
+            ok = push.subscribe(body)
+        elif self.path == "/api/unsubscribe" and isinstance(body, dict):
+            push.unsubscribe(body.get("endpoint")); ok = True
+        self.send_response(204 if ok else 400)
+        self.end_headers()
 
 def serve():
-    HTTPServer((HOST, PORT), functools.partial(QuietHandler, directory=DOCS)).serve_forever()
+    ThreadingHTTPServer((HOST, PORT), functools.partial(QuietHandler, directory=DOCS)).serve_forever()
 
 if __name__ == "__main__":
     poll = int(sys.argv[sys.argv.index("--poll") + 1]) if "--poll" in sys.argv else 300
     if "--once" not in sys.argv:
+        push.init(DOCS)
         threading.Thread(target=serve, daemon=True).start()
+        threading.Thread(target=scores_loop, daemon=True).start()
         print(f"dashboard: http://{HOST}:{PORT}")
     Monitor(poll).run(demo="--demo" in sys.argv, once="--once" in sys.argv)
     if "--demo" in sys.argv:

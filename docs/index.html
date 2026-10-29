@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Live Bets">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
 <title>Live Bet Predictor</title>
 <style>
   :root {
@@ -23,7 +30,9 @@
   * { box-sizing: border-box; }
   body { margin:0; background:var(--page); color:var(--ink-1);
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
-  .wrap { max-width:1060px; margin:0 auto; padding:20px 16px 60px; }
+  .wrap { max-width:1060px; margin:0 auto;   /* safe areas: notch / home bar in the home-screen app */
+          padding:max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+                  calc(60px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
   .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
   .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
@@ -188,7 +197,7 @@
   <div class="nav">
     <div class="top">
       <h1>Live Bet Predictor</h1>
-      <button id="notifbtn" onclick="askNotif()" hidden>🔔 Notify me</button>
+      <button id="notifbtn" onclick="alertsClick()" hidden></button>
       <span class="meta" id="updated"></span>
     </div>
     <div class="tabrow">
@@ -206,7 +215,6 @@
 </div>
 
 <script>
-let notifStore = {};
 let lastTs = { props: null, nflsp: null, cfb: null };
 let S = { props: null, watch: null, watchT: 0, nflHist: {}, spread: { nflsp: null, cfb: null },
           spreadHist: { nflsp: {}, cfb: {} }, games: { nfl: {}, cfb: {} }, arch: {}, parch: {} };
@@ -239,18 +247,39 @@ function secToggle(key, open) {
   try { localStorage.setItem("closedSections", JSON.stringify([...closed])); } catch (e) {}
 }
 
-// desktop only: phone browsers either lack the Notification API (iOS outside a home-screen app)
-// or refuse page notifications without a service worker (Android Chrome).
-// ponytail: alerts fire only while this tab is open; real push needs a service worker + push server
-const NOTIF_OK = "Notification" in window && !/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
-const notifLabel = () => ({ granted: "🔔 Notifications on", denied: "🔕 Notifications blocked" })[Notification.permission] || "🔔 Notify me";
-function askNotif() {
-  Notification.requestPermission().then(() => { document.getElementById("notifbtn").textContent = notifLabel(); });
-}
-if (NOTIF_OK) {
+// alerts are Web Push (new calls, spread EDGE/SWING), sent by the pollers even with the app closed.
+// iPhone only allows push for the home-screen app, so Safari gets an install hint instead.
+const PUSH_OK = "serviceWorker" in navigator && "PushManager" in window;
+const IOS_BROWSER = /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone;
+let pushSub = null;
+function alertsLabel() {
   const b = document.getElementById("notifbtn");
-  b.hidden = false; b.textContent = notifLabel();
+  b.hidden = !(PUSH_OK || IOS_BROWSER);
+  b.textContent = !PUSH_OK ? "📲 Install for alerts" : pushSub ? "🔔 Alerts on"
+    : Notification.permission === "denied" ? "🔕 Alerts blocked" : "🔔 Turn on alerts";
 }
+const b64key = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
+const postSub = (path, sub) => fetch(path, { method: "POST", body: JSON.stringify(sub) });
+async function alertsClick() {
+  if (!PUSH_OK) return alert("Tap Share, then “Add to Home Screen”. Open Live Bets from your home screen and tap “Turn on alerts”.");
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (pushSub) {
+      if (!confirm("Turn off alerts on this device?")) return;
+      await postSub("api/unsubscribe", pushSub.toJSON()); await pushSub.unsubscribe(); pushSub = null;
+    } else {
+      if (await Notification.requestPermission() !== "granted") return alertsLabel();
+      const key = (await (await fetch("vapid_public.txt")).text()).trim();
+      pushSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64key(key) });
+      if (!(await postSub("api/subscribe", pushSub.toJSON())).ok) throw new Error("server refused the subscription");
+    }
+  } catch (e) { alert("Couldn't change alerts: " + e.message); }
+  alertsLabel();
+}
+if (PUSH_OK)
+  navigator.serviceWorker.register("sw.js").then(r => r.pushManager.getSubscription())
+    .then(s => { pushSub = s; if (s) postSub("api/subscribe", s.toJSON()); alertsLabel(); });   // re-send: survives a server reset
+alertsLabel();
 
 const ageText = ts => {
   if (!ts) return "—";
@@ -284,13 +313,6 @@ const P_MIN = 0.55;  // Picks on Deck: props at 55%+ that haven't been called ye
 const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
 const onWatch = (player, market) => (S.watch?.entries || []).some(w => w.player === player && w.market === market);
 const star = (player, market) => onWatch(player, market) ? `<span class="star" title="Good Matchup" aria-label="Good Matchup">★</span>` : "";
-
-function notifyIf(id, status, title, body) {
-  if (["NEAR", "TRIGGER", "EDGE", "SWING"].includes(status) && notifStore[id] !== status
-      && NOTIF_OK && Notification.permission === "granted")
-    new Notification(title, { body });
-  notifStore[id] = status;
-}
 
 // click handlers are registered per render so names with quotes never break markup
 let H = [];
@@ -569,17 +591,29 @@ async function refreshProps() {
   if (!S.watch || Date.now() - S.watchT > 300e3)
     try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
   if (S.props) { lastTs.props = S.props.ts; renderAges(); }
-  for (const o of (S.props?.opps || []))
-    notifyIf(o.id, o.status, (o.status === "TRIGGER" ? "🔔 TRIGGER: " : "Approaching: ") + o.player,
-      `${o.market} O${o.line} · ${o.cum} yds · P=${o.p.toFixed(2)} · ${o.clock}`);
 }
 async function refreshSpread(kind) {
   let d;
   try { d = await (await fetch(SPREADS[kind].state + "?" + Date.now())).json(); } catch (e) { return; }
   S.spread[kind] = d; lastTs[kind] = d.ts; renderAges();
-  for (const g of d.games || [])
-    notifyIf(kind + g.id, g.status, `${kind === "cfb" ? "CFB" : "NFL"} ${g.status}: ${g.game}`,
-      `live ${g.line} vs fair ${g.fair} · ${g.score} · ${g.clock}`);
+}
+// scores.json: ESPN score/clock/possession every 10s (lines and model stay on the slower poll)
+async function refreshScores() {
+  try { S.scores = await (await fetch("scores.json?" + Date.now())).json(); } catch (e) {}
+}
+function applyScores() {
+  for (const [kind, sport] of Object.entries(SPORTOF)) {
+    const sc = S.scores?.[sport] || {};
+    for (const g of S.spread[kind]?.games || []) {
+      const s = sc[g.id];
+      if (!s) continue;
+      Object.assign(g, { score: `${s.as}-${s.hs}`, clock: s.clock });
+      if (s.poss_side) Object.assign(g, { poss: s.poss, poss_side: s.poss_side });
+    }
+    for (const [id, r] of Object.entries(S.games[sport] || {}))
+      if (sc[id]) Object.assign(r, { state: sc[id].state, detail: sc[id].detail, as: sc[id].as, hs: sc[id].hs });
+  }
+  for (const o of S.props?.opps || []) { const s = S.scores?.nfl?.[o.eid]; if (s) o.clock = s.clock; }
 }
 async function loadAux() {
   for (const kind of ["nflsp", "cfb"])
@@ -598,18 +632,34 @@ function checkNewCalls() {
   if (!fresh.length) return;
   for (const c of fresh) {
     seenCalls.add(c.id); freshCalls.add(c.id);
-    if (c.type === "live" && NOTIF_OK && Notification.permission === "granted")
-      new Notification(`New call: ${c.player}`, { body: `${MKT(c.market)} O ${c.line} at ${Math.round(c.p * 100)}% · ${c.clock}` });
   }
   flashUntil = Date.now() + 4500;
   closed.delete("nfl-active-calls");   // make sure the list is open to show it
 }
 
 async function tick() {
-  await Promise.all([refreshProps(), refreshSpread("nflsp"), refreshSpread("cfb")]);
+  await Promise.all([refreshProps(), refreshSpread("nflsp"), refreshSpread("cfb"), refreshScores()]);
+  applyScores();
   checkNewCalls();
   render();
+  keepAwake();
 }
+
+// screen stays on while games are live and the board is in front; the OS drops the lock when hidden
+let wake = null;
+function keepAwake() {
+  const live = (S.spread.nflsp?.games || []).length + (S.spread.cfb?.games || []).length > 0;
+  if (live && !wake && document.visibilityState === "visible" && navigator.wakeLock)
+    navigator.wakeLock.request("screen").then(l => { wake = l; l.onrelease = () => { wake = null; }; }).catch(() => {});
+  else if (!live && wake) wake.release();
+}
+// phones freeze timers in the background: refresh the moment the app comes back
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  navigator.clearAppBadge?.().catch(() => {});
+  loadAux().then(tick);
+});
+navigator.clearAppBadge?.().catch(() => {});
 
 // ---------- modal charts ----------
 const GL = 3600;
@@ -945,7 +995,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal()
 
 loadAux().then(tick);
 setInterval(tick, 10000);
-setInterval(() => loadAux().then(render), 30000);
+setInterval(() => loadAux().then(() => { applyScores(); render(); }), 30000);
 </script>
 </body>
 </html>

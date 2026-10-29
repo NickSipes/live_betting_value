@@ -281,7 +281,7 @@ class Monitor:
         self.bf_path = f"{DATA}/backfilled.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
-        self.wl_lines_t = 0   # last watchlist line refresh (hourly; 2 credits a game)
+        self.wl_lines_t = 0   # last watchlist line refresh (3h; 2 credits a game)
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -588,7 +588,8 @@ class Monitor:
 
     def watchlist_extras(self):
         """Annotate Good Matchups with the injury report (every cycle, free) and the
-        current pregame prop line (hourly, 2 credits per game, upcoming games only)."""
+        current pregame prop line (every 3h to stay inside the API quota,
+        2 credits per game, upcoming games only)."""
         try:
             wl = json.load(open(f"{DOCS}/watchlist.json"))
         except Exception:
@@ -606,7 +607,7 @@ class Monitor:
                     changed = True
         except Exception as e:
             print("injury fetch error", repr(e))
-        if time.time() - self.wl_lines_t > 3600:
+        if time.time() - self.wl_lines_t > 10800:
             self.wl_lines_t = time.time()
             try:
                 evs = get(f"{ODDS}/events?apiKey={KEY}")

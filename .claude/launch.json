@@ -4,8 +4,26 @@
     {
       "name": "reports",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8765", "-d", "reports"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8765",
+        "-d",
+        "reports"
+      ],
       "port": 8765
+    },
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8766",
+        "-d",
+        "docs"
+      ],
+      "port": 8766
     }
   ]
 }

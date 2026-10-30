@@ -163,6 +163,47 @@ def refresh_watchlist():
     json.dump({"week": nxt, "entries": watch}, open(f"{DOCS}/watchlist.json", "w"), indent=1)
     print(f"watchlist advanced to week {nxt}: {len(watch)} matchups")
 
+def espn_box(eid, _cache={}):
+    """Finished game -> {ESPN team abbr: {kind: [(name, yds), ...] best first}}.
+    ponytail: process-lifetime cache; ~16 games a week, a few KB each."""
+    if eid not in _cache:
+        out = {}
+        for tp in get(f"{ESPN}/summary?event={eid}").get("boxscore", {}).get("players", []):
+            for cat in tp.get("statistics", []):
+                kind = {"receiving": "rec", "rushing": "rush"}.get(cat.get("name"))
+                labels = [l.upper() for l in cat.get("labels", [])]
+                if kind and "YDS" in labels:
+                    i = labels.index("YDS")
+                    rows = [(a["athlete"]["displayName"], float(a["stats"][i]))
+                            for a in cat.get("athletes", []) if len(a.get("stats", [])) > i]
+                    out.setdefault(tp["team"]["abbreviation"], {})[kind] = sorted(rows, key=lambda r: -r[1])
+        _cache[eid] = out
+    return _cache[eid]
+
+def last3(team):
+    """A team's last 3 finished games, oldest first: [(label 'w7 @ BAL', espn_id, opp_abbr)]."""
+    ab = ALIAS.get(team, team)
+    evs = [e for e in get(f"{ESPN}/teams/{ab.lower()}/schedule").get("events", [])
+           if e["competitions"][0]["status"]["type"]["state"] == "post"]
+    out = []
+    for e in evs[-3:]:
+        side = {c["homeAway"]: c["team"]["abbreviation"] for c in e["competitions"][0]["competitors"]}
+        home = side["home"] == ab
+        opp = side["away" if home else "home"]
+        out.append((f'w{e["week"]["number"]} {"vs" if home else "@"} {opp}', e["id"], opp))
+    return out
+
+def preview_form(w):
+    """Good Matchups card data: the player's yards in the prop's market over their last 3
+    games (null = not in the box score), and in each of the defense's last 3 games the
+    top-2 opposing players in that market."""
+    kind, me_ab, who = w["market"], ALIAS.get(w["team"], w["team"]), short_name(w["player"])
+    me = [[lbl, next((y for n, y in espn_box(eid).get(me_ab, {}).get(kind, []) if short_name(n) == who), None)]
+          for lbl, eid, _ in last3(w["team"])]
+    vs = [[lbl, [[abbrev(n), y] for n, y in espn_box(eid).get(opp, {}).get(kind, [])[:2]]]
+          for lbl, eid, opp in last3(w["opp"])]
+    return {"me": me, "vs": vs}
+
 def get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -186,10 +227,14 @@ def clock_to_elapsed(period, display):
 def iso_ts(s):
     return datetime.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
 
-def short_name(full):
-    """'Brandon Lance Jr.' -> 'b.lance' (ESPN play text uses 'B.Lance')."""
+def abbrev(full):
+    """'Brandon Lance Jr.' -> 'B.Lance'."""
     parts = [w for w in full.replace(".", " ").split() if w.lower() not in ("jr", "sr", "ii", "iii", "iv", "v")]
-    return f"{parts[0][0]}.{parts[-1]}".lower() if len(parts) >= 2 else full.lower()
+    return f"{parts[0][0]}.{parts[-1]}" if len(parts) >= 2 else full
+
+def short_name(full):
+    """'Brandon Lance Jr.' -> 'b.lance' (ESPN play text uses 'B.Lance'), for matching."""
+    return abbrev(full).lower()
 
 PASS_TO = re.compile(r"pass (?:incomplete )?(?:short |deep )?(?:left |right |middle )?to ([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)")
 ELIGIBLE = re.compile(r"[A-Z][\w.'\-]+ reported in as eligible\.\s*")
@@ -283,6 +328,7 @@ class Monitor:
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
         self.wl_lines_t = 0   # last watchlist line refresh (3h; 2 credits a game)
+        self.form_t = 0       # last preview-form fetch attempt (hourly retry on ESPN errors)
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -588,9 +634,10 @@ class Monitor:
             print(f"archived {len(recs)} player props to week {wk}")
 
     def watchlist_extras(self):
-        """Annotate Good Matchups with the injury report (every cycle, free) and the
+        """Annotate Good Matchups with the injury report (every cycle, free), the
         current pregame prop line (every 3h to stay inside the API quota,
-        2 credits per game, upcoming games only)."""
+        2 credits per game, upcoming games only) and, once per entry, the last-3
+        form behind the preview card (ESPN schedule + box scores)."""
         try:
             wl = json.load(open(f"{DOCS}/watchlist.json"))
         except Exception:
@@ -629,9 +676,18 @@ class Monitor:
                         changed = True
             except Exception as e:
                 print("watchlist line fetch error", repr(e))
+        if any("form" not in w for w in entries) and time.time() - self.form_t > 3600:
+            self.form_t = time.time()   # new week: last-3 form for the preview cards, once per entry
+            try:
+                for w in entries:
+                    if "form" not in w:
+                        w["form"] = preview_form(w)
+                        changed = True
+            except Exception as e:
+                print("preview form error", repr(e))
         if changed:
             json.dump(wl, open(f"{DOCS}/watchlist.json", "w"), indent=1)
-            print("watchlist extras updated (injuries/lines)")
+            print("watchlist extras updated (injuries/lines/form)")
 
     def cycle(self):
         opps, games_out, histout = [], [], {}

@@ -4,7 +4,7 @@
   {
    "player": "Tee Higgins",
    "pos": "WR",
-   "rank": 4,
+   "rank": 5,
    "ypg": 95.2,
    "market": "rec",
    "team": "CIN",
@@ -13,7 +13,66 @@
    "def_ypg": 175.6,
    "game": "TEN @ CIN",
    "kick": "Sun 13:00 ET",
-   "kick_iso": "2026-11-01T13:00:00-05:00"
+   "kick_iso": "2026-11-01T13:00:00-05:00",
+   "home_full": "Cincinnati Bengals",
+   "line": 70.5,
+   "form": {
+    "me": [
+     [
+      "w4 vs JAX",
+      157.0
+     ],
+     [
+      "w5 @ MIA",
+      22.0
+     ],
+     [
+      "w7 @ BAL",
+      148.0
+     ]
+    ],
+    "vs": [
+     [
+      "w5 vs HOU",
+      [
+       [
+        "X.Hutchinson",
+        65.0
+       ],
+       [
+        "N.Collins",
+        56.0
+       ]
+      ]
+     ],
+     [
+      "w6 @ IND",
+      [
+       [
+        "K.Allen",
+        82.0
+       ],
+       [
+        "J.Taylor",
+        57.0
+       ]
+      ]
+     ],
+     [
+      "w7 vs CLE",
+      [
+       [
+        "K.Concepcion",
+        129.0
+       ],
+       [
+        "H.Fannin",
+        91.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "Zay Flowers",
@@ -27,7 +86,66 @@
    "def_ypg": 173.8,
    "game": "BAL @ BUF",
    "kick": "Sun 13:00 ET",
-   "kick_iso": "2026-11-01T13:00:00-05:00"
+   "kick_iso": "2026-11-01T13:00:00-05:00",
+   "home_full": "Buffalo Bills",
+   "line": 82.5,
+   "form": {
+    "me": [
+     [
+      "w5 @ ATL",
+      53.0
+     ],
+     [
+      "w6 @ CLE",
+      66.0
+     ],
+     [
+      "w7 vs CIN",
+      137.0
+     ]
+    ],
+    "vs": [
+     [
+      "w4 vs NE",
+      [
+       [
+        "H.Henry",
+        62.0
+       ],
+       [
+        "R.Doubs",
+        58.0
+       ]
+      ]
+     ],
+     [
+      "w5 @ LAR",
+      [
+       [
+        "P.Nacua",
+        138.0
+       ],
+       [
+        "T.Higbee",
+        83.0
+       ]
+      ]
+     ],
+     [
+      "w6 @ LV",
+      [
+       [
+        "T.Tucker",
+        97.0
+       ],
+       [
+        "M.Mayer",
+        95.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "Jaylen Warren",
@@ -37,11 +155,70 @@
    "market": "rush",
    "team": "PIT",
    "opp": "CLE",
-   "def_rank": 9,
+   "def_rank": 8,
    "def_ypg": 104.0,
    "game": "CLE @ PIT",
    "kick": "Sun 13:00 ET",
-   "kick_iso": "2026-11-01T13:00:00-05:00"
+   "kick_iso": "2026-11-01T13:00:00-05:00",
+   "home_full": "Pittsburgh Steelers",
+   "line": 64.5,
+   "form": {
+    "me": [
+     [
+      "w5 vs IND",
+      101.0
+     ],
+     [
+      "w6 @ TB",
+      50.0
+     ],
+     [
+      "w7 @ NO",
+      101.0
+     ]
+    ],
+    "vs": [
+     [
+      "w5 @ NYJ",
+      [
+       [
+        "B.Allen",
+        116.0
+       ],
+       [
+        "I.Davis",
+        8.0
+       ]
+      ]
+     ],
+     [
+      "w6 vs BAL",
+      [
+       [
+        "D.Henry",
+        58.0
+       ],
+       [
+        "T.Huntley",
+        28.0
+       ]
+      ]
+     ],
+     [
+      "w7 @ TEN",
+      [
+       [
+        "T.Pollard",
+        129.0
+       ],
+       [
+        "M.Carter",
+        7.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "Kyren Williams",
@@ -51,11 +228,70 @@
    "market": "rush",
    "team": "LA",
    "opp": "LAC",
-   "def_rank": 8,
+   "def_rank": 6,
    "def_ypg": 104.8,
    "game": "LAC @ LA",
    "kick": "Sun 16:05 ET",
-   "kick_iso": "2026-11-01T16:05:00-05:00"
+   "kick_iso": "2026-11-01T16:05:00-05:00",
+   "home_full": "Los Angeles Rams",
+   "line": 59.5,
+   "form": {
+    "me": [
+     [
+      "w5 vs BUF",
+      49.0
+     ],
+     [
+      "w6 vs ARI",
+      50.0
+     ],
+     [
+      "w7 @ LV",
+      99.0
+     ]
+    ],
+    "vs": [
+     [
+      "w4 @ SEA",
+      [
+       [
+        "E.Wilson",
+        81.0
+       ],
+       [
+        "R.Shaheed",
+        33.0
+       ]
+      ]
+     ],
+     [
+      "w5 vs DEN",
+      [
+       [
+        "J.Dobbins",
+        68.0
+       ],
+       [
+        "B.Nix",
+        10.0
+       ]
+      ]
+     ],
+     [
+      "w6 @ KC",
+      [
+       [
+        "K.Walker",
+        128.0
+       ],
+       [
+        "P.Mahomes",
+        16.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "Travis Kelce",
@@ -69,13 +305,73 @@
    "def_ypg": 65.3,
    "game": "KC @ DEN",
    "kick": "Sun 16:25 ET",
-   "kick_iso": "2026-11-01T16:25:00-05:00"
+   "kick_iso": "2026-11-01T16:25:00-05:00",
+   "home_full": "Denver Broncos",
+   "line": 46.5,
+   "inj": "Questionable",
+   "form": {
+    "me": [
+     [
+      "w4 @ LV",
+      15.0
+     ],
+     [
+      "w6 vs LAC",
+      53.0
+     ],
+     [
+      "w7 @ SEA",
+      44.0
+     ]
+    ],
+    "vs": [
+     [
+      "w5 @ LAC",
+      [
+       [
+        "C.Kolar",
+        37.0
+       ],
+       [
+        "M.Valdes-Scantling",
+        22.0
+       ]
+      ]
+     ],
+     [
+      "w6 vs SEA",
+      [
+       [
+        "J.Smith-Njigba",
+        134.0
+       ],
+       [
+        "R.Shaheed",
+        66.0
+       ]
+      ]
+     ],
+     [
+      "w7 @ ARI",
+      [
+       [
+        "T.McBride",
+        111.0
+       ],
+       [
+        "M.Wilson",
+        55.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "Dallas Goedert",
    "pos": "TE",
    "rank": 10,
-   "ypg": 45.6,
+   "ypg": 45.0,
    "market": "rec",
    "team": "PHI",
    "opp": "WAS",
@@ -83,7 +379,66 @@
    "def_ypg": 73.5,
    "game": "PHI @ WAS",
    "kick": "Sun 20:20 ET",
-   "kick_iso": "2026-11-01T20:20:00-05:00"
+   "kick_iso": "2026-11-01T20:20:00-05:00",
+   "home_full": "Washington Commanders",
+   "line": 42.5,
+   "form": {
+    "me": [
+     [
+      "w5 @ JAX",
+      38.0
+     ],
+     [
+      "w6 vs CAR",
+      61.0
+     ],
+     [
+      "w7 vs DAL",
+      48.0
+     ]
+    ],
+    "vs": [
+     [
+      "w4 vs IND",
+      [
+       [
+        "L.Treadwell",
+        42.0
+       ],
+       [
+        "T.Warren",
+        41.0
+       ]
+      ]
+     ],
+     [
+      "w5 vs NYG",
+      [
+       [
+        "M.Nabers",
+        121.0
+       ],
+       [
+        "I.Likely",
+        94.0
+       ]
+      ]
+     ],
+     [
+      "w6 @ SF",
+      [
+       [
+        "M.Evans",
+        94.0
+       ],
+       [
+        "G.Kittle",
+        69.0
+       ]
+      ]
+     ]
+    ]
+   }
   },
   {
    "player": "DeVonta Smith",
@@ -97,7 +452,66 @@
    "def_ypg": 158.3,
    "game": "PHI @ WAS",
    "kick": "Sun 20:20 ET",
-   "kick_iso": "2026-11-01T20:20:00-05:00"
+   "kick_iso": "2026-11-01T20:20:00-05:00",
+   "home_full": "Washington Commanders",
+   "inj": "Questionable",
+   "form": {
+    "me": [
+     [
+      "w5 @ JAX",
+      null
+     ],
+     [
+      "w6 vs CAR",
+      75.0
+     ],
+     [
+      "w7 vs DAL",
+      null
+     ]
+    ],
+    "vs": [
+     [
+      "w4 vs IND",
+      [
+       [
+        "L.Treadwell",
+        42.0
+       ],
+       [
+        "T.Warren",
+        41.0
+       ]
+      ]
+     ],
+     [
+      "w5 vs NYG",
+      [
+       [
+        "M.Nabers",
+        121.0
+       ],
+       [
+        "I.Likely",
+        94.0
+       ]
+      ]
+     ],
+     [
+      "w6 @ SF",
+      [
+       [
+        "M.Evans",
+        94.0
+       ],
+       [
+        "G.Kittle",
+        69.0
+       ]
+      ]
+     ]
+    ]
+   }
   }
  ]
 }

@@ -116,7 +116,12 @@ through 2026-10-25 14:40 UTC have p < 0.70 (an older version also logged NEAR); 
 
 **`docs/watchlist.json`** — this week's pregame matchups (top-20 WR / top-10 TE / top-15 RB
 by season yds/game vs a bottom-10 defense at the position):
-`{week, entries: [{player, pos, rank, ypg, market, team, opp, def_rank, def_ypg, game, kick, kick_iso}]}`.
+`{week, entries: [{player, pos, rank, ypg, market, team, opp, def_rank, def_ypg, game, kick, kick_iso,
+line, inj, form}]}`. `form` feeds the preview card (from ESPN box scores, once per entry):
+`me` = the player's yards in the prop's market over their last 3 games, `[[label, yds], ...]`
+(`null` = not in the box score); `vs` = in each of the defense's last 3 games, the top-2
+opposing players in that market, `[[label, [[name, yds], [name, yds]]], ...]`. Labels are
+`"w7 @ BAL"` from the team's own point of view.
 
 ### Game spreads
 

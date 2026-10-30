@@ -302,8 +302,9 @@ function renderAges() {
 setInterval(renderAges, 5000);
 
 const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" ? "warm" : "watch";
+// spreads only bet in half points; also rounds fair values saved to a tenth before Oct 30
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
-  v === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
+  (v = Math.round(v * 2) / 2) === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
 const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:22px"></span>`;
 const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLowerCase()}.png` : null;
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
@@ -946,7 +947,7 @@ function openSpread(kind, id) {
   const sits = snaps.filter(s => s[3]).map(s => [s[0], s[3]]);
   // snaps carry the model's fair home spread (s[4]) since Oct 29; edge = live - fair, as on the cards
   const flag = S.spread[kind]?.edge_flag ?? 4, edges = [];
-  const fairs = clean(snaps.map(s => [s[0], s[4]])), edgeAt = gc => {
+  const fairs = clean(snaps.map(s => [s[0], s[4] == null ? s[4] : Math.round(s[4] * 2) / 2])), edgeAt = gc => {
     const L = stepVal(clean(snaps.map(s => [s[0], s[1]])), gc), f = stepVal(fairs, gc);
     return L === null || f === null ? null : Math.round((L - f) * 10) / 10;
   };

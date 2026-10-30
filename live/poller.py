@@ -683,8 +683,9 @@ class Monitor:
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
                                  "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
-                    push.send(f"New call: {name}", f'{"Receiving" if kind == "rec" else "Rushing"} yds O {L} '
-                              f'at {round(p * 100)}% · {game["clock"]}', tag=hkey, url="./#nfl/live")
+                    push.send(f'Bet {name} Over {L} {"rec" if kind == "rec" else "rush"} yds',
+                              f'Model gives it {round(p * 100)}% · {game["away_abbr"]} {game["as"]}–{game["home_abbr"]} {game["hs"]}, '
+                              f'{game["clock"]}', tag=hkey, url="./#nfl/live")
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
@@ -738,8 +739,9 @@ class Monitor:
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
                 if not c:   # this prop just joined Active Picks
-                    push.send(f"Pregame pick live: {name}", f'{"Receiving" if kind == "rec" else "Rushing"} yds '
-                              f'O {closing[k]} · {game["away_abbr"]} @ {game["home_abbr"]}', tag=hkey + "|pre", url="./#nfl/live")
+                    push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds',
+                              f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
+                              tag=hkey + "|pre", url="./#nfl/live")
                 if not c or (c.get("src") != "closing" and "result" not in c):
                     h["pre"] = c = {"type": "pregame", "src": "closing", "clock": "pregame", "gc": 0,
                                     "line": closing[k], "cum": 0, "p": None, "t": (c or {}).get("t", time.time()),

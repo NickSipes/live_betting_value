@@ -107,7 +107,8 @@ def fair_spread(S0, margin, gc, side, yl):
     ep = ep if side != "away" else -ep
     ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
     # leads leak: E[final] = margin*(1 - LEAK*rem) + pregame*rem; possession ~ +0.9 validated
-    return -(margin * (1 - LEAK * rem) + ep + (-S0) * rem)
+    f = -(margin * (1 - LEAK * rem) + ep + (-S0) * rem)
+    return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
 
 def backfill_fair(h):
     """Snaps saved before fair was stored (4 fields) get it rebuilt from their own

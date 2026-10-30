@@ -136,7 +136,9 @@
     .bug { margin:0 22px 10px; }
     .bug img { width:28px; height:28px; }
     .bug .sc { font-size:24px; }
-    #evlist { max-height:none; }
+    #evlist { max-height:none; touch-action:pan-y; }
+    #modal { touch-action:none; }   /* the sheet owns vertical drags: swipe down closes it */
+    .mclose { display:none; }
   }
   svg { display:block; width:100%; height:auto; }
   svg text { font-family:inherit; }
@@ -1148,6 +1150,27 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+// phone bottom sheet: drag it down to close. Not from the chart's cursor strip, nor from the
+// play list while it is scrolled; a sideways drag is never a swipe.
+let swipe = null;
+const modalEl = document.getElementById("modal");
+modalEl.addEventListener("pointerdown", e => {
+  if (e.pointerType === "mouse" || e.target.closest(".mhit") || e.target.closest("#evlist")?.scrollTop > 0) return;
+  swipe = { x: e.clientX, y: e.clientY };
+});
+modalEl.addEventListener("pointermove", e => {
+  if (!swipe) return;
+  const dy = e.clientY - swipe.y;
+  if (Math.abs(e.clientX - swipe.x) > Math.abs(dy) + 10) { swipe = null; modalEl.style.transform = ""; return; }
+  modalEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
+});
+for (const t of ["pointerup", "pointercancel"])
+  modalEl.addEventListener(t, e => {
+    if (!swipe) return;
+    const dy = e.clientY - swipe.y;
+    swipe = null; modalEl.style.transform = "";
+    if (dy > 90) closeModal();
+  });
 
 loadAux().then(tick);
 setInterval(tick, 10000);

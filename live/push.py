@@ -4,12 +4,13 @@ shared file. The VAPID key is made once by the server process (init) on the volu
 No-op where pywebpush isn't installed (e.g. running the pollers on the Mac).
 pywebpush (+cryptography, requests) costs ~30 MB, so it's imported only to send or
 to make the key: the 256 MB machine OOM'd with it loaded in every poller."""
-import hashlib, importlib.util, json, os, threading
+import hashlib, importlib.util, json, os, threading, time
 from urllib.parse import urlparse
 
 DATA = os.environ.get("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
 SUBS = f"{DATA}/push_subs"
 KEY = f"{DATA}/vapid.pem"
+OUTBOX = f"{DATA}/push_out"   # other processes queue here; the server process sends
 CLAIMS = {"sub": os.environ.get("PUSH_SUB", "https://live-betting-value.fly.dev")}
 # only real browser push services: the server POSTs to whatever endpoint is stored
 PUSH_HOSTS = ("fcm.googleapis.com", ".push.apple.com", ".push.services.mozilla.com", ".notify.windows.com")
@@ -74,3 +75,23 @@ def send(title, body, tag=None, url="./"):
     if AVAILABLE and os.path.exists(KEY) and os.path.isdir(SUBS):
         payload = json.dumps({"title": title, "body": body, "tag": tag, "url": url})
         threading.Thread(target=_send, args=(payload,), daemon=True).start()
+
+def queue(title, body, tag=None, url="./"):
+    """For the spread pollers: leave the message for the server process (drain), so
+    they never load pywebpush themselves (~30 MB each on a 256 MB machine)."""
+    os.makedirs(OUTBOX, exist_ok=True)
+    p = f"{OUTBOX}/{time.time_ns()}.json"
+    json.dump({"title": title, "body": body, "tag": tag, "url": url}, open(p + ".tmp", "w"))
+    os.replace(p + ".tmp", p)   # drain never sees a half-written file
+
+def drain():
+    """Send and clear queued messages. Called by the server process every 10-60s."""
+    for f in sorted(os.listdir(OUTBOX)) if os.path.isdir(OUTBOX) else []:
+        if f.endswith(".json"):
+            try:
+                m = json.load(open(f"{OUTBOX}/{f}"))
+                if time.time_ns() - int(f[:-5]) < 900e9:   # stale after 15 min (machine was down): drop
+                    send(**m)
+            except Exception as e:
+                print("push queue error", f, repr(e)[:120])
+            os.remove(f"{OUTBOX}/{f}")

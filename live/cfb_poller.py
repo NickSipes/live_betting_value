@@ -14,6 +14,7 @@ line history into docs/archive/{sport}_w{week}.json when it goes final.
 Appends flags to live/{sport}_spread_log.csv.
 """
 import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
+import push
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -109,6 +110,14 @@ def fair_spread(S0, margin, gc, side, yl):
     # leads leak: E[final] = margin*(1 - LEAK*rem) + pregame*rem; possession ~ +0.9 validated
     f = -(margin * (1 - LEAK * rem) + ep + (-S0) * rem)
     return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
+
+def edge_push(g, L, fair):
+    """(title, body) naming the bet: the side the model likes, at its live spread."""
+    home = L > fair   # live home spread above fair: home is getting more points than it should
+    ab, line, fr = (g["habbr"], L, fair) if home else (g["aabbr"], -L, -fair)
+    sp = lambda v: "PK" if v == 0 else f"{v:+g}"
+    return (f"Bet {ab} {sp(line)}",
+            f'Model has {ab} {sp(fr)} · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}')
 
 def backfill_fair(h):
     """Snaps saved before fair was stored (4 fields) get it rebuilt from their own
@@ -423,6 +432,7 @@ class CFB:
                          "status": status,
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
             if status != self.status.get(gid) and status != "watch":
+                push.queue(*edge_push(g, L, fair), tag=f"{SPORT}|{gid}", url=f"./#{SPORT}/live")
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
                 with open(f"{DATA}/{SPORT}_spread_log.csv", "a") as lf:

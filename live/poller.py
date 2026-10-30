@@ -837,6 +837,7 @@ def scores_loop():
         tmp = f"{DOCS}/scores.json.tmp"
         json.dump({"ts": time.time(), **out}, open(tmp, "w"))
         os.replace(tmp, f"{DOCS}/scores.json")   # the page reads this every 10s; never half-written
+        push.drain()   # spread EDGE alerts queued by the spread pollers
         time.sleep(10 if live else 60)
 
 class QuietHandler(SimpleHTTPRequestHandler):

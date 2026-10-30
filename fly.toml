@@ -2,6 +2,7 @@
 # Change `app` if the name is taken (Fly app names are global).
 app = "live-betting-value"
 primary_region = "iad"
+swap_size_mb = 512   # headroom: three pollers + server in 256 MB RAM
 
 [build]
 

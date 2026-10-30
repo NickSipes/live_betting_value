@@ -7,10 +7,6 @@ Fair-line baseline: expected final home margin = current margin +
 spread. Big |edge| = the market moved more (or less) than score+time justify —
 e.g. a pick-6 swinging a -14 to -7.
 
-ponytail: uncalibrated baseline; replace coefficients with a fitted model once
-we have CFB historical lines. Also flags SWING when the line moved 4+ points in
-~10 minutes beyond the score change.
-
 Usage: python3 cfb_poller.py [--sport nfl|cfb] [--poll 180] [--once]
 Writes docs/{cfb_state,nfl_spreads_state}.json (live), docs/{sport}_games.json
 (schedule registry: pre/in/post for this week and next), and moves each game's
@@ -40,7 +36,6 @@ EDGE_FLAG = 4.0     # points of edge to flag
 # drive-end fits: NFL 2025-26 pooled (analysis/momentum.py), CFB 2026 FBS 572 games
 # (analysis/cfb_leak.py, 0.24 [0.20, 0.28])
 LEAK = {"nfl": 0.28, "cfb": 0.24}[SPORT]
-SWING_PTS = 4.0     # line move in ~10 min beyond score move
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -408,11 +403,6 @@ class CFB:
             fair = fair_spread(S0, margin, g["gc"], side, yl)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
-            old = next(((s[0], s[1], s[2]) for s in reversed(h["snaps"])
-                        if s[0] <= now_gc - 600 and s[1] is not None), None)
-            dline = dmarg = None
-            if old and L is not None:
-                dline, dmarg = round(L - old[1], 1), margin - old[2]
             sit_now = None
             if side:
                 ab = g["habbr"] if side == "home" else g["aabbr"]
@@ -420,9 +410,7 @@ class CFB:
             backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
-            swing = dline is not None and abs(dline) >= SWING_PTS and abs(dline + dmarg) >= SWING_PTS / 2
-            status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else \
-                     "SWING" if swing else "watch"
+            status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
@@ -431,7 +419,7 @@ class CFB:
                          "clock": g["clock"],
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
-                         "dline10": dline, "status": status,
+                         "status": status,
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
             if status != self.status.get(gid) and status != "watch":
                 notify(f"{SPORT.upper()} {status}: {lbl}",

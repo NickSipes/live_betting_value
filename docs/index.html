@@ -301,7 +301,7 @@ function renderAges() {
 }
 setInterval(renderAges, 5000);
 
-const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" || s === "SWING" ? "warm" : "watch";
+const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" ? "warm" : "watch";
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
   v === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
 const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:22px"></span>`;
@@ -464,7 +464,6 @@ const legend = (...items) => items.map(t => `<span class="li">${t}</span>`).join
 const PROP_LEG = legend("Bets that the model is watching.",
   `<span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`);
 const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts from fair`,
-  `<span class="chip warm">SWING</span> moved ≥4 pts in ~10 min beyond the score`,
   "tap a card for line movement + key plays");
 
 // ---------- data helpers ----------

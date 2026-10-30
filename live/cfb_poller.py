@@ -37,6 +37,9 @@ DATA = os.environ.get("DATA_DIR", HERE)                # private state (history,
 REGISTRY = f"{DOCS}/{SPORT}_games.json"
 ARCHIVE = f"{DOCS}/archive"
 EDGE_FLAG = 4.0     # points of edge to flag
+# drive-end fits: NFL 2025-26 pooled (analysis/momentum.py), CFB 2026 FBS 572 games
+# (analysis/cfb_leak.py, 0.24 [0.20, 0.28])
+LEAK = {"nfl": 0.28, "cfb": 0.24}[SPORT]
 SWING_PTS = 4.0     # line move in ~10 min beyond score move
 
 def get(url):
@@ -108,10 +111,8 @@ def fair_spread(S0, margin, gc, side, yl):
     ep = (0.065 * yl - 1.3) if side else 0.0
     ep = ep if side != "away" else -ep
     ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
-    # leads leak: pooled 2025-26 NFL drive-end fit (analysis/momentum.py) gives
-    # E[final] = margin*(1 - 0.28*rem) + pregame*rem; possession ~ +0.9 validated
-    # ponytail: NFL coefficient applied to CFB too; refit per sport when CFB data allows
-    return -(margin * (1 - 0.28 * rem) + ep + (-S0) * rem)
+    # leads leak: E[final] = margin*(1 - LEAK*rem) + pregame*rem; possession ~ +0.9 validated
+    return -(margin * (1 - LEAK * rem) + ep + (-S0) * rem)
 
 def backfill_fair(h):
     """Snaps saved before fair was stored (4 fields) get it rebuilt from their own

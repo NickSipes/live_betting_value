@@ -18,7 +18,6 @@ line history into docs/archive/{sport}_w{week}.json when it goes final.
 Appends flags to live/{sport}_spread_log.csv.
 """
 import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
-import push
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -393,7 +392,7 @@ class CFB:
             if side:
                 ab = g["habbr"] if side == "home" else g["aabbr"]
                 sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {g["dd"]}' if g.get("dd") else "")
-            h["snaps"].append((now_gc, L, margin, sit_now))
+            h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
             swing = dline is not None and abs(dline) >= SWING_PTS and abs(dline + dmarg) >= SWING_PTS / 2
             status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else \
@@ -411,10 +410,6 @@ class CFB:
             if status != self.status.get(gid) and status != "watch":
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
-                # ponytail: status lives in memory, so a restart re-sends games already flagged
-                push.send(f"{SPORT.upper()} {status}: {lbl}",
-                          f'live {L} vs fair {fair:.1f} · {g["as"]}-{g["hs"]} · {g["clock"]}',
-                          tag=f"{SPORT}{gid}", url=f"./#{SPORT}/live")
                 with open(f"{DATA}/{SPORT}_spread_log.csv", "a") as lf:
                     csv.writer(lf).writerow([datetime.datetime.now(datetime.timezone.utc).isoformat(), lbl, g["clock"],
                                              f'{g["as"]}-{g["hs"]}', S0, L, fair, edge, status])

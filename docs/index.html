@@ -122,6 +122,8 @@
   .ev .clk { font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums; padding-top:1px; white-space:nowrap; }
   .ev .ttl { font-size:13px; font-weight:650; }
   .ev .sc { font-size:12px; font-weight:650; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+  .ev .ttl i { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:6px; vertical-align:1px; }
+  .ev.minor .ttl { font-weight:550; color:var(--ink-2); }
   .ev .txt { grid-column:2 / 4; font-size:12px; color:var(--ink-2); line-height:1.4;
              display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
@@ -247,7 +249,7 @@ function secToggle(key, open) {
   try { localStorage.setItem("closedSections", JSON.stringify([...closed])); } catch (e) {}
 }
 
-// alerts are Web Push (new calls, spread EDGE/SWING), sent by the pollers even with the app closed.
+// alerts are Web Push for props entering Active Picks, sent by the poller even with the app closed.
 // iPhone only allows push for the home-screen app, so Safari gets an install hint instead.
 const PUSH_OK = "serviceWorker" in navigator && "PushManager" in window;
 const IOS_BROWSER = /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone;
@@ -688,7 +690,7 @@ function svgChart(cfg) {
   const mob = innerWidth < 640;
   CW = mob ? 380 : 700; CH = mob ? 268 : 320;
   const series = cfg.series.map(s => ({ ...s, pts: s.noclean ? s.pts : clean(s.pts) }));
-  const all = series.flatMap(s => s.pts.map(p => p[1]));
+  const all = series.flatMap(s => s.pts.map(p => p[1])).concat((cfg.edges || []).flatMap(b => b.pts.map(p => p[2])));
   if (!all.length) return `<div class="empty">No history captured yet for this one.</div>`;
   CM.r = cfg.right ? 42 : 14;
   const pw = CW - CM.l - CM.r, ph = CH - CM.t - CM.b;
@@ -724,6 +726,12 @@ function svgChart(cfg) {
           <path d="${curve}" fill="none" stroke="${cfg.hcolor}" stroke-width="2.4" stroke-linejoin="round" clip-path="url(#cTop)"/>
           <path d="${curve}" fill="none" stroke="${cfg.acolor}" stroke-width="2.4" stroke-linejoin="round" clip-path="url(#cBot)"/>
           <line x1="${CM.l}" x2="${CM.l + pw}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--baseline)" stroke-width="1.4"/>`;
+    // model edge: shade when the live line sits 4+ pts off fair, and draw fair there (dashed, edge side's color)
+    for (const b of cfg.edges || []) {
+      s += `<rect x="${X(b.g0)}" y="${CM.t}" width="${Math.max(2, X(b.g1) - X(b.g0))}" height="${ph}" fill="${b.color}" opacity="0.13"/>`;
+      s += `<path d="${b.pts.map(([g0, g1, v], k) => `${k ? "L" : "M"}${X(g0)},${Y(v)}H${X(g1)}`).join("")}"
+            fill="none" stroke="${b.color}" stroke-width="2.2" stroke-dasharray="5,3"/>`;
+    }
     if (cfg.pregame !== null && cfg.pregame !== undefined)
       s += `<line x1="${CM.l}" x2="${CM.l + pw}" y1="${Y(cfg.pregame)}" y2="${Y(cfg.pregame)}"
             stroke="var(--muted)" stroke-dasharray="5,4" opacity="0.7"/>
@@ -805,11 +813,13 @@ function bindChart() {
       if (e.pointerType !== "mouse") {
         try { hit.setPointerCapture(e.pointerId); } catch (err) {}   // capture is a nicety; never block the cursor
         setCursor(gcAt(e), true);
+        markRow(nearestRow(pinnedGc), true);
       }
     });
     hit.addEventListener("pointermove", e => {
       // mouse hovers preview; a finger drag moves the pinned line
       setCursor(gcAt(e), e.pointerType !== "mouse");
+      if (e.pointerType !== "mouse") markRow(nearestRow(pinnedGc), true);   // finger drag scrolls the play list
     });
     hit.addEventListener("pointerleave", e => {
       if (e.pointerType === "mouse" && pinnedGc !== null) setCursor(pinnedGc);
@@ -821,18 +831,63 @@ function bindChart() {
   if (pts.length) setCursor(pts[pts.length - 1][0], true);
 }
 
-function evJump(i, fromDot) {
-  const ev = MC?.events?.[i];
-  if (!ev) return;
-  setCursor(ev.gc, true);
+// play list rows, newest first: {gc, label, text, sc, cls (key plays only), key}
+let ROWS = [];
+const nearestRow = gc => { const i = ROWS.findIndex(r => r.gc <= gc); return i < 0 ? ROWS.length - 1 : i; };
+function markRow(i, scroll) {
   document.querySelectorAll("#evlist .ev.on").forEach(r => r.classList.remove("on"));
   const row = document.getElementById("ev-" + i);
   if (!row) return;
   row.classList.add("on");
-  if (fromDot) {
-    const list = document.getElementById("evlist");
-    list.scrollTop = row.offsetTop - list.offsetTop;
-  }
+  if (scroll) { const list = document.getElementById("evlist"); list.scrollTop = row.offsetTop - list.offsetTop; }
+}
+function rowJump(i) { setCursor(ROWS[i].gc, true); markRow(i, false); }
+function evJump(i) {   // a dot on the chart
+  const ev = MC?.events?.[i];
+  if (!ev) return;
+  setCursor(ev.gc, true);
+  const j = ROWS.findIndex(r => r.key === ev.key);
+  markRow(j < 0 ? nearestRow(ev.gc) : j, true);
+}
+function renderRows() {
+  const list = document.getElementById("evlist");
+  if (list) list.innerHTML = ROWS.map((r, i) => `<div class="ev${r.cls ? "" : " minor"}" id="ev-${i}" onclick="rowJump(${i})">
+    <span class="clk">${gcLabel(r.gc)}</span>
+    <span class="ttl">${r.cls ? `<i style="background:${EVCOLOR[r.cls] || "var(--orange)"}"></i>` : ""}${r.label}</span>
+    <span class="sc">${r.sc}</span><span class="txt">${r.text}</span></div>`).join("");
+}
+const ESPN_SPORT = { nfl: "nfl", cfb: "college-football" };
+const gcOf = (period, clock) => {   // same as the pollers' clock_elapsed
+  const m = /(\d+):(\d+)/.exec(clock || ""), rem = m ? +m[1] * 60 + +m[2] : 0;
+  return period <= 4 ? (period - 1) * 900 + (900 - rem) : GL;
+};
+// every play, straight from ESPN (it allows cross-origin reads); key plays keep their label and color.
+// ponytail: fetched once per open; a live game's list grows only when the modal is reopened
+async function loadPlays(sport, id, events, ha, aa) {
+  let s;
+  try { s = await (await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/${ESPN_SPORT[sport]}/summary?event=${id}`)).json(); }
+  catch (e) { return; }
+  const home = (s.header?.competitions?.[0]?.competitors || []).find(c => c.homeAway === "home")?.id;
+  const byKey = new Map(events.map(ev => [ev.key, ev])), used = new Set(), seen = new Set(), rows = [];
+  const ds = s.drives || {};
+  for (const d of [...(ds.previous || []), ...(ds.current ? [ds.current] : [])])
+    for (const p of d.plays || []) {
+      if (seen.has(p.id)) continue;   // the live drive is in both previous and current
+      seen.add(p.id);
+      const gc = gcOf(p.period?.number || 1, p.clock?.displayValue), key = `${gc}|${(p.text || "").slice(0, 120)}`;
+      const ev = byKey.get(key), team = String(p.start?.team?.id ?? d.team?.id ?? "");
+      if (ev) used.add(key);
+      rows.push(ev ? { ...ev } : { gc, key, cls: null, text: tidy(p.text),
+        label: `${team ? (team === String(home) ? ha : aa) + " " : ""}${p.type?.text || "Play"}`,
+        sc: p.scoringPlay ? `${p.awayScore}–${p.homeScore}` : "" });
+    }
+  if (!rows.length) return;
+  rows.push(...events.filter(ev => !used.has(ev.key)));   // a key play ESPN worded differently: keep it
+  rows.sort((a, b) => a.gc - b.gc);   // stable: drive order breaks ties
+  if (!document.getElementById("evlist")) return;   // modal closed meanwhile
+  ROWS = rows.reverse();
+  renderRows();
+  markRow(nearestRow(pinnedGc ?? GL), true);
 }
 
 // play-by-play text is noisy: drop the clock prefix, formation, and jersey numbers
@@ -881,7 +936,7 @@ function openSpread(kind, id) {
   const margins = clean(snaps.map(s => [s[0], s[2]]));
   const yfmt = v => v === 0 ? "EVEN" : `${v > 0 ? ha : aa} -${Math.abs(v)}`;   // exact: lines move in half points
   const events = (h.events || []).map(e => ({
-    gc: e[0], label: `${e[2] === "home" ? ha : aa} ${kindTxt(e[1])}`, text: tidy(e[3]), cls: e[6] ?? "score",
+    gc: e[0], key: `${e[0]}|${e[3]}`, label: `${e[2] === "home" ? ha : aa} ${kindTxt(e[1])}`, text: tidy(e[3]), cls: e[6] ?? "score",
     sc: e[4] !== undefined && e[4] !== null ? `${e[5]}–${e[4]}` : "",
   }));
   const scoreAt = gc => {
@@ -890,18 +945,32 @@ function openSpread(kind, id) {
     return sc;
   };
   const sits = snaps.filter(s => s[3]).map(s => [s[0], s[3]]);
+  // snaps carry the model's fair home spread (s[4]) since Oct 29; edge = live - fair, as on the cards
+  const flag = S.spread[kind]?.edge_flag ?? 4, edges = [];
+  const fairs = clean(snaps.map(s => [s[0], s[4]])), edgeAt = gc => {
+    const L = stepVal(clean(snaps.map(s => [s[0], s[1]])), gc), f = stepVal(fairs, gc);
+    return L === null || f === null ? null : Math.round((L - f) * 10) / 10;
+  };
+  snaps.forEach((sn, i) => {
+    if (sn[1] === null || sn[1] === undefined || sn[4] === null || sn[4] === undefined || Math.abs(sn[1] - sn[4]) < flag) return;
+    const g0 = Math.min(sn[0], GL), g1 = Math.min(snaps[i + 1]?.[0] ?? sn[0] + 120, GL);   // last snap: one poll wide
+    const color = sn[1] - sn[4] > 0 ? hcolor : acolor, b = edges[edges.length - 1];
+    if (b && b.g1 === g0 && b.color === color) { b.g1 = g1; b.pts.push([g0, g1, -sn[4]]); }
+    else edges.push({ g0, g1, color, pts: [[g0, g1, -sn[4]]] });
+  });
   const chart = svgChart({
-    mode: "area", yfmt, events, hcolor, acolor,
+    mode: "area", yfmt, events, hcolor, acolor, edges,
     pregame: h.pregame !== null && h.pregame !== undefined ? -h.pregame : null,
     series: [{ pts: fav, noclean: 1 }],
     tip: gc => {
-      const f = stepVal(fav, gc), m = stepVal(margins, gc);
+      const f = stepVal(fav, gc), m = stepVal(margins, gc), fr = stepVal(fairs, gc), ed = edgeAt(gc);
       return {
         sub: stepVal(sits, gc) || "",
         stats: [
           ["score", scoreAt(gc)],
           ["spread", f === null ? "—" : yfmt(f)],
-          ["margin", m === null || m === 0 ? "tied" : `${m > 0 ? ha : aa} +${Math.abs(m)}`],
+          ed !== null && Math.abs(ed) >= flag ? ["model says", `${yfmt(-fr)} · edge ${ed > 0 ? ha : aa}`]
+            : ["margin", m === null || m === 0 ? "tied" : `${m > 0 ? ha : aa} +${Math.abs(m)}`],
         ],
       };
     },
@@ -910,6 +979,7 @@ function openSpread(kind, id) {
   const [asc, hsc] = g?.score ? g.score.split("-") : h.final ? h.final.split("-")
     : (last ? last.sc.split("–") : ["0", "0"]);
   const leg = [["var(--orange)", "score"], ["var(--red)", "turnover"], ["var(--yellow)", "momentum"], ["#9085e9", "injury"]];
+  const edgeLeg = edges.length ? `<span><i style="border-radius:2px;background:var(--muted);opacity:.5"></i>edge · dashed = model's spread</span>` : "";
   showModal(`
     <div class="bug">
       <div class="tm">${logoImg(h.meta.alogo)}<div><div class="sc">${asc}</div><div class="ab">${aa}</div></div></div>
@@ -918,12 +988,12 @@ function openSpread(kind, id) {
     </div>
     <div id="mread"></div>
     ${chart}
-    <div class="mleg">${leg.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("")}</div>
-    <div id="evlist">
-    ${events.map((ev, i) => `<div class="ev" id="ev-${i}" onclick="evJump(${i})">
-      <span class="clk">${gcLabel(ev.gc)}</span><span class="ttl">${ev.label}</span><span class="sc">${ev.sc}</span>
-      <span class="txt">${ev.text}</span></div>`).reverse().join("")}</div>`);
+    <div class="mleg">${leg.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("")}${edgeLeg}</div>
+    <div id="evlist"></div>`);
+  ROWS = [...events].reverse();   // key plays now; every play once ESPN answers
+  renderRows();
   bindChart();
+  loadPlays(sport, id, events, ha, aa);
 }
 
 function openProp(id, rec) {

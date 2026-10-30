@@ -737,6 +737,9 @@ class Monitor:
                     h["meta"] = {"player": name, "market": kind, "logo": game.get(side) if side else None,
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
+                if not c:   # this prop just joined Active Picks
+                    push.send(f"Pregame pick live: {name}", f'{"Receiving" if kind == "rec" else "Rushing"} yds '
+                              f'O {closing[k]} · {game["away_abbr"]} @ {game["home_abbr"]}', tag=hkey + "|pre", url="./#nfl/live")
                 if not c or (c.get("src") != "closing" and "result" not in c):
                     h["pre"] = c = {"type": "pregame", "src": "closing", "clock": "pregame", "gc": 0,
                                     "line": closing[k], "cum": 0, "p": None, "t": (c or {}).get("t", time.time()),

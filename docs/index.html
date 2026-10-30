@@ -168,10 +168,10 @@
   .prev { margin:4px 0 2px; position:relative; }
   .prev svg { max-width:440px; margin:0 auto; }   /* text scales with the svg: keep it phone-sized */
   .prev .tick { font-size:9.5px; }
-  .ptip { position:absolute; transform:translate(-50%, -100%); width:max-content; max-width:210px; pointer-events:none;
+  .ptip { position:absolute; transform:translate(-50%, 0); width:max-content; max-width:220px; pointer-events:none;
           background:var(--ink-1); color:var(--page); font-size:12px; line-height:1.35; padding:6px 9px;
-          border-radius:8px; box-shadow:0 3px 12px rgba(0,0,0,.25); text-align:center; }
-  .ptip.below { transform:translate(-50%, 0); }
+          border-radius:8px; box-shadow:0 3px 12px rgba(0,0,0,.25); text-align:left; }
+  .pdet { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 18px; margin:10px 0 6px; }
   @keyframes callflash { 0%, 100% { background:transparent; }
                          50% { background:color-mix(in srgb, var(--green) 24%, transparent); } }
   details.sect.flash > summary { animation:callflash .75s ease-in-out 4; border-radius:8px; }
@@ -390,16 +390,19 @@ function propPreCard(w, chip = "PREGAME") {
   </div>`;
 }
 // ---------- preview plot ----------
-// ponytail: one line plot for every preview card. series: [{color, pts:[{x: week, y: yards, tip}]}];
-// gridlines every 10/20/50/100 yards (at most 8), no labels on the plot: the dots carry a tooltip (hover or tap).
-const escA = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-function linePlot(series, ref) {
+// ponytail: one line plot, one plot open at a time (PLOT holds its geometry for the cursor).
+// series: [{color, dash?, pts:[{x: week, y: yards}]}]; lines break across a missing week (bye).
+// Gridlines every 10/20/50/100 yards (at most 8), no labels on the plot: hover or tap anywhere
+// and a cursor snaps to the nearest week with one readout, `rows(week)` -> [html lines].
+let PLOT = null;
+function linePlot(series, ref, rows) {
   const W = 340, H = 210, L = 30, R = 12, T = 12, B = 24;
   const xs = series.flatMap(s => s.pts.map(p => p.x)), ys = series.flatMap(s => s.pts.map(p => p.y || 0)).concat(ref || 0);
   const top = Math.max(10, ...ys) + 1, step = [10, 20, 50, 100, 200].find(st => top / st <= 8) || 500;
   const x0 = Math.min(...xs), x1 = Math.max(...xs), ymax = Math.ceil(top / step) * step;
   const X = x => L + (W - L - R) * (x1 > x0 ? (x - x0) / (x1 - x0) : 0.5);
   const Y = y => T + (H - T - B) * (1 - y / ymax);
+  PLOT = { W, L, R, x0, x1, X, rows };
   let s = `<svg viewBox="0 0 ${W} ${H}">`;
   for (let v = 0; v <= ymax; v += step)
     s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>
@@ -407,46 +410,62 @@ function linePlot(series, ref) {
   for (let w = x0; w <= x1; w++)
     s += `<text x="${X(w)}" y="${H - 8}" class="tick" text-anchor="middle">w${w}</text>`;
   if (ref) s += `<line x1="${L}" x2="${W - R}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  s += `<line id="pcur" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-width="1" hidden/>`;
   for (const sr of series) {
-    const pts = sr.pts.filter(p => p.y != null);
-    s += `<polyline points="${pts.map(p => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none" stroke="${sr.color}" stroke-width="2" ${sr.dash ? 'stroke-dasharray="5 4"' : ""}/>`
-      + pts.map(p => `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4.5" fill="${sr.color}"/>
-        <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="14" fill="transparent" data-tip="${escA(p.tip)}"/>`).join("");
+    const pts = sr.pts.filter(p => p.y != null).sort((a, b) => a.x - b.x), segs = [];
+    for (const p of pts)   // consecutive weeks join; a gap (bye, did not play) breaks the line
+      if (segs.length && p.x - segs.at(-1).at(-1).x === 1) segs.at(-1).push(p); else segs.push([p]);
+    s += segs.map(sg => `<polyline points="${sg.map(p => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none"
+        stroke="${sr.color}" stroke-width="2" ${sr.dash ? 'stroke-dasharray="5 4"' : ""}/>`).join("")
+      + pts.map(p => `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4.5" fill="${sr.color}"/>`).join("");
   }
-  return `<div class="prev" onpointerover="showTip(event)" onpointerdown="showTip(event)">${s}</svg><div class="ptip" hidden></div></div>`;
+  return `<div class="prev" onpointerdown="plotCursor(event)" onpointermove="plotCursor(event)">${s}</svg><div class="ptip" hidden></div></div>`;
 }
-function showTip(e) {
-  const box = e.currentTarget, tip = box.querySelector(".ptip"), t = e.target.dataset.tip;
-  if (!t) { tip.hidden = true; return; }
-  const r = e.target.getBoundingClientRect(), b = box.getBoundingClientRect();
-  const below = r.top - b.top < 70;   // top dots: tooltip under the dot, not over the header
-  tip.textContent = t; tip.hidden = false; tip.classList.toggle("below", below);
-  tip.style.left = `${Math.max(100, Math.min(b.width - 100, r.left + r.width / 2 - b.left))}px`;
-  tip.style.top = `${(below ? r.bottom : r.top) - b.top + (below ? -2 : 2)}px`;
+function plotCursor(e) {
+  if (!PLOT || (e.type === "pointermove" && e.pointerType !== "mouse")) return;
+  const box = e.currentTarget, svg = box.querySelector("svg"), tip = box.querySelector(".ptip"), cur = svg.querySelector("#pcur");
+  const r = svg.getBoundingClientRect(), b = box.getBoundingClientRect(), { W, L, R, x0, x1, X, rows } = PLOT;
+  const vx = (e.clientX - r.left) / r.width * W;
+  const week = Math.max(x0, Math.min(x1, Math.round(x0 + (vx - L) / (W - L - R) * (x1 - x0))));
+  cur.setAttribute("x1", X(week)); cur.setAttribute("x2", X(week)); cur.hidden = false;
+  tip.innerHTML = rows(week).join("<br>"); tip.hidden = false;
+  const px = r.left - b.left + X(week) / W * r.width;
+  tip.style.left = `${Math.max(110, Math.min(b.width - 110, px))}px`;
+  tip.style.top = `${r.top - b.top + 4}px`;
 }
-document.addEventListener("pointerdown", e => {   // a tap anywhere else hides an open tooltip
-  if (!e.target.dataset?.tip) document.querySelectorAll(".ptip").forEach(t => { t.hidden = true; });
+document.addEventListener("pointerdown", e => {   // a tap outside the plot hides its cursor
+  if (e.target.closest(".prev")) return;
+  document.querySelectorAll(".ptip, #pcur").forEach(t => { t.hidden = true; });
 });
 // Good Matchups: the player's yards in the prop's market (green) and the yards the defense
 // gave up to the top-2 opposing players in it (orange, solid = most), by week, against the prop line
 function openPreview(w) {
   const f = w.form, last = w.player.split(" ").slice(-1)[0];
   const wk = l => +l.match(/^w(\d+)/)[1], who = l => l.slice(l.indexOf(" ") + 1);   // 'w7 @ BAL' -> 7, '@ BAL'
-  const me = { color: "var(--green)", pts: f.me.map(([lbl, y]) =>
-    ({ x: wk(lbl), y, tip: `${last} ${who(lbl)} — ${y == null ? "did not play" : Math.round(y) + " yards"}` })) };
-  const vtip = ([lbl, top]) => `${w.opp} ${who(lbl)} — ` + top.map(([n, y]) => `${n} ${Math.round(y)}`).join(", ")
-    + ` yards (${lbl.split(" ").pop()})`;
-  const vs = [0, 1].map(i => ({ color: "var(--orange)", dash: i, pts: f.vs.filter(v => v[1][i]).map(v =>
-    ({ x: wk(v[0]), y: v[1][i][1], tip: vtip(v) })) }));
-  const inj = w.inj ? ` · <span style="color:var(--orange)">${w.inj}</span>` : "";
+  const me = { color: "var(--green)", pts: f.me.map(([lbl, y]) => ({ x: wk(lbl), y })) };
+  const vs = [0, 1].map(i => ({ color: "var(--orange)", dash: i, pts: f.vs.filter(v => v[1][i]).map(v => ({ x: wk(v[0]), y: v[1][i][1] })) }));
+  const rows = week => {   // one readout for both: the week, the player's game, the defense's
+    const m = f.me.find(([l]) => wk(l) === week), v = f.vs.find(([l]) => wk(l) === week);
+    return [`<b>Week ${week}</b>`,
+      !m ? `${last} — bye` : `${last} ${who(m[0])} — ${m[1] == null ? "did not play" : Math.round(m[1]) + " yds"}`,
+      !v ? `${w.opp} — bye` : `${w.opp} ${who(v[0])} — ` + v[1].map(([n, y]) => `${n} ${Math.round(y)}`).join(", ")];
+  };
+  const det = (lbl, val) => val ? `<div><span>${lbl}</span><b>${val}</b></div>` : "";
   showModal(`
-    <h3>${logoImg(nflLogo(w.team))} ${w.player} <span class="meta">${MKT(w.market)} · ${w.game}</span></h3>
-    <div class="meta">${w.line != null ? `line O ${w.line}` : "no line yet"} · ${w.ypg} ypg (${w.pos} #${w.rank})
-      · ${w.opp} #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg) · ${kickTxt(w.kick_iso) || w.kick}${inj}</div>
-    ${linePlot([me, ...vs], w.line ?? w.ypg)}
+    <h3>${logoImg(nflLogo(w.team))} Last 3 — ${w.player} <span class="meta" style="margin:0">| ${w.opp} Defense</span></h3>
+    ${linePlot([me, ...vs], w.line ?? w.ypg, rows)}
     <div class="mleg"><span><i style="background:var(--green)"></i>${last} yards</span>
       <span><i style="background:var(--orange)"></i>${w.opp} yards given up, top 2 ${w.market === "rec" ? "receivers" : "rushers"}</span>
-      <span><i style="background:var(--blue)"></i>${w.line != null ? `prop line O ${w.line}` : `season ${w.ypg} ypg`}</span></div>`);
+      <span><i style="background:var(--blue)"></i>${w.line != null ? `prop line O ${w.line}` : `season ${w.ypg} ypg`}</span></div>
+    <div class="nums pdet">
+      ${det("prop", `${MKT(w.market)} · ${w.line != null ? "O " + w.line : "no line yet"}`)}
+      ${det("season", `${w.ypg} ypg · ${w.pos} #${w.rank}`)}
+      ${det("defense", `${w.opp} #${w.def_rank} worst vs ${w.pos} · ${w.def_ypg} ypg`)}
+      ${det("game", `${w.game} · ${kickTxt(w.kick_iso) || w.kick}`)}
+      ${det("venue", w.venue)}
+      ${det("forecast", w.wx)}
+      ${det("status", w.inj && `<span style="color:var(--orange)">${w.inj}</span>`)}
+    </div>`);
 }
 function spreadLiveCard(kind, g) {
   const [as, hs] = (g.score || "0-0").split("-");

@@ -72,7 +72,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Paycor Stadium, Cincinnati, OH",
+   "wx": "Cloudy, 70\u00b0F"
   },
   {
    "player": "Zay Flowers",
@@ -145,7 +147,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Highmark Stadium, Orchard Park, NY",
+   "wx": "Partly sunny, 65\u00b0F"
   },
   {
    "player": "Jaylen Warren",
@@ -218,7 +222,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Acrisure Stadium, Pittsburgh, PA",
+   "wx": "Intermittent clouds, 68\u00b0F"
   },
   {
    "player": "Kyren Williams",
@@ -291,7 +297,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "SoFi Stadium, Inglewood, CA",
+   "wx": "Partly sunny, 72\u00b0F"
   },
   {
    "player": "Travis Kelce",
@@ -365,7 +373,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Empower Field at Mile High, Denver, CO",
+   "wx": "Intermittent clouds, 61\u00b0F"
   },
   {
    "player": "Dallas Goedert",
@@ -438,7 +448,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Northwest Stadium, Landover, MD",
+   "wx": "Partly cloudy, 51\u00b0F"
   },
   {
    "player": "DeVonta Smith",
@@ -511,7 +523,9 @@
       ]
      ]
     ]
-   }
+   },
+   "venue": "Northwest Stadium, Landover, MD",
+   "wx": "Partly cloudy, 51\u00b0F"
   }
  ]
 }

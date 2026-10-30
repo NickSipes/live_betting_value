@@ -193,6 +193,19 @@ def last3(team):
         out.append((f'w{e["week"]["number"]} {"vs" if home else "@"} {opp}', e["id"], opp))
     return out
 
+def game_info(week):
+    """ESPN scoreboard extras per game label ('TEN @ CIN'): venue and the kickoff forecast."""
+    out = {}
+    for ev in get(f"{ESPN}/scoreboard?week={week}").get("events", []):
+        c = ev["competitions"][0]
+        t = {x["homeAway"]: NFLV.get(x["team"]["abbreviation"], x["team"]["abbreviation"]) for x in c["competitors"]}
+        v, wx, addr = c.get("venue") or {}, ev.get("weather") or {}, (c.get("venue") or {}).get("address") or {}
+        out[f'{t["away"]} @ {t["home"]}'] = {
+            "venue": ", ".join(filter(None, [v.get("fullName"), addr.get("city"), addr.get("state")])) or None,
+            "wx": "Indoors" if v.get("indoor") else
+                  f'{wx["displayValue"]}, {wx["temperature"]}°F' if wx.get("displayValue") else None}
+    return out
+
 def preview_form(w):
     """Good Matchups card data: the player's yards in the prop's market over their last 3
     games (null = not in the box score), and for each of the defense's last 3 games the
@@ -655,6 +668,15 @@ class Monitor:
                     changed = True
         except Exception as e:
             print("injury fetch error", repr(e))
+        try:   # venue + forecast for the preview card (free; the forecast moves through the week)
+            info = game_info(wl.get("week"))
+            for w in entries:
+                for k, v in info.get(w["game"], {}).items():
+                    if w.get(k) != v:
+                        w[k] = v
+                        changed = True
+        except Exception as e:
+            print("game info fetch error", repr(e))
         if time.time() - self.wl_lines_t > 10800:
             self.wl_lines_t = time.time()
             try:
@@ -687,7 +709,7 @@ class Monitor:
                 print("preview form error", repr(e))
         if changed:
             json.dump(wl, open(f"{DOCS}/watchlist.json", "w"), indent=1)
-            print("watchlist extras updated (injuries/lines/form)")
+            print("watchlist extras updated (injuries/venue/lines/form)")
 
     def cycle(self):
         opps, games_out, histout = [], [], {}

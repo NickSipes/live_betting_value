@@ -165,7 +165,8 @@
   .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
   .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
   .star { color:var(--yellow); margin-left:5px; font-size:13px; }
-  .prev { margin:10px -4px 0; }
+  .prev { margin:4px 0 2px; }
+  .prev svg { max-width:440px; margin:0 auto; }   /* text scales with the svg: keep it phone-sized */
   .prev .tick { font-size:9.5px; }
   .prev .nm { font-size:8.5px; fill:var(--ink-2); }
   @keyframes callflash { 0%, 100% { background:transparent; }
@@ -369,7 +370,7 @@ function propPreCard(w, chip = "PREGAME") {
   const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
     title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
   return `
-  <div class="card final">
+  <div class="card final ${w.form ? "click" : ""}" ${w.form ? on(() => openPreview(w)) : ""}>
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       ${inj}
@@ -382,14 +383,14 @@ function propPreCard(w, chip = "PREGAME") {
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso) || w.kick}</span></div>
-    ${formPlot(w)}
+    ${w.form ? `<div class="sub"><span style="color:var(--ink-1)">last 3 form ›</span></div>` : ""}
   </div>`;
 }
 // ---------- preview plot ----------
 // ponytail: one bar plot for every preview card. groups: [{lbl, head?, bars:[{v, name?, color}]}],
 // ref: horizontal reference line. A game preview (Games section) passes its own groups.
 function miniBars(groups, ref, refLbl) {
-  const W = 300, H = 132, top = 22, bot = 36, pad = 4;
+  const W = 340, H = 190, top = 24, bot = 36, pad = 4;
   const vals = groups.flatMap(g => g.bars.map(b => b.v || 0)).concat(ref || 0);
   const max = Math.max(10, ...vals) * 1.18, y0 = H - bot;
   const y = v => top + (y0 - top) * (1 - v / max);
@@ -422,15 +423,21 @@ function miniBars(groups, ref, refLbl) {
 }
 // Good Matchups: the player's last 3 in the prop's market (green) beside the top-2 opposing
 // players in each of the defense's last 3 (orange), against the prop line (season ypg until it posts)
-function formPlot(w) {
-  const f = w.form;
-  if (!f) return "";
-  const last = w.player.split(" ").slice(-1)[0];
+function openPreview(w) {
+  const f = w.form, last = w.player.split(" ").slice(-1)[0];
   const opp = lbl => lbl.replace(/^w\d+ /, "");   // 'w7 @ BAL' -> '@ BAL'
   const groups = f.me.map(([lbl, v]) => ({ lbl: opp(lbl), head: `${last} last 3`, bars: [{ v, color: "var(--green)" }] }))
     .concat(f.vs.map(([lbl, top]) => ({ lbl: opp(lbl), head: `${w.opp} allowed`,
       bars: top.map(([name, v]) => ({ v, name: name.replace(/^\w\./, ""), color: "var(--orange)" })) })));
-  return `<div class="prev">${miniBars(groups, w.line ?? w.ypg, w.line != null ? `O ${w.line}` : `${w.ypg} ypg`)}</div>`;
+  const inj = w.inj ? ` · <span style="color:var(--orange)">${w.inj}</span>` : "";
+  showModal(`
+    <h3>${logoImg(nflLogo(w.team))} ${w.player} <span class="meta">${MKT(w.market)} · ${w.game}</span></h3>
+    <div class="meta">${w.line != null ? `line O ${w.line}` : "no line yet"} · ${w.ypg} ypg (${w.pos} #${w.rank})
+      · ${w.opp} #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg) · ${kickTxt(w.kick_iso) || w.kick}${inj}</div>
+    <div class="prev">${miniBars(groups, w.line ?? w.ypg, w.line != null ? `O ${w.line}` : `${w.ypg} ypg`)}</div>
+    <div class="mleg"><span><i style="background:var(--green)"></i>${last}, last 3 games</span>
+      <span><i style="background:var(--orange)"></i>top-2 ${MKT(w.market).toLowerCase()} vs ${w.opp}, last 3 games</span>
+      <span><i style="background:var(--blue)"></i>${w.line != null ? "prop line" : "season ypg"}</span></div>`);
 }
 function spreadLiveCard(kind, g) {
   const [as, hs] = (g.score || "0-0").split("-");

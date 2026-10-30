@@ -165,10 +165,13 @@
   .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
   .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
   .star { color:var(--yellow); margin-left:5px; font-size:13px; }
-  .prev { margin:4px 0 2px; }
+  .prev { margin:4px 0 2px; position:relative; }
   .prev svg { max-width:440px; margin:0 auto; }   /* text scales with the svg: keep it phone-sized */
   .prev .tick { font-size:9.5px; }
-  .prev .nm { font-size:8.5px; fill:var(--ink-2); }
+  .ptip { position:absolute; transform:translate(-50%, -100%); width:max-content; max-width:210px; pointer-events:none;
+          background:var(--ink-1); color:var(--page); font-size:12px; line-height:1.35; padding:6px 9px;
+          border-radius:8px; box-shadow:0 3px 12px rgba(0,0,0,.25); text-align:center; }
+  .ptip.below { transform:translate(-50%, 0); }
   @keyframes callflash { 0%, 100% { background:transparent; }
                          50% { background:color-mix(in srgb, var(--green) 24%, transparent); } }
   details.sect.flash > summary { animation:callflash .75s ease-in-out 4; border-radius:8px; }
@@ -387,57 +390,61 @@ function propPreCard(w, chip = "PREGAME") {
   </div>`;
 }
 // ---------- preview plot ----------
-// ponytail: one bar plot for every preview card. groups: [{lbl, head?, bars:[{v, name?, color}]}],
-// ref: horizontal reference line. A game preview (Games section) passes its own groups.
-function miniBars(groups, ref, refLbl) {
-  const W = 340, H = 190, top = 24, bot = 36, pad = 4;
-  const vals = groups.flatMap(g => g.bars.map(b => b.v || 0)).concat(ref || 0);
-  const max = Math.max(10, ...vals) * 1.18, y0 = H - bot;
-  const y = v => top + (y0 - top) * (1 - v / max);
-  const wts = groups.map(g => g.bars.length + 0.8), tot = wts.reduce((a, b) => a + b, 0);
-  const esc = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-  let s = `<svg viewBox="0 0 ${W} ${H}" class="mini" aria-hidden="true">`, x0 = pad, head = null;
-  groups.forEach((g, i) => {
-    const gw = (W - 2 * pad) * wts[i] / tot, bw = Math.min(34, (gw - 6) / g.bars.length);
-    const start = x0 + (gw - bw * g.bars.length) / 2;
-    if (g.head && g.head !== head) {   // one header per run of groups sharing it
-      head = g.head;
-      const span = groups.filter(h => h.head === head).length;
-      const hw = wts.slice(i, i + span).reduce((a, b) => a + b, 0) / tot * (W - 2 * pad);
-      s += `<text x="${x0 + hw / 2}" y="9" class="tick" text-anchor="middle">${esc(g.head)}</text>`;
-    }
-    g.bars.forEach((b, j) => {
-      const x = start + j * bw, cx = x + bw / 2;
-      s += b.v == null ? `<text x="${cx}" y="${y0 - 3}" class="tick" text-anchor="middle">—</text>`
-        : `<rect x="${x + 1.5}" y="${y(b.v)}" width="${bw - 3}" height="${y0 - y(b.v)}" rx="2" fill="${b.color}"/>
-           <text x="${cx}" y="${y(b.v) - 3}" class="tick" text-anchor="middle">${Math.round(b.v)}</text>`;
-      if (b.name) s += `<text x="${cx}" y="${y0 + 11 + 9 * (j % 2)}" class="nm" text-anchor="middle">${esc(b.name.slice(0, 12))}</text>`;
-    });
-    s += `<text x="${x0 + gw / 2}" y="${H - 4}" class="tick" text-anchor="middle">${esc(g.lbl)}</text>`;
-    x0 += gw;
-  });
-  s += `<line x1="${pad}" x2="${W - pad}" y1="${y0}" y2="${y0}" stroke="var(--baseline)"/>`;
-  if (ref) s += `<line x1="${pad}" x2="${W - pad}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 3"/>
-    <text x="${W - pad}" y="9" class="tick" text-anchor="end" fill="var(--blue)" font-weight="650">${esc(refLbl)}</text>`;
-  return s + `</svg>`;
+// ponytail: one line plot for every preview card. series: [{color, pts:[{x: week, y: yards, tip}]}];
+// gridlines every `step` yards, no labels on the plot: the dots carry a tooltip (hover or tap).
+const escA = t => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+function linePlot(series, ref, step = 20) {
+  const W = 340, H = 210, L = 30, R = 12, T = 12, B = 24;
+  const xs = series.flatMap(s => s.pts.map(p => p.x)), ys = series.flatMap(s => s.pts.map(p => p.y || 0)).concat(ref || 0);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), ymax = Math.ceil((Math.max(step, ...ys) + 1) / step) * step;
+  const X = x => L + (W - L - R) * (x1 > x0 ? (x - x0) / (x1 - x0) : 0.5);
+  const Y = y => T + (H - T - B) * (1 - y / ymax);
+  let s = `<svg viewBox="0 0 ${W} ${H}">`;
+  for (let v = 0; v <= ymax; v += step)
+    s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>
+          <text x="${L - 6}" y="${Y(v) + 3.5}" class="tick" text-anchor="end">${v}</text>`;
+  for (let w = x0; w <= x1; w++)
+    s += `<text x="${X(w)}" y="${H - 8}" class="tick" text-anchor="middle">w${w}</text>`;
+  if (ref) s += `<line x1="${L}" x2="${W - R}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="var(--blue)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  for (const sr of series) {
+    const pts = sr.pts.filter(p => p.y != null);
+    s += `<polyline points="${pts.map(p => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none" stroke="${sr.color}" stroke-width="2"/>`
+      + pts.map(p => `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4.5" fill="${sr.color}"/>
+        <circle cx="${X(p.x)}" cy="${Y(p.y)}" r="14" fill="transparent" data-tip="${escA(p.tip)}"/>`).join("");
+  }
+  return `<div class="prev" onpointerover="showTip(event)" onpointerdown="showTip(event)">${s}</svg><div class="ptip" hidden></div></div>`;
 }
-// Good Matchups: the player's last 3 in the prop's market (green) beside the top-2 opposing
-// players in each of the defense's last 3 (orange), against the prop line (season ypg until it posts)
+function showTip(e) {
+  const box = e.currentTarget, tip = box.querySelector(".ptip"), t = e.target.dataset.tip;
+  if (!t) { tip.hidden = true; return; }
+  const r = e.target.getBoundingClientRect(), b = box.getBoundingClientRect();
+  const below = r.top - b.top < 70;   // top dots: tooltip under the dot, not over the header
+  tip.textContent = t; tip.hidden = false; tip.classList.toggle("below", below);
+  tip.style.left = `${Math.max(100, Math.min(b.width - 100, r.left + r.width / 2 - b.left))}px`;
+  tip.style.top = `${(below ? r.bottom : r.top) - b.top + (below ? -2 : 2)}px`;
+}
+document.addEventListener("pointerdown", e => {   // a tap anywhere else hides an open tooltip
+  if (!e.target.dataset?.tip) document.querySelectorAll(".ptip").forEach(t => { t.hidden = true; });
+});
+// Good Matchups: the player's yards in the prop's market (green) and the yards the defense
+// allowed in it (orange), by week, against the prop line (season ypg until it posts)
 function openPreview(w) {
   const f = w.form, last = w.player.split(" ").slice(-1)[0];
-  const opp = lbl => lbl.replace(/^w\d+ /, "");   // 'w7 @ BAL' -> '@ BAL'
-  const groups = f.me.map(([lbl, v]) => ({ lbl: opp(lbl), head: `${last} last 3`, bars: [{ v, color: "var(--green)" }] }))
-    .concat(f.vs.map(([lbl, top]) => ({ lbl: opp(lbl), head: `${w.opp} allowed`,
-      bars: top.map(([name, v]) => ({ v, name: name.replace(/^\w\./, ""), color: "var(--orange)" })) })));
+  const wk = l => +l.match(/^w(\d+)/)[1], who = l => l.slice(l.indexOf(" ") + 1);   // 'w7 @ BAL' -> 7, '@ BAL'
+  const me = { color: "var(--green)", pts: f.me.map(([lbl, y]) =>
+    ({ x: wk(lbl), y, tip: `${last} ${who(lbl)} — ${y == null ? "did not play" : Math.round(y) + " yards"}` })) };
+  const vs = { color: "var(--orange)", pts: f.vs.map(([lbl, top, tot]) =>
+    ({ x: wk(lbl), y: tot, tip: `${w.opp} ${who(lbl)} — ${Math.round(tot)} yards allowed · `
+      + top.map(([n, y]) => `${n} ${Math.round(y)}`).join(", ") + ` (${lbl.split(" ").pop()})` })) };
   const inj = w.inj ? ` · <span style="color:var(--orange)">${w.inj}</span>` : "";
   showModal(`
     <h3>${logoImg(nflLogo(w.team))} ${w.player} <span class="meta">${MKT(w.market)} · ${w.game}</span></h3>
     <div class="meta">${w.line != null ? `line O ${w.line}` : "no line yet"} · ${w.ypg} ypg (${w.pos} #${w.rank})
       · ${w.opp} #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg) · ${kickTxt(w.kick_iso) || w.kick}${inj}</div>
-    <div class="prev">${miniBars(groups, w.line ?? w.ypg, w.line != null ? `O ${w.line}` : `${w.ypg} ypg`)}</div>
-    <div class="mleg"><span><i style="background:var(--green)"></i>${last}, last 3 games</span>
-      <span><i style="background:var(--orange)"></i>top-2 ${MKT(w.market).toLowerCase()} vs ${w.opp}, last 3 games</span>
-      <span><i style="background:var(--blue)"></i>${w.line != null ? "prop line" : "season ypg"}</span></div>`);
+    ${linePlot([me, vs], w.line ?? w.ypg)}
+    <div class="mleg"><span><i style="background:var(--green)"></i>${last} yards</span>
+      <span><i style="background:var(--orange)"></i>${w.opp} yards given up</span>
+      <span><i style="background:var(--blue)"></i>${w.line != null ? `prop line O ${w.line}` : `season ${w.ypg} ypg`}</span></div>`);
 }
 function spreadLiveCard(kind, g) {
   const [as, hs] = (g.score || "0-0").split("-");

@@ -195,13 +195,15 @@ def last3(team):
 
 def preview_form(w):
     """Good Matchups card data: the player's yards in the prop's market over their last 3
-    games (null = not in the box score), and in each of the defense's last 3 games the
-    top-2 opposing players in that market."""
+    games (null = not in the box score), and for each of the defense's last 3 games the
+    top-2 opposing players in that market plus the team total allowed."""
     kind, me_ab, who = w["market"], ALIAS.get(w["team"], w["team"]), short_name(w["player"])
     me = [[lbl, next((y for n, y in espn_box(eid).get(me_ab, {}).get(kind, []) if short_name(n) == who), None)]
           for lbl, eid, _ in last3(w["team"])]
-    vs = [[lbl, [[abbrev(n), y] for n, y in espn_box(eid).get(opp, {}).get(kind, [])[:2]]]
-          for lbl, eid, opp in last3(w["opp"])]
+    vs = []
+    for lbl, eid, opp in last3(w["opp"]):
+        rows = espn_box(eid).get(opp, {}).get(kind, [])
+        vs.append([lbl, [[abbrev(n), y] for n, y in rows[:2]], sum(y for _, y in rows)])
     return {"me": me, "vs": vs}
 
 def get(url, timeout=20):

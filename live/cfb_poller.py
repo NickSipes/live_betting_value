@@ -98,6 +98,39 @@ def home_spread(event, home_name):
                         best = float(o["point"])
     return best
 
+def fair_spread(S0, margin, gc, side, yl):
+    """Model's fair home spread. side: 'home'/'away'/None has the ball, yl: yards from its own goal."""
+    if S0 is None:
+        return None
+    rem = max(0.0, 1 - gc / 3600)
+    # possession value: EP ~ 0.065*yardline - 1.3 (own 20 ~ 0, midfield ~ 2,
+    # opp 20 ~ 3.9). ponytail: linear EP; swap for a fitted curve at calibration
+    ep = (0.065 * yl - 1.3) if side else 0.0
+    ep = ep if side != "away" else -ep
+    ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
+    # leads leak: pooled 2025-26 NFL drive-end fit (analysis/momentum.py) gives
+    # E[final] = margin*(1 - 0.28*rem) + pregame*rem; possession ~ +0.9 validated
+    # ponytail: NFL coefficient applied to CFB too; refit per sport when CFB data allows
+    return -(margin * (1 - 0.28 * rem) + ep + (-S0) * rem)
+
+def backfill_fair(h):
+    """Snaps saved before fair was stored (4 fields) get it rebuilt from their own
+    margin and situation text ("GB ball · CAR 26 · 1st & 10"). A no-op once filled."""
+    meta = h.get("meta") or {}
+    for i, sn in enumerate(h["snaps"]):
+        if len(sn) >= 5:
+            continue
+        gc, L, margin, sit = sn[:4]
+        side = yl = None
+        if sit:
+            parts = sit.split(" · ")
+            ab = parts[0].removesuffix(" ball")
+            side = "home" if ab == meta.get("habbr") else "away" if ab == meta.get("aabbr") else None
+            m = re.fullmatch(r"(?:(\S+) )?(\d+)", parts[1]) if len(parts) > 1 else None
+            yl = 50 if not m else int(m.group(2)) if m.group(1) in (None, ab) else 100 - int(m.group(2))
+        f = fair_spread(h.get("pregame"), margin, gc, side, yl if yl is not None else 50)
+        h["snaps"][i] = (gc, L, margin, sit, None if f is None else round(f, 1))
+
 def merge_json(path, updates):
     d = json.load(open(path)) if os.path.exists(path) else {}
     d.update(updates)
@@ -363,9 +396,6 @@ class CFB:
                 h["pregame"] = g["pregame"] if g["pregame"] is not None else pickcenter_pregame(gid)
             S0 = h["pregame"]
             margin = g["hs"] - g["as"]
-            rem = max(0.0, 1 - g["gc"] / 3600)
-            # possession value: EP ~ 0.065*yardline - 1.3 (own 20 ~ 0, midfield ~ 2,
-            # opp 20 ~ 3.9). ponytail: linear EP; swap for a fitted curve at calibration
             if g["poss_side"]:
                 h["poss"] = (g["poss_side"], g["yl"] if g["yl"] is not None else 50,
                              g["poss_text"], margin)
@@ -374,13 +404,7 @@ class CFB:
                 p = None   # someone scored since the last known possession: the cached
                            # side already banked those points, don't also count its EP
             side, yl, ptxt = (p or (None, 50, None))[:3]
-            ep = (0.065 * yl - 1.3) if side else 0.0
-            ep = ep if side != "away" else -ep
-            ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
-            # leads leak: pooled 2025-26 NFL drive-end fit (analysis/momentum.py) gives
-            # E[final] = margin*(1 - 0.28*rem) + pregame*rem; possession ~ +0.9 validated
-            # ponytail: NFL coefficient applied to CFB too; refit per sport when CFB data allows
-            fair = None if S0 is None else -(margin * (1 - 0.28 * rem) + ep + (-S0) * rem)
+            fair = fair_spread(S0, margin, g["gc"], side, yl)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
             old = next(((s[0], s[1], s[2]) for s in reversed(h["snaps"])
@@ -392,6 +416,7 @@ class CFB:
             if side:
                 ab = g["habbr"] if side == "home" else g["aabbr"]
                 sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {g["dd"]}' if g.get("dd") else "")
+            backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
             swing = dline is not None and abs(dline) >= SWING_PTS and abs(dline + dmarg) >= SWING_PTS / 2

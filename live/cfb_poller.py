@@ -34,9 +34,11 @@ DATA = os.environ.get("DATA_DIR", HERE)                # private state (history,
 REGISTRY = f"{DOCS}/{SPORT}_games.json"
 ARCHIVE = f"{DOCS}/archive"
 EDGE_FLAG = 4.0     # points of edge to flag
-# drive-end fits: NFL 2025-26 pooled (analysis/momentum.py), CFB 2026 FBS 572 games
-# (analysis/cfb_leak.py, 0.24 [0.20, 0.28])
-LEAK = {"nfl": 0.28, "cfb": 0.24}[SPORT]
+# drive-end fits: NFL 2025-26 pooled (analysis/momentum.py); CFB 2026 FBS 570 games
+# (analysis/cfb_spread_model.py): leak 0.31 [0.18, 0.44], possession 0.73 [0.54, 0.92] x EP,
+# fit jointly. Live backtest on 16 archived CFB games: EDGE flags cover ~47%, no edge yet.
+LEAK = {"nfl": 0.28, "cfb": 0.31}[SPORT]
+POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possession term
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -108,7 +110,7 @@ def fair_spread(S0, margin, gc, side, yl):
     ep = ep if side != "away" else -ep
     ep *= min(1.0, rem * 8)   # possessions stop mattering at the gun
     # leads leak: E[final] = margin*(1 - LEAK*rem) + pregame*rem; possession ~ +0.9 validated
-    f = -(margin * (1 - LEAK * rem) + ep + (-S0) * rem)
+    f = -(margin * (1 - LEAK * rem) + POSS * ep + (-S0) * rem)
     return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
 
 def edge_push(g, L, fair):
@@ -155,12 +157,55 @@ def reg_entry(ev, week):
             "hid": t["home"]["id"], "as": score("away"), "hs": score("home"),
             "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"])}
 
-def espn_events(espn_id, home_id):
-    """Scores + momentum plays as (gc, label, side, text, hs, as, cls).
+def fetch_summary(espn_id):
+    """ESPN game summary (scoring plays, drive log, box score); {} on failure."""
+    try:
+        return get(f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/summary?event={espn_id}")
+    except Exception:
+        return {}
+
+
+def latest_poss(s, home_id):
+    """Who has the ball after the last logged play: (side, yards from own goal, 'KENN 25', tag).
+    Every play's end state names the team with the ball (a punt or turnover flips it at once,
+    muffs included; ESPN sometimes leaves a turnover on downs with the offense, flipped here). A scored drive means the kickoff is pending: the team
+    scored on starts from its 25 (after a safety, the scorer); at the half, the team that kicked
+    off the game receives. Tag 'kickoff' for both. None when nothing is logged."""
+    try:
+        drives = s.get("drives", {})
+        prev = drives.get("previous") or []
+        d = drives.get("current") if (drives.get("current") or {}).get("plays") else prev[-1]
+        p = d["plays"][-1]
+        ab = {c["id"]: c["team"]["abbreviation"] for c in s["header"]["competitions"][0]["competitors"]}
+        mine = str(d["team"]["id"]); other = next(i for i in ab if i != mine)
+        res = (d.get("result") or "").upper()
+        side = lambda t: "home" if t == str(home_id) else "away"
+        end = p.get("end") or {}
+        if res == "END OF HALF" or ((p.get("type") or {}).get("text") == "End Period" and p["period"]["number"] == 2):
+            rec = next(i for i in ab if i != str(prev[0]["team"]["id"]))   # opening kicker receives
+            return (side(rec), 25, f"{ab[rec]} 25", "kickoff")
+        if d.get("isScore") or p.get("scoringPlay") or res in ("TD", "FG") or res.endswith(" TD"):
+            if res in ("SF", "SAFETY") or "safety" in p.get("text", "").lower():
+                rec = other
+            elif p.get("scoringPlay"):
+                rec = next(i for i in ab if i != str((end.get("team") or {}).get("id") or mine))
+            else:
+                rec = other if res in ("TD", "FG") else mine   # 'INT TD' etc: defense scored
+            return (side(rec), 25, f"{ab[rec]} 25", "kickoff")
+        team = str((end.get("team") or {}).get("id") or mine)
+        m = re.fullmatch(r"(\S+) (\d+)", end.get("possessionText") or "")
+        yl = 50 if not m else int(m.group(2)) if m.group(1) == ab.get(team) else 100 - int(m.group(2))
+        if res == "DOWNS" and team == mine:
+            team, yl = other, 100 - yl
+        return (side(team), yl, end.get("possessionText"), None)
+    except (KeyError, IndexError, StopIteration, TypeError):
+        return None
+
+def espn_events(s, home_id):
+    """Scores + momentum plays as (gc, label, side, text, hs, as, cls) from a fetch_summary().
     cls: 'score' | 'to' (turnover) | 'mom' (4th-down conversion / explosive)."""
     out = []
     try:
-        s = get(f"https://site.api.espn.com/apis/site/v2/sports/football/{ESPN_PATH}/summary?event={espn_id}")
         for p in s.get("scoringPlays", []):
             gc = clock_elapsed(p["period"]["number"], p.get("clock", {}).get("displayValue"))
             text = p.get("text", "")
@@ -330,7 +375,7 @@ class CFB:
             if not r or r["state"] != "post":
                 continue
             h = self.hist.pop(gid)
-            events = espn_events(gid, r["hid"]) or h.get("events", [])
+            events = espn_events(fetch_summary(gid), r["hid"]) or h.get("events", [])
             done.setdefault(r["week"], {})[gid] = {
                 "meta": h.get("meta"), "pregame": h.get("pregame"), "snaps": h.get("snaps", []),
                 "events": events, "final": f'{r["as"]}-{r["hs"]}'}
@@ -395,28 +440,33 @@ class CFB:
             h["meta"] = {"game": f'{g["aabbr"]} @ {g["habbr"]}', "habbr": g["habbr"],
                          "aabbr": g["aabbr"], "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "hcolor": g.get("hcolor"), "acolor": g.get("acolor")}
-            h["events"] = espn_events(gid, g["hid"])
+            summ = fetch_summary(gid)
+            h["events"] = espn_events(summ, g["hid"]) or h.get("events", [])
             if gid in self.reg:
                 self.reg[gid]["has_hist"] = True
             if h["pregame"] is None:
                 h["pregame"] = g["pregame"] if g["pregame"] is not None else pickcenter_pregame(gid)
             S0 = h["pregame"]
             margin = g["hs"] - g["as"]
-            if g["poss_side"]:
+            pp = latest_poss(summ, g["hid"])   # play log first: handles punts, turnovers, pending kickoffs
+            if pp:
+                h["poss"] = (*pp[:3], margin)
+            elif g["poss_side"]:   # scoreboard situation, then the cached one
                 h["poss"] = (g["poss_side"], g["yl"] if g["yl"] is not None else 50,
                              g["poss_text"], margin)
             p = h.get("poss")
             if p and len(p) > 3 and p[3] != margin:
-                p = None   # someone scored since the last known possession: the cached
-                           # side already banked those points, don't also count its EP
+                p = None   # cached possession from before a score: the side already banked
+                           # those points, don't also count its EP
             side, yl, ptxt = (p or (None, 50, None))[:3]
+            dd = "kickoff" if pp and pp[3] else g.get("dd")
             fair = fair_spread(S0, margin, g["gc"], side, yl)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
             sit_now = None
             if side:
                 ab = g["habbr"] if side == "home" else g["aabbr"]
-                sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {g["dd"]}' if g.get("dd") else "")
+                sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {dd}' if dd else "")
             backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
@@ -468,6 +518,37 @@ class CFB:
                 break
             time.sleep(self.poll)
 
+def check_poss(eids):
+    """Replay finished games: after each drive's last play, does latest_poss name the team
+    (and spot) that actually started the next drive?"""
+    side_ok = n = 0; err_k, err_p = [], []
+    for eid in eids:
+        s = fetch_summary(eid)
+        hid = next(c["id"] for c in s["header"]["competitions"][0]["competitors"] if c["homeAway"] == "home")
+        ab = {c["id"]: c["team"]["abbreviation"] for c in s["header"]["competitions"][0]["competitors"]}
+        prev = s["drives"]["previous"]
+        for i, (d, nxt) in enumerate(zip(prev, prev[1:])):
+            if not d.get("plays") or not nxt.get("plays") or nxt["plays"][0]["period"]["number"] > 4:
+                continue
+            fake = {"header": s["header"], "drives": {"current": d, "previous": prev[:i + 1]}}
+            got = latest_poss(fake, hid)
+            want_side = "home" if nxt["team"]["id"] == hid else "away"
+            m = re.fullmatch(r"(\S+) (\d+)", nxt["start"].get("text") or "")
+            want_yl = 50 if not m else int(m.group(2)) if m.group(1) == ab[nxt["team"]["id"]] else 100 - int(m.group(2))
+            n += 1
+            if got and got[0] == want_side:
+                side_ok += 1
+                (err_k if got[3] else err_p).append(abs(got[1] - want_yl))
+            else:
+                print(f"  miss {eid}: after {d['result']} got {got}, next drive {ab[nxt['team']['id']]} at {nxt['start'].get('text')}")
+    print(f"{n} drive boundaries in {len(eids)} games: side right {side_ok}/{n}")
+    print(f"  spot error, plays (punts/turnovers/downs): mean {sum(err_p)/max(1,len(err_p)):.1f} yds over {len(err_p)}")
+    print(f"  spot error, pending kickoff (assumed own 25): mean {sum(err_k)/max(1,len(err_k)):.1f} yds over {len(err_k)}")
+    assert side_ok / n > 0.97, "possession side from the play log should almost always match the next drive"
+
 if __name__ == "__main__":
+    if "--check-poss" in sys.argv:
+        check_poss(sys.argv[sys.argv.index("--check-poss") + 1:])
+        sys.exit()
     poll = int(sys.argv[sys.argv.index("--poll") + 1]) if "--poll" in sys.argv else 180
     CFB(poll).run(once="--once" in sys.argv)

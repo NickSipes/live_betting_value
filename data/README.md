@@ -128,7 +128,7 @@ Dict keyed by ESPN id:
 | `meta` | `{game, habbr, aabbr, hlogo, alogo, hcolor, acolor}` |
 | `pregame` | pregame home spread |
 | `final` | `"as-hs"` |
-| `snaps` | NFL: `[gc, live_home_spread, margin, situation]`, situation like `"DAL ball · PHI 35 · 2nd & 7"` or `null`. CFB week 8 (collected before the situation field existed): `[gc, live_home_spread, margin]`. Capped at the last 200 per game. |
+| `snaps` | NFL: `[gc, live_home_spread, margin, situation]`, situation like `"DAL ball · PHI 35 · 2nd & 7"` or `null`. From 2026-10-30 the situation comes from the last logged play, so it flips on the punt/turnover itself and reads `"KENN ball · KENN 25 · kickoff"` while a kickoff is pending (receiver credited with a drive from its 25). CFB week 8 (collected before the situation field existed): `[gc, live_home_spread, margin]`. Capped at the last 200 per game. |
 | `events` | key plays: `[gc, label, side ("home"/"away"), play text, home_score_after, away_score_after, class]`; class is `score`, `to` (turnover), `mom` (momentum: explosive plays, 4th-down stops/conversions), or `inj` (injury) |
 
 **`docs/nfl_games.json`**, **`docs/cfb_games.json`** — schedule and results registry for this
@@ -143,6 +143,9 @@ game left, in home-spread sign; `edge = live − fair` (positive edge favors the
 EDGE = |edge| ≥ 4; SWING = line moved ≥ 4 in ~10 game minutes beyond the score change.
 The 0.28 margin damping is the pooled 2025–26 drive-end fit from `analysis/momentum.py`
 (leads give back ~14% at halftime); rows logged before 2026-10-27 used the undamped fair line.
+CFB uses its own fit (`analysis/cfb_spread_model.py`, 570 FBS games of 2026): damping 0.31 and
+0.73 × the possession value; rows logged before 2026-10-30 used 0.24 / 1.0, and before 2026-10-27
+the NFL's 0.28.
 
 **`live/hist_nfl_spreads.json`**, `hist_cfb_spreads.json` — working state for spreads in games
 not yet final (same layout as the archive plus `poss`, `t`).

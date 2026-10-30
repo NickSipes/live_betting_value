@@ -41,6 +41,10 @@ cd analysis && ../.venv/bin/python export_live.py
 
 - ~55% of NFL games finish one-score, but conditional on trailing 9+ a live
   +8.5 ticket is ~50% — spread markets look efficient (2024-26 data).
+- CFB 2026 (570 FBS games, `analysis/cfb_spread_model.py`): leads leak 0.31 of the margin
+  per fraction remaining, possession worth 0.73x linear EP, both significant; momentum
+  events add nothing out of sample (same as NFL). Fair-line EDGE flags on 16 archived
+  live games covered 9/19 game-sides at |edge|>=4 — no edge shown yet.
 - Prop lines decay 13-46 yds during droughts; decay matches mean remaining
   production — droughts alone are NOT value (8.8% burst rate vs 9.8% base).
 - v1 burst model: AUC 0.66; drought + top-decile = 46% burst rate, but flags

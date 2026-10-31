@@ -24,6 +24,8 @@ ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl"
 MARKETS = {"rec": "player_reception_yds", "rush": "player_rush_yds"}
 SIGNAL = 0.50              # first time a prop is worth showing (Past scorecard "flag")
 NEAR, TRIG = 0.55, 0.60    # card status + notifications (calibrated P; -110 breakeven is 0.524)
+WL_GAP, WL_NEAR_GAP = 3595, 55   # seconds between pregame line checks, then in a game's last WL_NEAR seconds
+WL_NEAR = 3600
 CALL = TRIG                # a "call": if the player then clears that line, it's a win
 SCORE_WINDOW = (600, 3060)  # game-clock seconds the v2 model was trained on (10:00-51:00 elapsed);
                             # outside it the inputs (pace, team rates) are unstable and P isn't trustworthy
@@ -76,6 +78,10 @@ def calibrate(p, kind):
     if i >= len(xs) - 1:
         return ys[-1]
     return ys[i] + (ys[i + 1] - ys[i]) * (p - xs[i]) / (xs[i + 1] - xs[i])
+
+def kick_in(w):
+    """Seconds to a watchlist entry's kickoff; an entry without one counts as far off."""
+    return datetime.datetime.fromisoformat(w["kick_iso"]).timestamp() - time.time() if w.get("kick_iso") else float("inf")
 
 def first_over(bk):
     """(book, line, price): FanDuel first, as the quoted line. bk: {book: [line, over, under]}."""
@@ -364,7 +370,7 @@ class Monitor:
         self.bf_path = f"{DATA}/backfilled.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}    # opp id -> NEAR/TRIGGER
-        self.wl_lines_t = 0   # last watchlist line refresh (3h; 2 credits a game)
+        self.wl_t = {}        # game -> last watchlist line refresh (2 credits a game)
         self.form_t = 0       # last preview-form fetch attempt (hourly retry on ESPN errors)
 
     def closing_lines(self, game, oe):
@@ -678,7 +684,7 @@ class Monitor:
 
     def watchlist_extras(self):
         """Annotate Good Matchups with the injury report (every cycle, free), the
-        current pregame prop line (every 3h to stay inside the API quota,
+        current pregame prop line (hourly, every minute in a game's last hour:
         2 credits per game, upcoming games only) and, once per entry, the last-3
         form behind the preview card (ESPN schedule + box scores)."""
         try:
@@ -707,24 +713,29 @@ class Monitor:
                         changed = True
         except Exception as e:
             print("game info fetch error", repr(e))
-        if time.time() - self.wl_lines_t > 10800:
-            self.wl_lines_t = time.time()
+        now = time.time()
+        due = {w["game"] for w in entries if 0 < kick_in(w) and
+               now - self.wl_t.get(w["game"], 0) >= (WL_NEAR_GAP if kick_in(w) <= WL_NEAR else WL_GAP)}
+        if due:
             try:
                 evs = get(f"{ODDS}/events?apiKey={KEY}")
                 qbyg = {}
                 for w in entries:
-                    if w.get("kick_iso") and \
-                            datetime.datetime.fromisoformat(w["kick_iso"]).timestamp() < time.time():
-                        continue   # kicked off: the live board takes over
+                    if w["game"] not in due:
+                        continue   # kicked off (the live board takes over), or not due yet
                     if w["game"] not in qbyg:
+                        self.wl_t[w["game"]] = now
                         full = w.get("home_full", "")
                         oe = next((e for e in evs if full and
                                    (full in e["home_team"] or e["home_team"] in full)), None)
-                        qbyg[w["game"]] = self.odds_quotes(oe) if oe else {}
-                    L = next((v for (nm, kd), v in qbyg[w["game"]].items()
-                              if kd == w["market"] and short_name(nm) == short_name(w["player"])), None)
-                    if w.get("line") != L:
-                        w["line"] = L
+                        qbyg[w["game"]] = (self.odds_quotes(oe), self.books, self.slips) if oe else ({}, {}, {})
+                    quotes, books, slips = qbyg[w["game"]]
+                    k = next((k for k in quotes if k[1] == w["market"] and short_name(k[0]) == short_name(w["player"])), None)
+                    L = quotes.get(k)
+                    book = (first_over(books.get(k)) or (None,))[0]
+                    link = slips.get(k, {}).get(book)
+                    if (w.get("line"), w.get("book"), w.get("link")) != (L, book, link):
+                        w.update(line=L, book=book, link=link)
                         changed = True
             except Exception as e:
                 print("watchlist line fetch error", repr(e))
@@ -925,7 +936,14 @@ class Monitor:
                   f'{sum(1 for o in opps if o["status"]=="TRIGGER")} triggered')
             if demo or once:
                 break
-            time.sleep(self.poll)
+            end = time.time() + self.poll
+            while time.time() < end:   # live polling stays at --poll; a game's last hour ticks every minute
+                time.sleep(max(0, min(60, end - time.time())))
+                if any(0 < kick_in(w) <= WL_NEAR for w in watchlist()):
+                    try:
+                        self.watchlist_extras()
+                    except Exception as e:
+                        print("watchlist refresh error", repr(e))
 
 SCOREBOARDS = {"nfl": f"{ESPN}/scoreboard",
                "cfb": "https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&limit=250"}

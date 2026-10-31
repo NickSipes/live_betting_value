@@ -399,6 +399,7 @@ function propPreCard(w, chip = "PREGAME") {
     </div>
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso) || w.kick}</span></div>
     ${w.form ? `<div class="sub"><span style="color:var(--ink-1)">last 3 form ›</span></div>` : ""}
+    ${w.line != null ? betBtn(w) : ""}
   </div>`;
 }
 // ---------- preview plot ----------
@@ -724,7 +725,7 @@ function render() {
 // ---------- polling ----------
 async function refreshProps() {
   try { S.props = await (await fetch("state.json?" + Date.now())).json(); } catch (e) {}
-  if (!S.watch || Date.now() - S.watchT > 300e3)
+  if (!S.watch || Date.now() - S.watchT > ((S.watch.entries || []).some(w => w.kick_iso && new Date(w.kick_iso) - now() > 0 && new Date(w.kick_iso) - now() < 3600e3) ? 30e3 : 300e3))
     try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
   if (S.props) { lastTs.props = S.props.ts; renderAges(); }
 }

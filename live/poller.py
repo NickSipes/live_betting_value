@@ -346,6 +346,7 @@ def team_stats(box_team):
 class Monitor:
     def __init__(self, poll):
         self.poll = poll
+        self.books = {}
         self.hist_path = f"{DATA}/history.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.pl_path = f"{DATA}/pregame_lines.json"   # espn_id -> {"name|kind": closing line}
@@ -484,6 +485,7 @@ class Monitor:
                 f"&bookmakers=draftkings,fanduel&markets={MARKETS['rec']},{MARKETS['rush']}"
                 f"&oddsFormat=american")
         quotes = {}   # (name, kind) -> line (FD preferred)
+        self.books = {}   # (name, kind) -> {book: [line, over price, under price]}, archived per change
         for b in d.get("bookmakers", []):
             for m in b.get("markets", []):
                 kind = "rec" if m["key"] == MARKETS["rec"] else "rush"
@@ -491,6 +493,9 @@ class Monitor:
                     if o["name"] != "Over" or o.get("point") is None:
                         continue
                     k = (o["description"], kind)
+                    under = next((u.get("price") for u in m["outcomes"] if u["name"] == "Under"
+                                  and u.get("description") == o["description"] and u.get("point") == o["point"]), None)
+                    self.books.setdefault(k, {})[b["key"]] = [float(o["point"]), o.get("price"), under]
                     if b["key"] == "fanduel" or k not in quotes:
                         quotes[k] = float(o["point"])
         return quotes
@@ -640,7 +645,8 @@ class Monitor:
             done.setdefault(wk, {})[hkey] = {**h["meta"], "snaps": h["snaps"], "l0": h.get("l0"),
                                              "final": final, "close": last[3],
                                              "pmax": h.get("pmax", 0), "signal": h.get("signal"),
-                                             "call": h.get("call"), "pre": h.get("pre")}
+                                             "call": h.get("call"), "pre": h.get("pre"),
+                                             "quotes": h.get("quotes", []), "blocked": h.get("blocked")}
         if settled:
             path = f"{DOCS}/calls.json"
             ledger = json.load(open(path)) if os.path.exists(path) else {"feats": W["feats"], "calls": []}
@@ -767,12 +773,18 @@ class Monitor:
                 p = score_row(x)
                 h = self.hist[hkey]
                 h["pmax"] = max(h.get("pmax", 0), round(p, 3))
+                bk = self.books.get((name, kind))
+                if not h.get("quotes") or h["quotes"][-1][2] != bk:   # ponytail: on change only, props repeat for most polls
+                    h.setdefault("quotes", []).append((round(time.time()), game["gc"], bk))
                 if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
+                snap = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum, "books": bk,
+                        "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
+                        "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
+                if p >= CALL and "call" not in h and not call_gate(x, dkey) and "blocked" not in h:
+                    h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing"}
                 if p >= CALL and "call" not in h and call_gate(x, dkey):
-                    h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
-                                 "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
-                                 "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
+                    h["call"] = snap
                     push.send(f'Bet {name} Over {L} {"rec" if kind == "rec" else "rush"} yds',
                               f'Model gives it {round(p * 100)}% · {game["away_abbr"]} {game["as"]}–{game["home_abbr"]} {game["hs"]}, '
                               f'{game["clock"]}', tag=hkey, url="./#nfl/live")

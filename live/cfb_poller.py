@@ -39,8 +39,9 @@ EDGE_FLAG = 4.0     # points of edge to flag
 # fit jointly. Live backtest on 16 archived CFB games: EDGE flags cover ~47%, no edge yet.
 LEAK = {"nfl": 0.28, "cfb": 0.31}[SPORT]
 POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possession term
-# NFL only: both teams top third by record, take the trailing team at the first fresh quote after
-# a lead first hits 11+ (analysis/lead_spread_value.py: 29-17 on 2024-25). College failed this test.
+# NFL only: both teams top third by record, take the trailing team, only if it was the pregame favorite,
+# at the first fresh quote after a lead first hits 11+ (analysis/lead_spread_value.py: 14-5 at +37% on
+# 2024-25 before minute 55, 2-0 in 2026). College failed this test, favorites included.
 LEAD_CALL = 11
 LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
 LEAD_MAX_GAP = 600   # game seconds back to the last poll; more means we can't say when the lead happened
@@ -148,10 +149,11 @@ def top_third(week):
     return {t for t, p in pct.items()
             if 1 - 2 * (sum(x > p for x in v) + .5 * (sum(x == p for x in v) - 1)) / (n - 1) > 1 / 3}
 
-def lead_call(h, top, margin, gc, scored, now, poll, quote):
+def lead_call(h, top, pregame, margin, gc, scored, now, poll, quote):
     """The trailing team's bet ('home'/'away') the moment the lead call fires, else None; state in
     h["lead11"]. Only the first 11+ lead counts, and it has to be seen happening: no prior poll close
     to this one means an old lead, not a new one. top: both teams top third, None while that's unknown.
+    pregame: home spread; the trailing team must have been favored (a pick'em doesn't count, as backtested).
     The score has to stick for a poll and the quote has to be newer than it; a lead back under 11
     before that ends it, as it did in the backtest."""
     st = h.get("lead11")
@@ -161,15 +163,19 @@ def lead_call(h, top, margin, gc, scored, now, poll, quote):
         prior = h["snaps"][:-1]   # snaps[-1] is this poll
         seen = any(abs(s[2]) >= LEAD_CALL for s in prior)
         blind = not prior or gc - prior[-1][0] > LEAD_MAX_GAP
-        st = h["lead11"] = {"t": now, "sign": 1 if margin > 0 else -1, "done": seen or blind or gc >= LEAD_LATEST}
+        why = "seen" if seen else "no_history" if blind else "late" if gc >= LEAD_LATEST else None
+        st = h["lead11"] = {"t": now, "gc": gc, "margin": margin, "sign": 1 if margin > 0 else -1, "done": bool(why), "why": why}
     if st["done"]:
         return None
-    if top is False or st["sign"] * margin < LEAD_CALL or now - st["t"] > LEAD_MAX_WAIT:
-        st["done"] = True
+    fav = None if pregame is None else st["sign"] * pregame > 0
+    why = ("not_top" if top is False else "underdog" if fav is False else "lead_gone" if st["sign"] * margin < LEAD_CALL
+           else "timeout" if now - st["t"] > LEAD_MAX_WAIT else None)
+    if why:
+        st.update(done=True, why=why)   # archived: blocked leads get graded later from h["quotes"]
         return None
-    if top is None or scored or not quote or quote["updated"] < st["t"] - poll:
+    if top is None or fav is None or scored or not quote or quote["updated"] < st["t"] - poll:
         return None
-    st["done"] = True
+    st.update(done=True, why="called")
     return "away" if st["sign"] > 0 else "home"
 
 def cover(call, hs, as_):
@@ -446,7 +452,8 @@ class CFB:
                 self.save_call(h["call"])
             done.setdefault(r["week"], {})[gid] = {
                 "meta": h.get("meta"), "pregame": h.get("pregame"), "snaps": h.get("snaps", []),
-                "events": events, "final": f'{r["as"]}-{r["hs"]}', "call": h.get("call")}
+                "events": events, "final": f'{r["as"]}-{r["hs"]}', "call": h.get("call"),
+                "date": r.get("date"), "quotes": h.get("quotes", []), "lead11": h.get("lead11"), "top": h.get("top")}
             r["has_hist"] = True
         for wk, recs in done.items():
             merge_json(f"{ARCHIVE}/{SPORT}_w{wk}.json", recs)
@@ -497,6 +504,7 @@ class CFB:
                 print("backfill error", repr(e))
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
         detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
+        books = {}    # same key -> {book: [home points, home price, away price, updated]}, archived per poll
         fresh_cut = (datetime.datetime.now(datetime.timezone.utc)
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")
         for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american"):
@@ -506,9 +514,11 @@ class CFB:
                 for m in b.get("markets", []):
                     for o in m.get("outcomes", []):
                         if o["name"] == e["home_team"] and o.get("point") is not None:
+                            other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
+                            books.setdefault(e["home_team"], {})[b["key"]] = [
+                                float(o["point"]), o["price"], other.get("price"), iso_ts(m.get("last_update") or b["last_update"])]
                             if b["key"] == "fanduel" or e["home_team"] not in quotes:
                                 quotes[e["home_team"]] = float(o["point"])
-                                other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
                                 detail[e["home_team"]] = {"home": o["price"], "away": other.get("price"),
                                                           "updated": iso_ts(m.get("last_update") or b["last_update"])}
         for gid, g in live.items():
@@ -553,17 +563,22 @@ class CFB:
             backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
+            # every poll, kept apart from snaps so their shape stays put: wall clock, scores, each book's price
+            h.setdefault("quotes", []).append((round(time.time()), g["gc"], g["as"], g["hs"],
+                                               next((v for k, v in books.items() if g["home"] in k or k in g["home"]), None)))
             status = "EDGE" if (not scored and edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             if SPORT == "nfl":
                 q = next((v for k, v in detail.items() if g["home"] in k or k in g["home"]), None)
                 top = None if self.tops[0] != week else g["habbr"] in self.tops[1] and g["aabbr"] in self.tops[1]
-                bet = lead_call(h, top, margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
+                h["top"] = top
+                bet = lead_call(h, top, S0, margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
                 if bet:
                     ab, line = (g["habbr"], L) if bet == "home" else (g["aabbr"], -L)
                     h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
                                  "line": line, "price": q[bet], "clock": g["clock"], "gc": g["gc"], "t": time.time(),
-                                 "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None}
+                                 "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
+                                 "books": h["quotes"][-1][4]}
                     self.save_call(h["call"])
                     push.queue(f'Bet {ab} {line:+g} ({q[bet]:+d})', f'Top-vs-top, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
                                tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")

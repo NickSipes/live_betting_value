@@ -192,3 +192,9 @@ log) and `cfb_history.json` (CFB week 8 line histories; already merged into
 - One week of calls is ~50 settled bets: treat any effect as a hypothesis.
 - Prop P values before the 600 s / after the 3060 s mark are `null` by design, not missing data.
 - Lines are FanDuel-first, DraftKings fallback, mixed within a game when FanDuel pulled a market.
+- From week 8's remaining games, archives also keep prices. Spread games: `quotes` is one row per poll
+  `[unix time, gc, away score, home score, {book: [home points, home price, away price, updated]}]`,
+  plus `date`, `top` (both teams top third) and `lead11` (first 11+ lead: `t`, `gc`, `margin`, `sign`,
+  and `why`: called, underdog, not_top, late, seen, no_history, lead_gone, timeout). Props: `quotes` is
+  `[unix time, gc, {book: [line, over price, under price]}]`, saved when a quote changes, and `blocked` is
+  the first call a gate stopped (`why`: top3_def, trailing; same fields as a call). Calls carry `books`.

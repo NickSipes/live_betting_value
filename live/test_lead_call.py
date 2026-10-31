@@ -7,13 +7,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 import cfb_poller as C
 
 Q = {"home": -110, "away": -110, "updated": 1000}
-def run(polls, top=True, snaps=((800, None, 3),)):
+def run(polls, top=True, snaps=((800, None, 3),), pre="fav"):
     """polls: (margin, gc, seconds, scored, quote). Returns the first bet fired. top: one value, or one per poll."""
     h = {"snaps": list(snaps)}
     tops = top if isinstance(top, list) else [top] * len(polls)
     for (m, gc, t, sc, q), tp in zip(polls, tops):
         h["snaps"].append((gc, None, m))     # the poller logs the snap before it checks
-        if b := C.lead_call(h, tp, m, gc, sc, t, 180, q):
+        if b := C.lead_call(h, tp, (3 if m > 0 else -3) if pre == "fav" else pre, m, gc, sc, t, 180, q):
             return b
 
 assert run([(14, 900, 1000, True, Q), (14, 1000, 1180, False, Q)]) == "away"        # home leads, away gets the points
@@ -33,6 +33,20 @@ good = [(14, 900, 1000, True, Q), (14, 1000, 1180, False, Q)]
 assert run(good + [(14, 1100, 1360, False, Q)], top=[None, None, True]) == "away"    # lookup failed at the lead, recovered
 assert run(good, top=[True, None]) is None                                           # unknown never fires
 assert run(good + [(14, 1100, 1360, False, Q)], top=[None, False, True]) is None     # a real no ends it
+assert run(good, pre=-3) is None                                                     # trailing team was the underdog
+assert run(good, pre=0) is None                                                      # a pick'em isn't a favorite
+assert run(good, pre=None) is None                                                   # unknown never fires
+def why(polls, **kw):
+    h = {"snaps": [(kw.get("gc0", 800), None, 3)]}
+    for m, gc, t, sc in polls:
+        h["snaps"].append((gc, None, m))
+        C.lead_call(h, kw.get("top", True), kw.get("pre", 3), m, gc, sc, t, 180, Q)
+    return h["lead11"]["why"]
+assert why([(14, 900, 1000, True), (14, 1000, 1180, False)]) == "called"
+assert why([(14, 900, 1000, True)], pre=-3) == "underdog"
+assert why([(14, 900, 1000, True)], top=False) == "not_top"
+assert why([(14, 3300, 1000, True)], gc0=3200) == "late"
+assert why([(14, 900, 1000, True), (7, 1000, 1180, True)]) == "lead_gone"
 assert run([(10, 900, 1000, True, Q), (10, 1000, 1180, False, Q)]) is None
 assert C.cover({"bet": "away", "line": 8.5}, 24, 17) == "win" and C.cover({"bet": "away", "line": 8.5}, 27, 17) == "loss"
 assert C.cover({"bet": "home", "line": 3}, 10, 13) == "push"
@@ -48,12 +62,19 @@ P.reg["G"].update(hs=24, **{"as": 17})
 P.archive_finals()
 assert "G" not in P.hist and json.load(open(P.calls_path))[0]["result"] == "win"
 
+# every analysis field reaches the archive
+P.hist = {"H": {"snaps": [], "meta": {}, "quotes": [[1, 900, 7, 21, {"fanduel": [-9.5, -110, -110, 1]}]], "lead11": {"why": "underdog"}, "top": True}}
+P.reg = {"H": {"state": "post", "hs": 21, "as": 7, "hid": "1", "week": 3, "date": "2026-09-20T17:00Z"}}
+P.archive_finals()
+rec = json.load(open(f"{C.ARCHIVE}/{C.SPORT}_w3.json"))["H"]
+assert rec["quotes"][0][4]["fanduel"][1] == -110 and rec["lead11"]["why"] == "underdog" and rec["top"] is True and rec["date"]
+
 # replay: every flagged NFL game before minute 55 should fire; the bet goes to the trailing side
 from lead_spread_value import season_games
 fired = n = 0
 for season in (2024, 2025):
     for g in season_games("NFL", season):
-        if not g["top"] or g["trig"][1] >= C.LEAD_LATEST:
+        if not g["top"] or g["trig"][1] >= C.LEAD_LATEST or g["sp"] is None or g["trig"][2] * g["sp"] <= 0:
             continue
         n += 1
         t0, gc0, lead, h0, a0 = g["trig"]
@@ -63,7 +84,7 @@ for season in (2024, 2025):
             hs, as_ = next(((x[2], x[3]) for x in reversed(g["tl"]) if x[0] <= t), (0, 0))
             margin = hs - as_
             h["snaps"].append((gc0, None, margin))
-            bet = bet or C.lead_call(h, True, margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
+            bet = bet or C.lead_call(h, True, g["sp"], margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
             last = (hs, as_)
         fired += bet == ("away" if lead > 0 else "home")
 print(f"replay fired {fired}/{n}")

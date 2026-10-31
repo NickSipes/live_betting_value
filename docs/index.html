@@ -1232,7 +1232,22 @@ function openHowTo() {
       "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve."])}
     ${part("Rules for NCAAF spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check, a fresh quote is in, and the books are within 2 points.",
-      "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}</div>`);
+      "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}
+    ${pushSub ? `<h4 style="margin:16px 0 6px">Test alerts</h4>
+      <p style="margin:0 0 8px">Sends a test alert that opens a bet slip. Nothing is placed unless you confirm it at the book.</p>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button onclick="testBook('fanduel')">Test FanDuel</button>
+        <button onclick="testBook('draftkings')">Test DraftKings</button>
+      </div>` : ""}</div>`);
+}
+async function testBook(book) {
+  const name = book === "fanduel" ? "FanDuel" : "DraftKings";
+  try {
+    const link = (await (await fetch("test_links.json?" + Date.now())).json())[book];
+    if (!link || Date.now() / 1000 - link.t > 1800) return alert(`No live ${name} bet to test with. Try again during a game.`);
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification(`Test ${name}`, { body: `Tap to open ${link.bet} on ${name}`, tag: `test|${book}`, icon: "icon-192.png", data: { url: link.url } });
+  } catch (e) { alert("Couldn't send the test: " + e.message); }
 }
 // Called bets by week, one dot per category. Pushes don't count. Weeks are each league's own.
 function openWinRate() {

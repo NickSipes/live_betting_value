@@ -578,9 +578,10 @@ class CFB:
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
         detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
         books = {}    # same key -> {book: [home points, home price, away price, updated]}, archived per poll
+        links = {}    # book -> a live bet slip link, for the page's test buttons
         fresh_cut = (datetime.datetime.now(datetime.timezone.utc)
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american"):
+        for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american&includeLinks=true"):
             for b in e.get("bookmakers", []):
                 if b.get("last_update", "") < fresh_cut:
                     continue   # suspended market = stale line, not an edge
@@ -588,12 +589,16 @@ class CFB:
                     for o in m.get("outcomes", []):
                         if o["name"] == e["home_team"] and o.get("point") is not None:
                             other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
+                            if o.get("link"):
+                                links[b["key"]] = {"url": o["link"], "bet": f'{e["home_team"]} {float(o["point"]):+g}', "t": time.time()}
                             books.setdefault(e["home_team"], {})[b["key"]] = [
                                 float(o["point"]), o["price"], other.get("price"), iso_ts(m.get("last_update") or b["last_update"])]
                             if b["key"] == "fanduel" or e["home_team"] not in quotes:
                                 quotes[e["home_team"]] = float(o["point"])
                                 detail[e["home_team"]] = {"home": o["price"], "away": other.get("price"),
                                                           "updated": iso_ts(m.get("last_update") or b["last_update"])}
+        if links:   # ponytail: only refreshed while games are live; the page refuses a stale link
+            json.dump(links, open(f"{DOCS}/test_links.json", "w"))
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})

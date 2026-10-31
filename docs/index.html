@@ -35,6 +35,8 @@
                   calc(60px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
   .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
   .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .topbtns { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .topbtns button { padding:5px 8px; font-size:12.5px; white-space:nowrap; }
   @media (max-width:480px) { .top { gap:6px; } .top .meta { flex-basis:100%; text-align:right; } }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
   .tabrow { display:flex; flex-wrap:wrap; column-gap:18px; }
@@ -85,7 +87,8 @@
   #modal { background:var(--surface); border:1px solid var(--border); border-radius:16px;
            max-width:760px; width:100%; max-height:88vh; overflow:hidden; padding:18px 22px 12px;
            display:flex; flex-direction:column; position:relative; }
-  #modal > *:not(#evlist) { flex-shrink:0; }
+  #modal > *:not(#evlist):not(.mscroll) { flex-shrink:0; }
+  .mscroll { flex:1 1 auto; min-height:0; overflow-y:auto; touch-action:pan-y; overscroll-behavior:contain; }
   .mclose { position:absolute; top:8px; right:10px; border:none; background:transparent;
             font-size:17px; color:var(--muted); padding:6px 8px; z-index:2; }
   #modal h3 { margin:0 0 2px; font-size:16px; display:flex; align-items:center; gap:8px; }
@@ -209,7 +212,10 @@
     <div class="top">
       <h1>Live Bet Predictor</h1>
       <button id="notifbtn" onclick="alertsClick()" hidden></button>
-      <button onclick="openHowTo()" style="margin-left:auto;padding:5px 8px;font-size:12.5px;white-space:nowrap">How To</button>
+      <div class="topbtns">
+        <button onclick="openHowTo()">How To</button>
+        <button onclick="openWinRate()">Win Rate</button>
+      </div>
       <span class="meta" id="updated"></span>
     </div>
     <div class="tabrow">
@@ -1207,7 +1213,7 @@ function openHowTo() {
   MC = null;
   showModal(`
     <h3>How To</h3>
-    <p style="margin:0">The model is trained on historical game and odds data. Every bet alert names the book to use, FanDuel or DraftKings, whichever has the better number.</p>
+    <div class="mscroll"><p style="margin:0">The model is trained on historical game and odds data. Every bet alert names the book to use, FanDuel or DraftKings, whichever has the better number.</p>
     ${part("Rules for NFL spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, and the trailing team was the pregame favorite. Bet the trailing team once the score has held for one check and a fresh quote is in."])}
     ${part("Rules for NFL props", [
@@ -1216,7 +1222,49 @@ function openHowTo() {
       "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve."])}
     ${part("Rules for NCAAF spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check and a fresh quote is in.",
-      "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}`);
+      "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}</div>`);
+}
+// Called bets by week, one dot per category. Pushes don't count. Weeks are each league's own.
+function openWinRate() {
+  const cats = [["NFL spreads", S.spreadCalls, "var(--green)", "circle"], ["NFL props", S.calls?.calls, "var(--orange)", "square"],
+                ["NCAAF spreads", S.cfbCalls, "var(--blue)", "diamond"]].map(([name, calls, color, shape]) => {
+    const done = (calls || []).filter(c => c.week != null && (c.result === "win" || c.result === "loss")), weeks = {};
+    for (const c of done) { (weeks[c.week] ||= [0, 0])[1]++; if (c.result === "win") weeks[c.week][0]++; }
+    return { name, color, shape, weeks, w: done.filter(c => c.result === "win").length, n: done.length };
+  });
+  const rate = ([w, n]) => `${w}/${n} calls · ${Math.round(w / n * 100)}%`;
+  const mark = (c, x, y, r) => `<${c.shape === "circle" ? `circle cx="${x}" cy="${y}" r="${r}"`
+    : c.shape === "square" ? `rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" rx="1.5"`
+    : `polygon points="${x},${y - r * 1.3} ${x + r * 1.3},${y} ${x},${y + r * 1.3} ${x - r * 1.3},${y}"`}
+    fill="${c.color}" stroke="var(--surface)" stroke-width="2"/>`;
+  const all = cats.flatMap(c => Object.keys(c.weeks).map(Number));
+  let plot = "";
+  if (all.length) {
+    const W = 340, H = 230, L = 36, R = 16, T = 12, B = 24, x0 = Math.min(...all), x1 = Math.max(...all);
+    const X = x => L + 14 + (W - L - R - 28) * (x1 > x0 ? (x - x0) / (x1 - x0) : .5), Y = y => T + (H - T - B) * (1 - y / 100);
+    PLOT = { W, L, R, x0, x1, X, rows: week => ({ sub: "", stats: cats.map(c => [c.name, c.weeks[week] ? rate(c.weeks[week]) : "no calls"]) }) };
+    let s = `<svg viewBox="0 0 ${W} ${H}">`;
+    for (const v of [0, 25, 50, 75, 100])
+      s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>
+            <text x="${L - 6}" y="${Y(v) + 3.5}" class="tick" text-anchor="end">${v}%</text>`;
+    for (let w = x0; w <= x1; w++) s += `<text x="${X(w)}" y="${H - 8}" class="tick" text-anchor="middle">w${w}</text>`;
+    s += `<line x1="${L}" x2="${W - R}" y1="${Y(52.4)}" y2="${Y(52.4)}" stroke="var(--ink-2)" stroke-dasharray="4 3"/>
+          <text x="${W - R}" y="${Y(52.4) - 4}" class="tick" text-anchor="end">break-even</text>
+          <line class="mxh" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-width="1" visibility="hidden"/>`;
+    cats.forEach((c, i) => {   // same week: sit side by side so no dot hides another
+      for (const [wk, v] of Object.entries(c.weeks)) s += mark(c, X(+wk) + (i - 1) * 9, Y(v[0] / v[1] * 100), 5);
+    });
+    plot = `<div class="prev cplot" onpointerdown="plotCursor(event)" onpointermove="plotCursor(event)" onpointerleave="hideCursor()"
+      onpointercancel="hideCursor()" onpointerup="if (event.pointerType !== 'mouse') hideCursor()"><div id="mread" hidden></div>${s}</svg></div>
+      <div class="mleg">${cats.map(c => `<span><svg width="14" height="14" viewBox="0 0 14 14" style="display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px">${mark(c, 7, 7, 4.5)}</svg>${c.name}</span>`).join("")}</div>`;
+  }
+  MC = null;
+  showModal(`
+    <h3>Win Rate</h3>
+    ${plot || `<p style="margin:8px 0">No settled calls yet.</p>`}
+    <div class="mscroll">
+      <div class="nums pdet">${cats.map(c => `<div><span>${c.name}</span><b>${c.n ? rate([c.w, c.n]) : "no calls yet"}</b></div>`).join("")}</div>
+    </div>`);
 }
 function closeModal() {
   document.getElementById("overlay").style.display = "none";
@@ -1231,7 +1279,7 @@ modalEl.addEventListener("pointerdown", e => {   // a tap off the plot and its r
   if (document.getElementById("mread")?.hidden === false && !e.target.closest(".ev, .mhit, .evdot, .prev")) hideCursor();
 });
 modalEl.addEventListener("pointerdown", e => {
-  if (e.pointerType === "mouse" || e.target.closest(".mhit, .prev") || e.target.closest("#evlist")?.scrollTop > 0) return;
+  if (e.pointerType === "mouse" || e.target.closest(".mhit, .prev") || e.target.closest("#evlist, .mscroll")?.scrollTop > 0) return;
   swipe = { x: e.clientX, y: e.clientY };
 });
 modalEl.addEventListener("pointermove", e => {

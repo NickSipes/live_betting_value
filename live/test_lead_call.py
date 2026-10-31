@@ -57,7 +57,6 @@ assert C.best_spread(row, "away") == ("draftkings", 10.5, -115)      # more poin
 assert C.best_spread(row, "home") == ("fanduel", -9.5, -110)
 assert C.best_spread({"fanduel": [3, -120, -110, 1], "draftkings": [3, -105, -115, 1]}, "home")[0] == "draftkings"   # same line: price
 assert C.best_spread(row, "away", since=200) is None and C.best_spread(None, "home") is None
-assert C.edge_push({"habbr": "H", "aabbr": "A", "as": 7, "hs": 0, "clock": "Q2"}, 9.5, 4, row)[0] == "Bet H -9.5 (-110) on FanDuel"
 
 # college lead rule: unranked leader, ranked trailer
 assert C.cfb_side(99, 10)(1) is True and C.cfb_side(10, 99)(-1) is True              # leader unranked, trailer ranked

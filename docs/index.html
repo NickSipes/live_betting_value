@@ -472,23 +472,23 @@ function openPreview(w) {
       ${det("status", w.inj && `<span style="color:var(--orange)">${w.inj}</span>`)}
     </div>`);
 }
-function spreadLiveCard(kind, g) {
+function spreadLiveCard(kind, g, plain) {
   const [as, hs] = (g.score || "0-0").split("-");
   return `
-  <div class="card ${chipCls(g.status)} click" ${on(() => openSpread(kind, g.id))}>
+  <div class="card ${plain ? "watch" : chipCls(g.status)} click" ${on(() => openSpread(kind, g.id))}>
     <div class="trow">${logoImg(g.alogo)}<span class="ab">${g.aabbr ?? ""}</span>
       ${g.poss_side === "away" ? "🏈" : ""}<span class="sc">${as}</span></div>
     <div class="trow">${logoImg(g.hlogo)}<span class="ab">${g.habbr ?? ""}</span>
       ${g.poss_side === "home" ? "🏈" : ""}<span class="sc">${hs}</span></div>
     <div class="sub"><span>${g.clock}</span><span>${g.poss ?? ""}</span>
-      <span class="chip ${chipCls(g.status)}">${g.status.toUpperCase()}</span></div>
+      ${plain ? "" : `<span class="chip ${chipCls(g.status)}">${g.status.toUpperCase()}</span>`}</div>
     <div class="nums">
       <div><span>pregame</span><b>${fmtS(g.pregame, g)}</b></div>
       <div><span>live</span><b>${fmtS(g.line, g)}</b></div>
       <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
       <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
     </div>
-    ${g.call ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>` : ""}
+    ${g.call && !plain ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>` : ""}
   </div>`;
 }
 function openWatch(r) {
@@ -607,8 +607,9 @@ function viewLive() {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
-    html += section("nfl-active-calls", "Active Picks", `${active.length} pending`, "Bets that the model has taken",
-      active.map(c => callCard(c, freshCalls.has(c.id))), "No open picks right now.")
+    const spreadPicks = games.filter(g => g.call && !g.call.result);
+    html += section("nfl-active-calls", "Active Picks", `${active.length + spreadPicks.length} pending`, "Bets that the model has taken",
+      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id)))], "No open picks right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) live in Active Picks, so they leave Picks on Deck
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
@@ -623,8 +624,8 @@ function viewLive() {
     html += section("cfb-live-props", "Picks on Deck", `${deck.length} watching`, "Bets that the model is watching.",
       deck.map(g => spreadLiveCard(kind, g)), "The model isn't watching any bets right now.");
   }
-  html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,
-    games.map(g => spreadLiveCard(kind, g)), `No live ${SPORTNAME[R.sport]} games right now.`);
+  html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, R.sport === "cfb" ? "tap a card for line movement + key plays" : SPREAD_LEG,
+    games.map(g => spreadLiveCard(kind, g, R.sport === "cfb")), `No live ${SPORTNAME[R.sport]} games right now.`);
   return html;
 }
 

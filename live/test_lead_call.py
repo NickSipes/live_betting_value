@@ -63,6 +63,11 @@ q = lambda p: {"fanduel": [p, -110, -110, 1]}
 assert C.bet_open(home, q(-10.5)) and not C.bet_open(home, q(-11)) and C.bet_open(home, q(-7))      # good to -10.5, then gone
 assert C.bet_open(away, q(-8.5)) and not C.bet_open(away, q(-8)) and C.bet_open(away, q(-12))       # +9.5 good to +8.5
 assert C.bet_open(home, {"draftkings": [-20, 0, 0, 1]}) and not C.bet_open({**home, "open": False}, None)   # no quote keeps the answer
+slip = {"fanduel": {"event": "page"}}
+assert C.lean(2, -24.5, slip) == {"bet": "home", "line": -24.5, "link": "page"}
+assert C.lean(-1, -24.5, slip) == {"bet": "away", "line": 24.5, "link": "page"}
+assert C.lean(2, -24.3, slip)["line"] == -24.5 and C.lean(2, 3, slip)["line"] == 3.5 and C.lean(-2, 3, slip)["line"] == -2.5
+assert C.lean(0, -3, slip) is None and C.lean(None, None, slip) is None and C.lean(2, -3, {}) is None
 assert not C.books_agree(row) and not C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-5, 0, 0, 0]})
 assert C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-4, 0, 0, 0]}) and C.books_agree({"fanduel": [-3, 0, 0, 0]}) and C.books_agree(None)
 

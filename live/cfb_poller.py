@@ -13,7 +13,7 @@ Writes docs/{cfb_state,nfl_spreads_state}.json (live), docs/{sport}_games.json
 line history into docs/archive/{sport}_w{week}.json when it goes final.
 Appends flags to live/{sport}_spread_log.csv.
 """
-import json, os, sys, time, csv, re, datetime, subprocess, urllib.request
+import json, math, os, sys, time, csv, re, datetime, subprocess, urllib.request
 import push
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -133,6 +133,16 @@ def pick_quote(row, bet, since=0):
         if q and q[3] >= since and (q[1] if home else q[2]) is not None:
             return b, q[0] if home else -q[0], q[1] if home else q[2]
     return None
+
+def lean(edge, fair, slip):
+    """The model's line on the side it leans, and FanDuel's game page, for the button on a game card: not a
+    call, not tracked. Alternate spreads end in .5, so fair rounds to one. No alternates are fetched: the
+    page is free with the spreads response, and the viewer picks the line there. fair is on the home side."""
+    event = ((slip or {}).get("fanduel") or {}).get("event")
+    if not edge or fair is None or not event:
+        return None
+    bet = "home" if edge > 0 else "away"
+    return {"bet": bet, "line": math.floor(fair if bet == "home" else -fair) + .5, "link": event}
 
 def bet_open(call, row):
     """Is the called book still at or better than the alert's good-to line? No quote this poll: keep the last answer."""
@@ -597,7 +607,7 @@ class CFB:
                     for o in m.get("outcomes", []):
                         if o["name"] == e["home_team"] and o.get("point") is not None:
                             other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
-                            slips.setdefault(e["home_team"], {})[b["key"]] = {"home": o.get("link"), "away": other.get("link")}
+                            slips.setdefault(e["home_team"], {})[b["key"]] = {"home": o.get("link"), "away": other.get("link"), "event": b.get("link")}
                             if o.get("link"):
                                 links[b["key"]] = {"url": o["link"], "bet": f'{e["home_team"]} {float(o["point"]):+g}', "t": time.time()}
                             books.setdefault(e["home_team"], {})[b["key"]] = [
@@ -687,7 +697,9 @@ class CFB:
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
                          "status": "CALL" if h.get("call") else status, "call": h.get("call"),
-                         "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
+                         "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"]),
+                         "lean": None if scored else lean(edge, fair,
+                                                          next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), None))})
             if status != self.status.get(gid) and status != "watch":
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')

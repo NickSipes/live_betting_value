@@ -37,6 +37,7 @@
   .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
   .betlink { display:block; margin-top:10px; padding:9px; border-radius:9px; text-align:center; font-weight:650; font-size:13.5px;
              color:#fff; background:var(--green); text-decoration:none; }
+  .betlink.lean { color:var(--ink-1); background:var(--surface-2); border:1px solid var(--border); font-weight:600; }
   .topbtns { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .topbtns button { padding:5px 8px; font-size:12.5px; white-space:nowrap; }
   @media (max-width:480px) { .top { gap:6px; } .top .meta { flex-basis:100%; text-align:right; } }
@@ -359,6 +360,8 @@ function propLiveCard(o) {
   </div>`;
 }
 // same layout as propLiveCard, but for the called line: progress bar = yards toward it
+const leanBtn = g => { const l = g.lean, num = v => (v > 0 ? "+" : "") + v;
+  return l && !g.call ? `<a class="betlink lean" href="${l.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet ${l.bet === "home" ? g.habbr : g.aabbr} ${num(l.line)} on FanDuel</a>` : ""; };
 const betBtn = c => c.link && !c.result && c.open !== false ? `<a class="betlink" href="${c.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet on ${c.book === "draftkings" ? "DraftKings" : "FanDuel"}</a>` : "";
 function callCard(c, isNew) {
   const o = c.o, pre = c.type === "pregame";
@@ -494,6 +497,7 @@ function spreadLiveCard(kind, g, plain) {
       <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
     </div>
     ${g.call && !plain ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>${betBtn(g.call)}` : ""}
+    ${leanBtn(g)}
   </div>`;
 }
 function openWatch(r) {

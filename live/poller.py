@@ -77,11 +77,10 @@ def calibrate(p, kind):
         return ys[-1]
     return ys[i] + (ys[i + 1] - ys[i]) * (p - xs[i]) / (xs[i + 1] - xs[i])
 
-def call_gate(x, cum, L, dkey):
-    """Week-7 review: every losing call was on a trailing team or a player whose
-    volume never showed up. No call while down > 3 unless usage is already there,
-    and never an over against a top-3 defense (going into the week)."""
-    return dkey.rsplit("|", 1)[0] not in TOP3_DEF and x[9] >= -3 and (x[4] >= 3 or cum >= 0.6 * L)
+def call_gate(x, dkey):
+    """No call while down > 3, and never an over against a top-3 defense (going into
+    the week). A touch-count rule was dropped: on week 7 it only blocked winners."""
+    return dkey.rsplit("|", 1)[0] not in TOP3_DEF and x[9] >= -3
 
 TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}   # watchlist: top-N player vs bottom-10 defense
 NFLV = {v: k for k, v in ALIAS.items()}     # ESPN -> nflverse team codes (priors/DEF keys)
@@ -582,7 +581,7 @@ class Monitor:
             h["snaps"] = out
             for key, thr in (("signal", SIGNAL), ("call", CALL)):
                 i = next((j for j, s in enumerate(out) if s[4] is not None and s[4] >= thr
-                          and (key != "call" or (j in xs and call_gate(xs[j], s[1], s[3], dkey)))), None)
+                          and (key != "call" or (j in xs and call_gate(xs[j], dkey)))), None)
                 if i is None:
                     continue
                 cur = h.get(key)
@@ -770,7 +769,7 @@ class Monitor:
                 h["pmax"] = max(h.get("pmax", 0), round(p, 3))
                 if p >= SIGNAL and "signal" not in h:   # first time the model liked the over
                     h["signal"] = {"clock": game["clock"], "line": L, "cum": cum, "p": round(p, 3), "rebuilt": False}
-                if p >= CALL and "call" not in h and call_gate(x, cum, L, dkey):
+                if p >= CALL and "call" not in h and call_gate(x, dkey):
                     h["call"] = {"clock": game["clock"], "gc": game["gc"], "line": L, "cum": cum,
                                  "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                                  "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
@@ -790,7 +789,7 @@ class Monitor:
                 if dkey.rsplit("|", 1)[0] in TOP3_DEF:
                     continue   # top-3 form defense: keep collecting snaps, never show the over
                 histout[oid] = {**meta, "snaps": self.hist[hkey]["snaps"]}
-                status = ("TRIGGER" if p >= TRIG and call_gate(x, cum, L, dkey)
+                status = ("TRIGGER" if p >= TRIG and call_gate(x, dkey)
                           else "NEAR" if p >= NEAR else "watch")
                 listed.add(oid)
                 opps.append({"id": oid, "eid": game["espn_id"], "player": name, "market": kind, "logo": logo, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',

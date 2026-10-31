@@ -47,7 +47,7 @@ week-7 archive; week-7 out-of-sample AUC 0.605) — the pooled model's is_rush p
 live rush calls impossible. P is isotonic-calibrated per market (`live/calib.json`, fitted by
 `analysis/fit_calib.py`: rec on week-7 archive snapshots, raw 0.70 ≈ 0.36; rush on its leave-one-game-out
 predictions, weeks 4–7, tops out ≈ 0.48, so rush never reaches a call), and a call/TRIGGER additionally requires the
-game-state gate: score_diff ≥ −3 and (3+ targets/carries or yards ≥ 60% of the line), and
+game-state gate: score_diff ≥ −3 (a 3+ touches or 60%-of-line rule ran until 2026-10-31), and
 never fires against a top-3 defense **by last-3-games form** (team yards allowed per game over
 the 3 most recent games played — a bye pushes the window back; `live/def_form.json`, exported
 weekly by `analysis/export_live.py`, season-to-date fallback if absent). Props against those

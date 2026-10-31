@@ -45,6 +45,7 @@ POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possessi
 # College, same trigger, the reverse bet: take the unranked leader when only the trailing team is ranked.
 # 13-5 flipped from the trailing bets (10-3, 3-2): found after the fact, leader prices never tested.
 LEAD_CALL = 11
+BOOK_GAP = 2         # points apart at which a lead call waits for the books to agree
 LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
 LEAD_MAX_GAP = 600   # game seconds back to the last poll; more means we can't say when the lead happened
 LEAD_MAX_WAIT = 900  # seconds from the score; the backtest's bet window
@@ -122,16 +123,21 @@ def fair_spread(S0, margin, gc, side, yl):
     f = -(margin * (1 - LEAK * rem) + POSS * ep + (-S0) * rem)
     return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
 
-def best_spread(row, bet, since=0):
-    """(book, line on the bet side, price) with the most points, then the better price; None if no
-    book is usable. row: {book: [home points, home price, away price, updated]}, this poll's quotes."""
+def pick_quote(row, bet, since=0):
+    """(book, line on the bet side, price): FanDuel first, as backtested, DraftKings if it can't be used.
+    Never the best number: on a moving game that's the slow book. row: {book: [home points, home price,
+    away price, updated]}."""
     home = bet == "home"
-    opts = [(q[0] if home else -q[0], q[1] if home else q[2], b) for b, q in (row or {}).items()
-            if q[3] >= since and (q[1] if home else q[2]) is not None]
-    if not opts:
-        return None
-    line, price, book = max(opts, key=lambda o: o[:2])
-    return book, line, price
+    for b in ("fanduel", "draftkings"):
+        q = (row or {}).get(b)
+        if q and q[3] >= since and (q[1] if home else q[2]) is not None:
+            return b, q[0] if home else -q[0], q[1] if home else q[2]
+    return None
+
+def books_agree(row):
+    """False when the books are 2+ points apart: one hasn't caught up, so the number can't be trusted."""
+    pts = [q[0] for q in (row or {}).values()]
+    return not pts or max(pts) - min(pts) < BOOK_GAP
 
 def top_third(week):
     """Teams in the top third by win% going into `week`: 2+ games played, ties share a rank, same
@@ -640,10 +646,11 @@ class CFB:
             h["top"] = top
             rr = self.reg.get(gid, {})
             bet = lead_call(h, top, nfl_side(S0) if SPORT == "nfl" else cfb_side(rr.get("hrank"), rr.get("arank")),
-                            margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
+                            margin, g["gc"], scored, time.time(), self.poll,
+                            q if L is not None and books_agree(h["quotes"][-1][4]) else None)
             if bet and SPORT == "cfb":
                 bet = "home" if bet == "away" else "away"   # the college rule takes the leader
-            pick = best_spread(h["quotes"][-1][4], bet, h["lead11"]["t"] - self.poll) if bet else None
+            pick = pick_quote(h["quotes"][-1][4], bet, h["lead11"]["t"] - self.poll) if bet else None
             if pick:
                 book, line, price = pick
                 ab = g["habbr"] if bet == "home" else g["aabbr"]
@@ -652,7 +659,7 @@ class CFB:
                              "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
                              "books": h["quotes"][-1][4]}
                 self.save_call(h["call"])
-                push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
+                push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}, good to {line - 1:+g}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
                            tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
                 notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],

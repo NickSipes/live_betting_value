@@ -51,12 +51,15 @@ assert run([(10, 900, 1000, True, Q), (10, 1000, 1180, False, Q)]) is None
 assert C.cover({"bet": "away", "line": 8.5}, 24, 17) == "win" and C.cover({"bet": "away", "line": 8.5}, 27, 17) == "loss"
 assert C.cover({"bet": "home", "line": 3}, 10, 13) == "push"
 
-# the push names the book with the best number for the bet side
-row = {"fanduel": [-9.5, -110, -110, 100], "draftkings": [-10.5, -105, -115, 100]}
-assert C.best_spread(row, "away") == ("draftkings", 10.5, -115)      # more points beats a better price
-assert C.best_spread(row, "home") == ("fanduel", -9.5, -110)
-assert C.best_spread({"fanduel": [3, -120, -110, 1], "draftkings": [3, -105, -115, 1]}, "home")[0] == "draftkings"   # same line: price
-assert C.best_spread(row, "away", since=200) is None and C.best_spread(None, "home") is None
+# the book: FanDuel first, even when DraftKings looks better; books 2+ apart wait
+row = {"fanduel": [-20.5, -106, -125, 100], "draftkings": [-17.5, 100, -133, 100]}   # WIS @ IOWA, 10/31
+assert C.pick_quote(row, "home") == ("fanduel", -20.5, -106)
+assert C.pick_quote(row, "away") == ("fanduel", 20.5, -125)
+assert C.pick_quote(row, "home", since=200) is None and C.pick_quote(None, "home") is None
+assert C.pick_quote({"draftkings": [-3, -110, -110, 100]}, "home") == ("draftkings", -3, -110)
+assert C.pick_quote({"fanduel": [-3, -110, -110, 1], "draftkings": [-4, -105, -115, 100]}, "home", since=50)[0] == "draftkings"   # FD stale
+assert not C.books_agree(row) and not C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-5, 0, 0, 0]})
+assert C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-4, 0, 0, 0]}) and C.books_agree({"fanduel": [-3, 0, 0, 0]}) and C.books_agree(None)
 
 # college lead rule: unranked leader, ranked trailer
 assert C.cfb_side(99, 10)(1) is True and C.cfb_side(10, 99)(-1) is True              # leader unranked, trailer ranked

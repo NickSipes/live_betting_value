@@ -835,14 +835,16 @@ class Monitor:
                 if hk in self.hist and not self.hist[hk].get("l0_closing"):
                     self.hist[hk].update(l0=line, l0_closing=True)
             for w in watchlist():
-                if w.get("inj") in INJ_OUT:
-                    continue   # injury report says no bet
                 k = next((k for k in closing if k.endswith("|" + w["market"]) and
                           short_name(k.rsplit("|", 1)[0]) == short_name(w["player"])), None)
                 if not k:
                     continue   # no pregame line = no bet was available
                 name, kind = k.rsplit("|", 1)
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
+                if w.get("inj") in INJ_OUT:   # injury report says no bet
+                    if name not in players and "result" not in self.hist.get(hkey, {}).get("pre", {"result": 0}):
+                        del self.hist[hkey]["pre"]   # ruled out after the pick: he never played, so no card or grade
+                    continue
                 h = self.hist.setdefault(hkey, {"l0": closing[k], "l0_closing": True, "last_change": 0, "snaps": []})
                 if not h.get("meta"):
                     team = ALIAS.get(w["team"], w["team"])

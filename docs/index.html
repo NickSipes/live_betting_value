@@ -586,7 +586,8 @@ const upcomingGames = sport => {
   return pre.filter(([, r]) => r.week === wk);
 };
 const now = () => Date.now();
-const watchUpcoming = () => (S.watch?.entries || []).filter(w => !w.kick_iso || new Date(w.kick_iso) > now());
+const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj));
 
 async function loadArchive(sport, wk) {
   const k = `${sport}_w${wk}`;

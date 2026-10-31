@@ -44,6 +44,9 @@
            border-radius:8px; padding:5px 12px; font-size:12.5px; cursor:pointer; }
   #stale { display:none; margin:12px 0; padding:10px 14px; border-radius:10px; font-size:13px;
            background:color-mix(in srgb, var(--orange) 12%, transparent); border:1px solid var(--orange); }
+  #ptr { position:fixed; top:calc(env(safe-area-inset-top) + 8px); left:50%; transform:translateX(-50%); z-index:40;
+         opacity:0; pointer-events:none; padding:5px 12px; border-radius:14px; font-size:12.5px;
+         background:var(--surface); border:1px solid var(--border); }
   details.sect { margin-top:18px; }
   details.sect > summary { list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px;
     font-size:15px; font-weight:650; padding:10px 2px; border-bottom:1px solid var(--grid); user-select:none; }
@@ -204,6 +207,7 @@
 </style>
 </head>
 <body>
+<div id="ptr"></div>
 <div class="wrap">
   <div class="nav">
     <div class="top">
@@ -1171,6 +1175,32 @@ for (const t of ["pointerup", "pointercancel"])
     swipe = null; modalEl.style.transform = "";
     if (dy > 90) closeModal();
   });
+// pull down from the top of the board: the home-screen app has no refresh of its own, and a
+// reload also picks up a new deploy (index.html is served no-cache). Not while the sheet is open.
+let pull = null;
+const ptr = document.getElementById("ptr");
+const pullDy = e => e.changedTouches[0].clientY - pull.y;
+document.addEventListener("touchstart", e => {
+  const open = document.getElementById("overlay").style.display === "flex";
+  pull = window.scrollY <= 0 && !open && e.touches.length === 1
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+  ptr.style.opacity = "";
+}, { passive: true });
+document.addEventListener("touchmove", e => {
+  if (!pull) return;
+  const dy = pullDy(e);
+  if (Math.abs(e.changedTouches[0].clientX - pull.x) > Math.abs(dy) + 10) { pull = null; ptr.style.opacity = ""; return; }
+  ptr.textContent = dy > 90 ? "Release to refresh" : "Pull to refresh";
+  ptr.style.opacity = Math.max(0, Math.min(1, dy / 90));
+}, { passive: true });
+document.addEventListener("touchend", e => {
+  if (!pull) return;
+  const dy = pullDy(e);
+  pull = null;
+  if (dy > 90) { ptr.textContent = "Refreshing…"; location.reload(); }
+  else ptr.style.opacity = "";
+});
+document.addEventListener("touchcancel", () => { pull = null; ptr.style.opacity = ""; });
 
 loadAux().then(tick);
 setInterval(tick, 10000);

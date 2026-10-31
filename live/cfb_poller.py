@@ -460,7 +460,12 @@ class CFB:
                            # those points, don't also count its EP
             side, yl, ptxt = (p or (None, 50, None))[:3]
             dd = "kickoff" if pp and pp[3] else g.get("dd")
-            fair = fair_spread(S0, margin, g["gc"], side, yl)
+            # points banked since the last poll: the play log can lag the scoreboard
+            # (10/30 TULN@CLT fired two losing EDGEs on pre-TD possession), and a
+            # score flicker is one poll wide -- no EP and no flag until the score sticks
+            prev = h["snaps"][-1] if h["snaps"] else None
+            scored = prev is not None and prev[2] != margin
+            fair = fair_spread(S0, margin, g["gc"], None if scored else side, yl)
             edge = None if (fair is None or L is None) else round(L - fair, 1)
             now_gc = g["gc"]
             sit_now = None
@@ -470,7 +475,7 @@ class CFB:
             backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
             h["snaps"] = h["snaps"][-200:]
-            status = "EDGE" if (edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
+            status = "EDGE" if (not scored and edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],

@@ -870,7 +870,7 @@ class Monitor:
                     h["meta"] = {"player": name, "market": kind, "logo": game.get(side) if side else None,
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
-                if not c:   # this prop just joined Active Picks
+                if not c:   # this prop just joined the week's picks
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
                     push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {push.BOOK[book]}',
                               f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',

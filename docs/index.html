@@ -267,7 +267,7 @@ function secToggle(key, open) {
   try { localStorage.setItem("closedSections", JSON.stringify([...closed])); } catch (e) {}
 }
 
-// alerts are Web Push for props entering Active Picks, sent by the poller even with the app closed.
+// alerts are Web Push for cards joining the week's picks, sent by the poller even with the app closed.
 // iPhone only allows push for the home-screen app, so Safari gets an install hint instead.
 const PUSH_OK = "serviceWorker" in navigator && "PushManager" in window;
 const IOS_BROWSER = /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone;
@@ -328,7 +328,7 @@ const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLow
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
 const mkt = m => m === "rec" ? "receiving" : "rushing";
 const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
-const P_MIN = 0.55;  // Picks on Deck: props at 55%+ that haven't been called yet
+const P_MIN = 0.55;  // Watchlist Picks: props at 55%+ that haven't been called yet
 // a 70% call wins once the player clears the line from the moment of the call;
 // the poller settles it (result) live on a win, or at the final on a loss
 const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
@@ -366,7 +366,7 @@ function callCard(c, isNew) {
   <div class="card ${pre ? "" : "hot"} click ${isNew ? "new" : ""}" ${on(() => openProp(o.id))}>
     <div class="trow">${logoImg(o.logo)}
       <span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
-      <span class="chip ${pre ? "pre" : "hot"}" style="margin-left:auto">${pre ? "PREGAME" : "MODEL PICK"}</span>
+      <span class="chip ${c.result ? "hot" : pre ? "pre" : "hot"}" style="margin-left:auto">${c.result ? "WIN ✓" : pre ? "PREGAME" : "MODEL PICK"}</span>
     </div>
     <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
     <div class="sub"><span>${o.game} · ${o.clock}</span></div>
@@ -548,6 +548,28 @@ function spreadLinkCard(sport, id, r) {
       ${ok ? `<span style="color:var(--ink-1)">line chart ›</span>` : ""}</div>
   </div>`;
 }
+// settled picks stay on Live until the week ends; a tap goes to the game on Past
+const RESULT = { win: "WIN ✓", loss: "LOSS", push: "PUSH" };
+function propResultCard(c) {
+  return `
+  <div class="card ${c.result === "win" ? "hot" : ""} click" ${on(() => go("nfl", "past", c.week, c.espn_id))}>
+    <div class="trow"><span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
+      <span class="chip ${c.result === "win" ? "hot" : "watch"}" style="margin-left:auto">${RESULT[c.result]}</span></div>
+    <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
+    <div class="sub"><span>${c.game}</span><span>${c.final} yds</span></div>
+  </div>`;
+}
+function spreadResultCard(sport, c) {
+  const r = S.games[sport]?.[c.id] || {}, [aab, hab] = c.game.split(" @ "), [as, hs] = (c.final || "0-0").split("-");
+  const num = v => (v > 0 ? "+" : "") + v;
+  return `
+  <div class="card ${c.result === "win" ? "hot" : "watch"} click" ${on(() => sport === "nfl" ? go(sport, "past", c.week, c.id) : openSpread(KINDOF[sport], c.id))}>
+    <div class="trow">${logoImg(r.alogo)}<span class="ab">${aab}</span><span class="sc">${as}</span></div>
+    <div class="trow">${logoImg(r.hlogo)}<span class="ab">${hab}</span><span class="sc">${hs}</span></div>
+    <div class="sub"><b>Bet ${c.team} ${num(c.line)}${c.price != null ? ` (${num(c.price)})` : ""}</b>
+      <span class="chip ${c.result === "win" ? "hot" : "watch"}" style="margin-left:auto">${RESULT[c.result]}</span></div>
+  </div>`;
+}
 function pastPropCard(wk, key, rec) {
   // only calls get a result; a prop that reached 50% without a call was just watched
   const call = rec.call || rec.pre, hit = !!call && won(call, rec.final);
@@ -591,6 +613,8 @@ const upcomingGames = sport => {
   return pre.filter(([, r]) => r.week === wk);
 };
 const now = () => Date.now();
+// the earliest week with a game not yet final, so results clear when its last game ends
+const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(r => r.state !== "post").map(r => r.week); return w.length ? Math.min(...w) : null; };
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
 const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj));
 
@@ -609,26 +633,34 @@ async function loadArchive(sport, wk) {
 function viewLive() {
   const kind = KINDOF[R.sport], games = S.spread[kind]?.games || [];
   let html = "";
-  // every game sits in one section: a pick, else on deck, else the plain list
+  // every game sits in one section: a pick, else the watchlist, else the plain list
+  const wk = curWeek(R.sport), title = wk ? `Week ${wk} Picks` : "Picks";
+  const doneSpreads = (R.sport === "nfl" ? S.spreadCalls : S.cfbCalls) || [];
+  const settled = doneSpreads.filter(c => c.result && c.week === wk).map(c => spreadResultCard(R.sport, c));
   const spreadPicks = games.filter(g => g.call && !g.call.result);
   const deck = R.sport === "cfb" ? games.filter(g => !g.call && S.games.cfb?.[g.id]?.watch) : [];
   const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g));
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
-    const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
-    html += section("nfl-active-calls", "Active Picks", `${active.length + spreadPicks.length} pending`, "Bets that the model has taken",
-      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id)))], "No open picks right now.")
+    const byNew = (a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0);
+    const active = mine.filter(c => !c.result).sort(byNew), wonLive = mine.filter(c => c.result).sort(byNew);
+    // a prop leaves the live board at the final and lands in the ledger
+    const onBoard = new Set(mine.map(c => `${c.player}|${c.market}|${c.type}`));
+    const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !onBoard.has(`${c.player}|${c.market}|${c.type || "live"}`));
+    html += section("nfl-active-calls", title, `${active.length + spreadPicks.length} pending`, "Bets that the model has taken",
+      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
+       ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(propResultCard)], "No picks yet this week.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
-    // called props (model pick or pregame) live in Active Picks, so they leave Picks on Deck
+    // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
-    html += section("nfl-live-props", "Picks on Deck", `${opps.length} watching`, PROP_LEG,
+    html += section("nfl-live-props", "Watchlist Picks", `${opps.length} watching`, PROP_LEG,
       opps.map(propLiveCard), all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   } else {
-    html += section("cfb-active-calls", "Active Picks", `${spreadPicks.length} pending`, "Bets that the model has taken",
-      spreadPicks.map(g => spreadLiveCard(kind, g)), "No open picks right now.");
-    html += section("cfb-live-props", "Picks on Deck", `${deck.length} watching`, "Bets that the model is watching.",
+    html += section("cfb-active-calls", title, `${spreadPicks.length} pending`, "Bets that the model has taken",
+      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...settled], "No picks yet this week.");
+    html += section("cfb-live-props", "Watchlist Picks", `${deck.length} watching`, "Bets that the model is watching.",
       deck.map(g => spreadLiveCard(kind, g)), "The model isn't watching any bets right now.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${rest.length} live`, R.sport === "cfb" ? "tap a card for line movement + key plays" : SPREAD_LEG,

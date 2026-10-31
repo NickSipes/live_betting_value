@@ -249,10 +249,24 @@ def short_name(full):
     """'Brandon Lance Jr.' -> 'b.lance' (ESPN play text uses 'B.Lance'), for matching."""
     return abbrev(full).lower()
 
-PASS_TO = re.compile(r"pass (?:incomplete )?(?:short |deep )?(?:left |right |middle )?to ([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)")
+KNOWN_AS = {"Bam Knight": "Zavier Knight"}   # ponytail: play logs use legal names; add as they surface
+
+def same_player(play, full):
+    """Play-log name vs full name: 'bi.robinson' is Bijan Robinson, 'a.brown' Amon-Ra St. Brown."""
+    full = KNOWN_AS.get(full, full)
+    first, _, last = play.partition(".")
+    return last == abbrev(full).lower().split(".")[-1] and full.lower().startswith(first)
+
+def play_name(text):
+    """'A.St. Brown' -> 'a.brown', 'Bi.Robinson' -> 'bi.robinson'."""
+    parts = text.replace(".", " ").split()
+    return f"{parts[0]}.{parts[-1]}".lower()
+
+PLAYER = r"[A-Z][\w'\-]*\.\s?(?:(?:St\.|Van|Von|Vander|De|Del|La|Le)\s)?[A-Z][\w'\-]+"
+PASS_TO = re.compile(rf"pass (?:incomplete )?(?:short |deep )?(?:left |right |middle )?to ({PLAYER})")
 ELIGIBLE = re.compile(r"[A-Z][\w.'\-]+ reported in as eligible\.\s*")
 GAINED = re.compile(r"for (-?\d+) yards?|for (no gain)")
-RUSHER = re.compile(r"^(?:\([^)]*\)\s*)*([A-Z][\w'\-]*\.\s?[A-Z][\w'\-]+)\s")
+RUSHER = re.compile(rf"^(?:\([^)]*\)\s*)*({PLAYER})\s")
 
 def espn_timeline(espn_id):
     """Player plays: (wall_ts, gc, kind, short_name, yards, counts_yards) per target/carry.
@@ -279,12 +293,12 @@ def espn_timeline(espn_id):
             if "Pass" in t or "Interception" in t:
                 m = PASS_TO.search(text)
                 if m:
-                    out.append((iso_ts(pl["wallclock"]), gc, "rec", m.group(1).replace(" ", "").lower(),
+                    out.append((iso_ts(pl["wallclock"]), gc, "rec", play_name(m.group(1)),
                                 yds, t == "Pass Reception" or "Touchdown" in t))
             elif t.startswith("Rush") or t == "Rushing Touchdown":
                 m = RUSHER.search(text)
                 if m:
-                    out.append((iso_ts(pl["wallclock"]), gc, "rush", m.group(1).replace(" ", "").lower(), yds, True))
+                    out.append((iso_ts(pl["wallclock"]), gc, "rush", play_name(m.group(1)), yds, True))
     # ESPN sometimes repeats the live drive in previous + current
     return sorted(set(out)), sorted(set(team))
 
@@ -404,8 +418,7 @@ class Monitor:
                             if b["key"] == "fanduel" or k not in quotes:
                                 quotes[k] = float(o["point"])
             for (name, kind), L in quotes.items():
-                sn = short_name(name)
-                mine = [p for p in done if p[2] == kind and p[3] == sn]
+                mine = [p for p in done if p[2] == kind and same_player(p[3], name)]
                 cum = sum(p[4] for p in mine if p[5])
                 series.setdefault(f"{eid}|{name}|{kind}", []).append((gc, cum, len(mine), L))
             nxt = d.get("next_timestamp")
@@ -536,7 +549,7 @@ class Monitor:
             home = team == game["home"]
             dkey = f'{kind}|{game["away_abbr"] if home else game["home_abbr"]}|{pr["pos"]}' if pr else ""
             dv = DEF.get(dkey, 0)
-            mine = [q for q in pplays if q[2] == kind and q[3] == short_name(name)]
+            mine = [q for q in pplays if q[2] == kind and same_player(q[3], name)]
 
             def inputs(s):
                 gc, cum, nev, L = s[:4]

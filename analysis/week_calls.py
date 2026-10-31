@@ -32,8 +32,7 @@ rows = []
 for c in calls:
     pplays, tplays = logs[c["espn_id"]]
     team = box[c["espn_id"]].get(c["player"], {}).get("team")
-    sn = P.short_name(c["player"])
-    mine = [q for q in pplays if q[2] == c["market"] and q[3] == sn]
+    mine = [q for q in pplays if q[2] == c["market"] and P.same_player(q[3], c["player"])]
     gc = c.get("gc") or 0
     after = [q for q in mine if q[1] > gc]
     t_after = [q for q in tplays if q[2] == team and q[1] > gc]

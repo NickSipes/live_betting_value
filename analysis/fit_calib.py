@@ -4,7 +4,7 @@
 rec:  on archived week snapshots (the archive P values came from the deployed
       rec scorer, so they match what the poller will produce). Label: yards
       ever passed that snapshot's line afterwards (the live-win rule).
-rush: on the rush model's out-of-sample week-7 predictions
+rush: on the rush model's leave-one-game-out predictions, weeks 2+
       (data/week7/oos_preds.json from analysis/retrain_markets.py; the archive
       snapshots were scored by the old pooled model, which no longer scores rush).
       Label there is final > line — slightly stricter than the live-win rule.
@@ -20,23 +20,28 @@ from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+SKIP_EVENTS = {"401873009"}   # DAL @ PHI: its archive P switches to calibrated values mid-game
 
-def pav(pairs):
-    """Weighted pool-adjacent-violators. pairs: sorted (p, label, weight)."""
+def pav(pairs, min_top=0.0):
+    """Weighted pool-adjacent-violators. pairs: sorted (p, label, weight).
+    min_top: the top step needs this much weight, or it merges into the one below."""
     out = []
     for p, y, w in pairs:
         out.append([p, y * w, w])
         while len(out) > 1 and out[-2][1] / out[-2][2] >= out[-1][1] / out[-1][2]:
             a = out.pop()
             out[-1] = [a[0], out[-1][1] + a[1], out[-1][2] + a[2]]
+    while len(out) > 1 and out[-1][2] < min_top:
+        a = out.pop()
+        out[-1] = [a[0], out[-1][1] + a[1], out[-1][2] + a[2]]
     return [(b[0], b[1] / b[2]) for b in out]
 
 def rec_samples(weeks):
     for wk in weeks:
         path = f"{ROOT}/data/fly/docs/archive/props_w{wk}.json"
-        for prop in json.load(open(path)).values():
+        for key, prop in json.load(open(path)).items():
             final = prop.get("final")
-            if prop["market"] != "rec" or final is None:
+            if prop["market"] != "rec" or final is None or key.split("|")[0] in SKIP_EVENTS:
                 continue
             rows, seen = [], set()
             for gc, yds, ev, line, p in prop["snaps"]:
@@ -56,11 +61,12 @@ def rush_samples():
     for p, y, m in zip(d["p"], d["y"], d["meta"]):
         yield p, y, 1.0 / n[(m[1], m[2])]
 
-def fit(samples, label):
+def fit(samples, label, min_top=0.0):
     pairs = sorted(samples)
-    curve = pav(pairs)
-    pts = [(0.0, 0.0)] + curve + [(1.0, 1.0)]
+    curve = pav(pairs, min_top)
+    pts = [(0.0, 0.0)] + curve + [(1.0, curve[-1][1] if min_top else 1.0)]   # thin top: don't stretch past the data
     out = {"p": [round(p, 4) for p, _ in pts], "cal": [round(c, 4) for _, c in pts]}
+    assert out["cal"] == sorted(out["cal"]), "calibration must be monotone"
     print(f"{label}: {len(pairs)} samples, {len(pts)} breakpoints")
     for raw in (0.5, 0.6, 0.7, 0.8, 0.9):
         i = bisect.bisect_right(out["p"], raw) - 1
@@ -72,7 +78,7 @@ def fit(samples, label):
 
 def main(weeks):
     out = {"weeks": weeks, "rec": fit(rec_samples(weeks), "rec"),
-           "rush": fit(rush_samples(), "rush (w7 out-of-sample)")}
+           "rush": fit(rush_samples(), "rush (leave-one-game-out)", min_top=3.0)}
     json.dump(out, open(f"{ROOT}/live/calib.json", "w"), indent=1)
     print("wrote live/calib.json")
 

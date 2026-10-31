@@ -83,21 +83,33 @@ Xall, yall, mall = v2_rows(set(range(2, 99)))
 out = {"feats": V2_FEATS,
        "rec": {k: v for k, v in json.load(open(f"{ROOT}/live/model_weights_pooled_v2.json")).items()
                if k in ("mu", "sd", "w", "b")}}
-Xk, yk, _ = market_rows(Xall, yall, mall, "rush")
+Xk, yk, mk = market_rows(Xall, yall, mall, "rush")
 mu, sd = Xk.mean(0), Xk.std(0) + 1e-9
 w, b = fit_logistic((Xk - mu) / sd, yk, l2=3e-3)
 out["rush"] = {"mu": mu.tolist(), "sd": sd.tolist(), "w": w.tolist(), "b": float(b)}
+
+# rush calibration needs honest scores from THIS training recipe, not the w2-6 test
+# model above: each game is scored by the same fit trained without that game
+gids = np.array([m[1] for m in mk])
+pcv = np.zeros(len(yk))
+for gid in set(gids):
+    te = gids == gid
+    fmu, fsd = Xk[~te].mean(0), Xk[~te].std(0) + 1e-9
+    fw, fb = fit_logistic((Xk[~te] - fmu) / fsd, yk[~te], l2=3e-3)
+    pcv[te] = 1 / (1 + np.exp(-((Xk[te] - fmu) / fsd @ fw + fb)))
+print(f"rush leave-one-game-out: {len(set(gids))} games, AUC {auc(yk, pcv):.3f}")
+MODELS["rush"].update(test_p=pcv.tolist(), test_y=yk.tolist(), test_meta=mk, test_x=Xk)
 print(f"\nrush all-data fit: {len(yk)} quotes; top coefficients:")
 for f, c in sorted(zip(V2_FEATS, w), key=lambda x: -abs(x[1]))[:6]:
     print(f"  {f:12s} {c:+.3f}")
 json.dump(out, open(f"{ROOT}/live/model_weights.json", "w"), indent=1)
 print("wrote live/model_weights.json (rec: pooled v2, rush: per-market)")
 
-# out-of-sample w7 predictions for the rush calibration fit (analysis/fit_calib.py)
+# rec: out-of-sample w7 preds; rush: leave-one-game-out preds for analysis/fit_calib.py
 # and for gating in backtests: score_diff is x[9], ev_sofar x[4]
 json.dump({k: {"p": MODELS[k]["test_p"], "y": MODELS[k]["test_y"],
                "meta": MODELS[k]["test_meta"],
                "sd9": MODELS[k]["test_x"][:, 9].tolist(),
                "ev4": MODELS[k]["test_x"][:, 4].tolist()} for k in MODELS},
           open(f"{ROOT}/data/week7/oos_preds.json", "w"))
-print("wrote data/week7/oos_preds.json (w7 out-of-sample preds for calibration)")
+print("wrote data/week7/oos_preds.json (held-out preds for calibration)")

@@ -51,6 +51,18 @@ assert run([(10, 900, 1000, True, Q), (10, 1000, 1180, False, Q)]) is None
 assert C.cover({"bet": "away", "line": 8.5}, 24, 17) == "win" and C.cover({"bet": "away", "line": 8.5}, 27, 17) == "loss"
 assert C.cover({"bet": "home", "line": 3}, 10, 13) == "push"
 
+# college watch: the dog's last game by date was a loss with a ranked team on the field
+f = lambda d, h, a: {"date": d, "h": h, "a": a}
+R = {"pregame": 7, "date": "2026-10-03T12:00Z", "hid": "1", "aid": "2", "habbr": "H", "aabbr": "A"}
+F = [f("2026-09-26T12:00Z", ["1", "H", 99, 10], ["3", "X", 12, 30])]
+assert C.watch_spot(R, F) == {"side": "home", "team": "H", "line": 7, "opp": "X", "last": "10-30", "rank": None, "opp_rank": 12}
+assert C.watch_spot({**R, "pregame": -7}, F) is None                                  # away is the dog, no game on file
+assert C.watch_spot({**R, "pregame": 0}, F) is None and C.watch_spot({**R, "pregame": None}, F) is None
+assert C.watch_spot(R, [f("2026-09-26T12:00Z", ["1", "H", 99, 10], ["3", "X", 99, 30])]) is None   # nobody ranked
+assert C.watch_spot(R, [f("2026-09-26T12:00Z", ["1", "H", 99, 40], ["3", "X", 12, 30])]) is None   # won
+assert C.watch_spot(R, F + [f("2026-09-30T12:00Z", ["1", "H", 99, 40], ["4", "Y", 99, 30])]) is None   # only the latest game counts
+assert C.watch_spot(R, [f("2026-10-10T12:00Z", ["1", "H", 99, 10], ["3", "X", 12, 30])]) is None   # never a later game
+
 # a blank final can't lose a call: the game waits in hist, then settles
 P = C.CFB(180)
 C.fetch_summary = lambda gid: {}

@@ -216,8 +216,37 @@ def reg_entry(ev, week):
             "detail": ev["status"]["type"].get("shortDetail"),
             "aabbr": t["away"]["team"]["abbreviation"], "habbr": t["home"]["team"]["abbreviation"],
             "alogo": t["away"]["team"].get("logo"), "hlogo": t["home"]["team"].get("logo"),
-            "hid": t["home"]["id"], "as": score("away"), "hs": score("home"),
+            "hid": t["home"]["id"], "aid": t["away"]["id"], "as": score("away"), "hs": score("home"),
             "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"])}
+
+def finals_of(sb):
+    """Finished games on a scoreboard: date, and [team id, abbr, AP rank that week, score] per side."""
+    out = []
+    for ev in sb.get("events", []):
+        if ev["status"]["type"]["state"] != "post":
+            continue
+        t = {c["homeAway"]: c for c in ev["competitions"][0]["competitors"]}
+        side = lambda s: [t[s]["id"], t[s]["team"]["abbreviation"], (t[s].get("curatedRank") or {}).get("current") or 99, int(t[s].get("score") or 0)]
+        out.append({"date": ev["date"], "h": side("home"), "a": side("away")})
+    return out
+
+def watch_spot(r, finals):
+    """College watch, no bet: a pregame underdog off a loss in a game with a ranked team (analysis/cfb_spots.py:
+    97-64 ATS on 2025-26, about 6% by luck). Previous game goes by date: week numbers fold week 0 into week 1."""
+    S0 = r.get("pregame")
+    if not S0:
+        return None
+    side = "home" if S0 > 0 else "away"
+    tid = r["hid"] if side == "home" else r.get("aid")
+    prior = [f for f in finals if f["date"] < r["date"] and tid in (f["h"][0], f["a"][0])]
+    if not prior:
+        return None
+    f = max(prior, key=lambda f: f["date"])
+    me, you = (f["h"], f["a"]) if f["h"][0] == tid else (f["a"], f["h"])
+    if me[3] >= you[3] or min(me[2], you[2]) > 25:
+        return None
+    return {"side": side, "team": r["habbr"] if side == "home" else r["aabbr"], "line": abs(S0),
+            "opp": you[1], "last": f"{me[3]}-{you[3]}", "rank": me[2] if me[2] <= 25 else None, "opp_rank": you[2] if you[2] <= 25 else None}
 
 def fetch_summary(espn_id):
     """ESPN game summary (scoring plays, drive log, box score); {} on failure."""
@@ -362,6 +391,7 @@ class CFB:
         self.hist_path = f"{DATA}/hist_{SPORT}_spreads.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
+        self.finals, self.finals_t = {}, 0
         self.next_t = 0    # last fetch of next week's schedule
         self.bf_path = f"{DATA}/backfilled_{SPORT}.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
@@ -419,6 +449,16 @@ class CFB:
         """Merge this week's (and, every 30 min, next week's) schedule."""
         week = (sb.get("week") or {}).get("number")
         boards = [(sb, week)]
+        if SPORT == "cfb" and week and (sb.get("season") or {}).get("type") == 2 and time.time() - self.finals_t > 1800:
+            self.finals_t = time.time()
+            try:   # past weeks once, this week every 30 min: free ESPN calls
+                sep = "&" if "?" in ESPN else "?"
+                for wk in range(1, week + 1):
+                    if wk == week or wk not in self.finals:
+                        self.finals[wk] = finals_of(get(f"{ESPN}{sep}week={wk}&seasontype=2"))
+            except Exception as e:
+                print("finals fetch failed", repr(e))
+        finals = [f for fs in self.finals.values() for f in fs]
         if week and time.time() - self.next_t > 1800:
             self.next_t = time.time()
             stype = (sb.get("season") or {}).get("type", 2)
@@ -434,6 +474,13 @@ class CFB:
                 if new["pregame"] is None:
                     new["pregame"] = old.get("pregame")   # ESPN drops odds once a game starts
                 new["has_hist"] = old.get("has_hist", False)
+                w = old.get("watch")
+                if finals and new["state"] == "pre":
+                    w = watch_spot(new, finals)      # frozen at kickoff, so the closing line grades it
+                if w and new["state"] == "post" and new["hs"] is not None and "result" not in w:
+                    w.update(result=cover({"bet": w["side"], "line": w["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
+                if w:
+                    new["watch"] = w
                 self.reg[ev["id"]] = new
 
     def archive_finals(self):

@@ -483,10 +483,24 @@ function spreadLiveCard(kind, g) {
     ${g.call ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>` : ""}
   </div>`;
 }
+function openWatch(r) {
+  const w = r.watch, rk = (n, t) => (n ? `#${n} ` : "") + t;
+  const row = (lbl, val) => `<div><span>${lbl}</span><b>${val}</b></div>`;
+  MC = null;
+  showModal(`
+    <h3>${logoImg(w.side === "home" ? r.hlogo : r.alogo)} Why ${w.team} is a watch</h3>
+    <div class="nums pdet">
+      <div style="grid-column:1/-1"><span>why</span><b>${w.team} is an underdog coming off a loss in a game with a ranked team</b></div>
+      ${row("last game", `lost ${w.last} to ${rk(w.opp_rank, w.opp)}${w.rank ? ` as ${rk(w.rank, w.team)}` : ""}`)}
+      ${row("this game", `${w.team} +${w.line} · ${r.aabbr} @ ${r.habbr}`)}
+      ${row("track record", "97–64 (60%) against the spread, 2025–26")}
+      ${row("status", "Watching only, not a pick")}
+    </div>`);
+}
 function upcomingCard(r) {
   return `
-  <div class="card final">
-    <div class="trow">${logoImg(r.alogo)}<span class="ab">${r.aabbr}</span></div>
+  <div class="card final${r.watch ? " click" : ""}" ${r.watch ? on(() => openWatch(r)) : ""}>
+    <div class="trow">${logoImg(r.alogo)}<span class="ab">${r.aabbr}</span>${r.watch ? `<span class="chip warm" style="margin-left:auto">WATCHING</span>` : ""}</div>
     <div class="trow">${logoImg(r.hlogo)}<span class="ab">${r.habbr}</span></div>
     <div class="sub"><span class="kick">${kickTxt(r.date)}</span>
       <span>${r.pregame === null || r.pregame === undefined ? "no line yet" : "spread " + fmtS(r.pregame, r)}</span></div>

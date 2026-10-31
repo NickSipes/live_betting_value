@@ -170,6 +170,7 @@
   .mk { font-size:12.5px; color:var(--ink-2); margin-top:5px; }
   .mk b { font-size:15px; color:var(--ink-1); margin-left:4px; font-variant-numeric:tabular-nums; }
   .star { color:var(--yellow); margin-left:5px; font-size:13px; }
+  .ptitle { font-size:13px; font-weight:650; text-align:center; margin:8px 0 2px; }
   .prev { margin:4px 0 2px; position:relative; }
   .prev svg { max-width:440px; margin:0 auto; }   /* text scales with the svg: keep it phone-sized */
   .prev .tick { font-size:9.5px; }
@@ -187,6 +188,7 @@
   .cbets th { font-size:10px; padding:6px 10px; }
   .cbets td { padding:7px 10px; font-variant-numeric:tabular-nums; }
   .cbets th, .cbets td { white-space:nowrap; }
+  .cbets .tscroll { overflow-x:auto; touch-action:pan-x; }
   @media (max-width: 640px) {
     .cbets th, .cbets td { padding:6px 7px; }
     .wrap { padding:12px 16px 48px; }
@@ -790,7 +792,7 @@ function svgChart(cfg) {
   const series = cfg.series.map(s => ({ ...s, pts: s.noclean ? s.pts : clean(s.pts) }));
   const all = series.flatMap(s => s.pts.map(p => p[1])).concat((cfg.edges || []).flatMap(b => b.pts.map(p => p[2])));
   if (!all.length) return `<div class="empty">No history captured yet for this one.</div>`;
-  CM.r = cfg.right ? 42 : 14;
+  CM.r = cfg.right ? 56 : 14; CM.b = cfg.xlabel ? 44 : 30;
   const pw = CW - CM.l - CM.r, ph = CH - CM.t - CM.b;
   let lo, hi;
   if (cfg.mode === "area") { hi = Math.max(7, ...all.map(Math.abs)) * 1.15; lo = -hi; }
@@ -805,7 +807,7 @@ function svgChart(cfg) {
   for (let q = 0; q <= 4; q++)
     s += `<line x1="${X(q * 900)}" x2="${X(q * 900)}" y1="${CM.t}" y2="${CM.t + ph}" stroke="var(--grid)"/>`;
   for (let q = 0; q < 4; q++)
-    s += `<text class="tick" x="${X(q * 900 + 450)}" y="${CH - 10}" text-anchor="middle">Q${q + 1}</text>`;
+    s += `<text class="tick" x="${X(q * 900 + 450)}" y="${CM.t + ph + 20}" text-anchor="middle">Q${q + 1}</text>`;
   const step = (hi - lo) > 48 ? 14 : 7;
   for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
     if (cfg.mode !== "area" || v !== 0)
@@ -866,7 +868,11 @@ function svgChart(cfg) {
   }
   // usage rug: one tick per target/carry (approximate timing from poll deltas)
   if (cfg.rug) for (const g of cfg.rug)
-    s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--green)" stroke-width="2" opacity="0.8"/>`;
+    s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--ink-2)" stroke-width="2" opacity="0.8"/>`;
+  const axisLbl = (x, y, rot, txt, fill = "") => `<text class="tick" x="${x}" y="${y}" text-anchor="middle" style="${fill}" transform="rotate(${rot} ${x} ${y})">${txt}</text>`;
+  if (cfg.xlabel) s += axisLbl(CM.l + pw / 2, CH - 6, 0, cfg.xlabel);
+  if (cfg.ylabel) s += axisLbl(16, CM.t + ph / 2, -90, cfg.ylabel);
+  if (cfg.right?.label) s += axisLbl(CW - 16, CM.t + ph / 2, 90, cfg.right.label, `fill:${cfg.right.color}`);
   s += `<line class="mxh" x1="0" x2="0" y1="${CM.t}" y2="${CM.t + ph}" stroke="var(--muted)" stroke-dasharray="2,3" visibility="hidden"/>`;
   s += `<rect class="mhit" x="${CM.l}" y="${CM.t}" width="${pw}" height="${ph}" fill="transparent" style="touch-action:pan-y"/>`;
   (cfg.events || []).forEach((ev, i) => {
@@ -1106,13 +1112,13 @@ function openProp(id, rec) {
   const unit = h.market === "rec" ? "targets" : "carries";
   const call = (o || rec)?.call, pre = (o || rec)?.pre, cum = o ? o.cum : rec?.final;
   const chart = svgChart({
-    yfmt: v => v,
+    yfmt: v => v, xlabel: "Game Clock", ylabel: "Yards",
     series: [
       { pts: linePts, color: "var(--blue)", name: "O/U line", noclean: 1 },
       { pts: ydsPts, color: "var(--green)", name: "yards", noclean: 1 },
     ],
     rug, events: [],
-    right: { pts: pPts, color: "var(--orange)" },
+    right: { pts: pPts, color: "var(--orange)", label: "Model Over Probability" },
     stars: [pre, call].filter(c => c && c.gc !== undefined).map(c => [Math.max(c.gc, 1), c.line]),
     tip: gc => {
       const pv = stepVal(pPts, gc), n = stepVal(nevPts, gc);
@@ -1132,18 +1138,19 @@ function openProp(id, rec) {
   const res = c => won(c, cum) ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
   const bets = !(call || pre) ? "" : `
     <div class="cbets"><div class="ttl">Called Bets</div>
-      <table><thead><tr><th>call</th><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
+      <div class="tscroll"><table><thead><tr><th>call</th><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
       <tbody>${[pre, call].filter(Boolean).map(c => `<tr><td>${c.type === "pregame" ? "pregame" : "model pick"}</td>
         <td>${c.score ?? "—"}</td><td>${c.clock}</td><td>${c.cum}</td><td>O ${c.line}</td><td><b>${res(c)}</b></td></tr>`).join("")}
-      </tbody></table></div>`;
+      </tbody></table></div></div>`;
   showModal(`
     <h3>${logoImg(h.logo)} ${h.player} <span class="meta">${MKT(h.market)} · ${h.game}</span></h3>
     <div class="meta">${verdict || (rec ? `final ${rec.final} yds vs pregame O ${rec.l0}` : "")}</div>
     <div id="mread"></div>
+    <div class="ptitle">${h.player} ${h.market === "rec" ? "Rec" : "Rush"} Over Probability</div>
     ${chart}
     <div class="mleg"><span><i style="background:var(--blue)"></i>book line</span>
       <span><i style="background:var(--green)"></i>yards</span>
-      <span><i style="background:var(--orange)"></i>Probability · right axis</span>
+      <span><i style="background:var(--orange)"></i>Probability</span>
       ${call || pre ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
       <span>ticks = ${unit}</span></div>
     ${bets}`);

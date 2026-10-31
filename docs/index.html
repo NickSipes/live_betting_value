@@ -385,9 +385,8 @@ function propPreCard(w, chip = "PREGAME") {
       ${inj}
       <span class="chip pre" style="margin-left:auto">${chip}</span>
     </div>
-    <div class="mk">${MKT(w.market)}<b>${w.ypg} ypg</b></div>
-    <div class="sub"><span>${w.pos} #${w.rank} at position</span>
-      <span>${w.line != null ? "line O " + w.line : "no line yet"}</span></div>
+    <div class="mk">${MKT(w.market)}${w.line != null ? `<span class="chip hot" style="margin-left:6px">Bet O ${w.line}</span>` : "<b>no line yet</b>"}</div>
+    <div class="sub"><span>${w.pos} #${w.rank} at position</span><span>${w.ypg} ypg</span></div>
     <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>
@@ -563,6 +562,13 @@ const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts
 const regList = (sport, state) => Object.entries(S.games[sport] || {})
   .filter(([, r]) => r.state === state).sort((a, b) => a[1].date.localeCompare(b[1].date));
 const pastWeeks = sport => [...new Set(regList(sport, "post").map(([, r]) => r.week))].sort((a, b) => b - a);
+// NFL shows only the current week: the earliest one with a game not yet final
+const upcomingGames = sport => {
+  const pre = regList(sport, "pre");
+  if (sport !== "nfl") return pre;
+  const wk = Math.min(...Object.values(S.games.nfl).filter(r => r.state !== "post").map(r => r.week));
+  return pre.filter(([, r]) => r.week === wk);
+};
 const now = () => Date.now();
 const watchUpcoming = () => (S.watch?.entries || []).filter(w => !w.kick_iso || new Date(w.kick_iso) > now());
 
@@ -585,7 +591,7 @@ function viewLive() {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
     const active = mine.filter(c => !c.result).sort((a, b) => (b.t || 0) - (a.t || 0) || (b.gc || 0) - (a.gc || 0));
-    html += section("nfl-active-calls", "Active Picks", `${active.length} pending`, "",
+    html += section("nfl-active-calls", "Active Picks", `${active.length} pending`, "Bets that the model has taken",
       active.map(c => callCard(c, freshCalls.has(c.id))), "No open picks right now.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) live in Active Picks, so they leave Picks on Deck
@@ -600,7 +606,7 @@ function viewLive() {
 }
 
 function viewUpcoming() {
-  const pre = regList(R.sport, "pre");
+  const pre = upcomingGames(R.sport);
   let html = "";
   if (R.sport === "nfl") {
     const w = watchUpcoming();
@@ -615,7 +621,7 @@ function viewUpcoming() {
       g.map(([, r]) => upcomingCard(r)), "");
   }
   if (!weeks.length)
-    html += section(`${R.sport}-up-games`, "Games", "", "", [], "No upcoming games loaded yet — the schedule fills in on the next poll.");
+    html += section(`${R.sport}-up-games`, "Games", "", "", [], "No upcoming games.");
   return html;
 }
 
@@ -667,7 +673,7 @@ function render() {
   document.getElementById("sporttabs").innerHTML = ["nfl", "cfb"].map(s => `
     <button class="${R.sport === s ? "on" : ""}" ${on(() => go(s, R.view))}>
       ${liveN[s] ? '<span class="livedot"></span>' : ""}${SPORTNAME[s]}</button>`).join("");
-  const counts = { live: liveN[R.sport], upcoming: regList(R.sport, "pre").length, past: null };
+  const counts = { live: liveN[R.sport], upcoming: upcomingGames(R.sport).length, past: null };
   document.getElementById("viewtabs").innerHTML = ["live", "upcoming", "past"].map(v => `
     <button class="${R.view === v ? "on" : ""}" ${on(() => go(R.sport, v))}>
       ${v[0].toUpperCase() + v.slice(1)}${counts[v] ? `<span class="n">${counts[v]}</span>` : ""}</button>`).join("");

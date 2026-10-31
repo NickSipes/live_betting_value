@@ -142,4 +142,9 @@ for season in (2025, 2026):
         fired += bet == ("away" if lead > 0 else "home")
 print(f"college replay fired {fired}/{n}")
 assert n >= 18 and fired >= .85 * n
+# every button's handler still exists on the page (removing the test buttons once took Win Rate with it)
+import re
+page = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "index.html")).read()
+for fn in set(re.findall(r'onclick="(\w+)\(', page)):
+    assert re.search(rf"(function {fn}\b|const {fn}\b)", page), fn
 print("ok")

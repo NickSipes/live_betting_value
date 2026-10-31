@@ -909,7 +909,7 @@ function placeTip(e) {
   rd.hidden = false;
   const box = rd.parentElement.getBoundingClientRect(), w = rd.offsetWidth;
   rd.style.left = `${Math.max(m.left + 4, Math.min(e.clientX - w / 2, m.right - 4 - w)) - box.left}px`;
-  const above = e.clientY - rd.offsetHeight - 10;
+  const above = e.clientY - rd.offsetHeight - 22;
   rd.style.top = `${(above < m.top + 4 ? e.clientY + 28 : above) - box.top}px`;   // no room above: below the finger
 }
 

@@ -35,6 +35,7 @@
                   calc(60px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
   .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
   .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
+  @media (max-width:480px) { .top { gap:6px; } .top .meta { flex-basis:100%; text-align:right; } }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
   .tabrow { display:flex; flex-wrap:wrap; column-gap:18px; }
   .leg .li + .li::before { content:"·"; margin:0 8px; color:var(--muted); }
@@ -208,6 +209,7 @@
     <div class="top">
       <h1>Live Bet Predictor</h1>
       <button id="notifbtn" onclick="alertsClick()" hidden></button>
+      <button onclick="openHowTo()" style="margin-left:auto;padding:5px 8px;font-size:12.5px;white-space:nowrap">How To</button>
       <span class="meta" id="updated"></span>
     </div>
     <div class="tabrow">
@@ -1197,6 +1199,24 @@ function showModal(html) {
   document.getElementById("modal").innerHTML = `<button class="mclose" onclick="closeModal()" aria-label="close">✕</button>` + html;
   document.getElementById("overlay").style.display = "flex";
   document.body.style.overflow = "hidden";
+}
+function openHowTo() {
+  const part = (title, items) => `<h4 style="margin:16px 0 6px">${title}</h4>
+    <ul style="margin:0;padding-left:18px;line-height:1.45">${items.map(i => `<li style="margin-bottom:6px">${i}</li>`).join("")}</ul>`;
+  const edge = "<b>EDGE:</b> the live spread is 4+ points from the model's fair line. It never flags on the check right after a score.";
+  MC = null;
+  showModal(`
+    <h3>How To</h3>
+    <p style="margin:0">The model is trained on historical game and odds data. Every bet alert names the book to use, FanDuel or DraftKings, whichever has the better number.</p>
+    ${part("Rules for NFL spreads", [edge,
+      "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, and the trailing team was the pregame favorite. Bet the trailing team once the score has held for one check and a fresh quote is in."])}
+    ${part("Rules for NFL props", [
+      "<b>MODEL PICK:</b> live overs on receiving or rushing yards when the model gives at least 60%, between minutes 10 and 51. The line must be 15+ yards and at least 3 yards above the player's total so far.",
+      "<b>Never called:</b> while the player's team is down more than 3, or against a top-3 defense for that stat over its last 3 games played.",
+      "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve."])}
+    ${part("Rules for NCAAF spreads", [edge,
+      "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check and a fresh quote is in.",
+      "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}`);
 }
 function closeModal() {
   document.getElementById("overlay").style.display = "none";

@@ -51,6 +51,14 @@ assert run([(10, 900, 1000, True, Q), (10, 1000, 1180, False, Q)]) is None
 assert C.cover({"bet": "away", "line": 8.5}, 24, 17) == "win" and C.cover({"bet": "away", "line": 8.5}, 27, 17) == "loss"
 assert C.cover({"bet": "home", "line": 3}, 10, 13) == "push"
 
+# the push names the book with the best number for the bet side
+row = {"fanduel": [-9.5, -110, -110, 100], "draftkings": [-10.5, -105, -115, 100]}
+assert C.best_spread(row, "away") == ("draftkings", 10.5, -115)      # more points beats a better price
+assert C.best_spread(row, "home") == ("fanduel", -9.5, -110)
+assert C.best_spread({"fanduel": [3, -120, -110, 1], "draftkings": [3, -105, -115, 1]}, "home")[0] == "draftkings"   # same line: price
+assert C.best_spread(row, "away", since=200) is None and C.best_spread(None, "home") is None
+assert C.edge_push({"habbr": "H", "aabbr": "A", "as": 7, "hs": 0, "clock": "Q2"}, 9.5, 4, row)[0] == "Bet H -9.5 (-110) on FanDuel"
+
 # college lead rule: unranked leader, ranked trailer
 assert C.cfb_side(99, 10)(1) is True and C.cfb_side(10, 99)(-1) is True              # leader unranked, trailer ranked
 assert C.cfb_side(10, 99)(1) is False and C.cfb_side(99, 99)(1) is False and C.cfb_side(5, 10)(1) is False

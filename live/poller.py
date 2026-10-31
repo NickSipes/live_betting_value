@@ -77,6 +77,14 @@ def calibrate(p, kind):
         return ys[-1]
     return ys[i] + (ys[i + 1] - ys[i]) * (p - xs[i]) / (xs[i + 1] - xs[i])
 
+def best_over(bk):
+    """(book, line, price) with the lowest over, then the better price. bk: {book: [line, over, under]}."""
+    opts = [(q[0], -q[1], b) for b, q in (bk or {}).items() if q[1] is not None]
+    if not opts:
+        return None
+    line, price, book = min(opts)
+    return book, line, -price
+
 def call_gate(x, dkey):
     """No call while down > 3, and never an over against a top-3 defense (going into
     the week). A touch-count rule was dropped: on week 7 it only blocked winners."""
@@ -784,8 +792,10 @@ class Monitor:
                 if p >= CALL and "call" not in h and not call_gate(x, dkey) and "blocked" not in h:
                     h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing"}
                 if p >= CALL and "call" not in h and call_gate(x, dkey):
-                    h["call"] = snap
-                    push.send(f'Bet {name} Over {L} {"rec" if kind == "rec" else "rush"} yds',
+                    book, line, price = best_over(bk) or ("fanduel", L, None)
+                    h["call"] = {**snap, "line": line, "book": book, "price": price}
+                    push.send(f'Bet {name} Over {line} {"rec" if kind == "rec" else "rush"} yds'
+                              f'{f" ({price:+d})" if price else ""} on {push.BOOK[book]}',
                               f'Model gives it {round(p * 100)}% · {game["away_abbr"]} {game["as"]}–{game["home_abbr"]} {game["hs"]}, '
                               f'{game["clock"]}', tag=hkey, url="./#nfl/live")
                 c = h.get("call")
@@ -841,7 +851,8 @@ class Monitor:
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
                 if not c:   # this prop just joined Active Picks
-                    push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds',
+                    book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
+                    push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {push.BOOK[book]}',
                               f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
                               tag=hkey + "|pre", url="./#nfl/live")
                 if not c or (c.get("src") != "closing" and "result" not in c):

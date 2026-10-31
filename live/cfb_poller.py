@@ -122,12 +122,25 @@ def fair_spread(S0, margin, gc, side, yl):
     f = -(margin * (1 - LEAK * rem) + POSS * ep + (-S0) * rem)
     return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
 
-def edge_push(g, L, fair):
-    """(title, body) naming the bet: the side the model likes, at its live spread."""
+def best_spread(row, bet, since=0):
+    """(book, line on the bet side, price) with the most points, then the better price; None if no
+    book is usable. row: {book: [home points, home price, away price, updated]}, this poll's quotes."""
+    home = bet == "home"
+    opts = [(q[0] if home else -q[0], q[1] if home else q[2], b) for b, q in (row or {}).items()
+            if q[3] >= since and (q[1] if home else q[2]) is not None]
+    if not opts:
+        return None
+    line, price, book = max(opts, key=lambda o: o[:2])
+    return book, line, price
+
+def edge_push(g, L, fair, row=None):
+    """(title, body) naming the bet: the side the model likes, at the best live spread."""
     home = L > fair   # live home spread above fair: home is getting more points than it should
     ab, line, fr = (g["habbr"], L, fair) if home else (g["aabbr"], -L, -fair)
     sp = lambda v: "PK" if v == 0 else f"{v:+g}"
-    return (f"Bet {ab} {sp(line)}",
+    best = best_spread(row, "home" if home else "away")
+    bet = f"Bet {ab} {sp(best[1])} ({best[2]:+d}) on {push.BOOK[best[0]]}" if best else f"Bet {ab} {sp(line)}"
+    return (bet,
             f'Model has {ab} {sp(fr)} · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}')
 
 def top_third(week):
@@ -640,16 +653,18 @@ class CFB:
                             margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
             if bet and SPORT == "cfb":
                 bet = "home" if bet == "away" else "away"   # the college rule takes the leader
-            if bet:
-                ab, line = (g["habbr"], L) if bet == "home" else (g["aabbr"], -L)
+            pick = best_spread(h["quotes"][-1][4], bet, h["lead11"]["t"] - self.poll) if bet else None
+            if pick:
+                book, line, price = pick
+                ab = g["habbr"] if bet == "home" else g["aabbr"]
                 h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
-                             "line": line, "price": q[bet], "clock": g["clock"], "gc": g["gc"], "t": time.time(),
+                             "line": line, "price": price, "book": book, "clock": g["clock"], "gc": g["gc"], "t": time.time(),
                              "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
                              "books": h["quotes"][-1][4]}
                 self.save_call(h["call"])
-                push.queue(f'Bet {ab} {line:+g} ({q[bet]:+d})', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
+                push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
                            tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
-                notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({q[bet]:+d}) | {g["as"]}-{g["hs"]} {g["clock"]}')
+                notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',
@@ -660,7 +675,7 @@ class CFB:
                          "status": "CALL" if h.get("call") else status, "call": h.get("call"),
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
             if status != self.status.get(gid) and status != "watch":
-                push.queue(*edge_push(g, L, fair), tag=f"{SPORT}|{gid}", url=f"./#{SPORT}/live")
+                push.queue(*edge_push(g, L, fair, h["quotes"][-1][4]), tag=f"{SPORT}|{gid}", url=f"./#{SPORT}/live")
                 notify(f"{SPORT.upper()} {status}: {lbl}",
                        f'live {L} vs fair {fair:.1f} | {g["as"]}-{g["hs"]} {g["clock"]}')
                 with open(f"{DATA}/{SPORT}_spread_log.csv", "a") as lf:

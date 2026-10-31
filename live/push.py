@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 DATA = os.environ.get("DATA_DIR", os.path.dirname(os.path.abspath(__file__)))
 SUBS = f"{DATA}/push_subs"
 KEY = f"{DATA}/vapid.pem"
+BOOK = {"fanduel": "FanDuel", "draftkings": "DraftKings"}
 OUTBOX = f"{DATA}/push_out"   # other processes queue here; the server process sends
 CLAIMS = {"sub": os.environ.get("PUSH_SUB", "https://live-betting-value.fly.dev")}
 # only real browser push services: the server POSTs to whatever endpoint is stored

@@ -195,6 +195,6 @@ log) and `cfb_history.json` (CFB week 8 line histories; already merged into
 - From week 8's remaining games, archives also keep prices. Spread games: `quotes` is one row per poll
   `[unix time, gc, away score, home score, {book: [home points, home price, away price, updated]}]`,
   plus `date`, `top` (both teams top third) and `lead11` (first 11+ lead: `t`, `gc`, `margin`, `sign`,
-  and `why`: called, underdog, not_top, late, seen, no_history, lead_gone, timeout). Props: `quotes` is
+  and `why`: called, side_rule, not_top, late, seen, no_history, lead_gone, timeout). Props: `quotes` is
   `[unix time, gc, {book: [line, over price, under price]}]`, saved when a quote changes, and `blocked` is
   the first call a gate stopped (`why`: top3_def, trailing; same fields as a call). Calls carry `books`.

@@ -13,7 +13,7 @@ def run(polls, top=True, snaps=((800, None, 3),), pre="fav"):
     tops = top if isinstance(top, list) else [top] * len(polls)
     for (m, gc, t, sc, q), tp in zip(polls, tops):
         h["snaps"].append((gc, None, m))     # the poller logs the snap before it checks
-        if b := C.lead_call(h, tp, (3 if m > 0 else -3) if pre == "fav" else pre, m, gc, sc, t, 180, q):
+        if b := C.lead_call(h, tp, C.nfl_side((3 if m > 0 else -3) if pre == "fav" else pre), m, gc, sc, t, 180, q):
             return b
 
 assert run([(14, 900, 1000, True, Q), (14, 1000, 1180, False, Q)]) == "away"        # home leads, away gets the points
@@ -40,16 +40,21 @@ def why(polls, **kw):
     h = {"snaps": [(kw.get("gc0", 800), None, 3)]}
     for m, gc, t, sc in polls:
         h["snaps"].append((gc, None, m))
-        C.lead_call(h, kw.get("top", True), kw.get("pre", 3), m, gc, sc, t, 180, Q)
+        C.lead_call(h, kw.get("top", True), C.nfl_side(kw.get("pre", 3)), m, gc, sc, t, 180, Q)
     return h["lead11"]["why"]
 assert why([(14, 900, 1000, True), (14, 1000, 1180, False)]) == "called"
-assert why([(14, 900, 1000, True)], pre=-3) == "underdog"
+assert why([(14, 900, 1000, True)], pre=-3) == "side_rule"
 assert why([(14, 900, 1000, True)], top=False) == "not_top"
 assert why([(14, 3300, 1000, True)], gc0=3200) == "late"
 assert why([(14, 900, 1000, True), (7, 1000, 1180, True)]) == "lead_gone"
 assert run([(10, 900, 1000, True, Q), (10, 1000, 1180, False, Q)]) is None
 assert C.cover({"bet": "away", "line": 8.5}, 24, 17) == "win" and C.cover({"bet": "away", "line": 8.5}, 27, 17) == "loss"
 assert C.cover({"bet": "home", "line": 3}, 10, 13) == "push"
+
+# college lead rule: unranked leader, ranked trailer
+assert C.cfb_side(99, 10)(1) is True and C.cfb_side(10, 99)(-1) is True              # leader unranked, trailer ranked
+assert C.cfb_side(10, 99)(1) is False and C.cfb_side(99, 99)(1) is False and C.cfb_side(5, 10)(1) is False
+assert C.cfb_side(None, 10)(1) is None
 
 # college watch: the dog's last game by date was a loss with a ranked team on the field
 f = lambda d, h, a: {"date": d, "h": h, "a": a}
@@ -96,9 +101,30 @@ for season in (2024, 2025):
             hs, as_ = next(((x[2], x[3]) for x in reversed(g["tl"]) if x[0] <= t), (0, 0))
             margin = hs - as_
             h["snaps"].append((gc0, None, margin))
-            bet = bet or C.lead_call(h, True, g["sp"], margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
+            bet = bet or C.lead_call(h, True, C.nfl_side(g["sp"]), margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
             last = (hs, as_)
         fired += bet == ("away" if lead > 0 else "home")
 print(f"replay fired {fired}/{n}")
 assert fired >= .85 * n
+
+# college: the 18 flagged games with only the trailing team ranked, at poll speed
+fired = n = 0
+for season in (2025, 2026):
+    for g in season_games("CFB", season):
+        t0, gc0, lead, h0, a0 = g["trig"]
+        hr, ar = g["rk"]
+        if not g["top"] or not C.cfb_side(hr, ar)(lead):
+            continue
+        n += 1
+        h = {"snaps": []}
+        bet, last = None, (0, 0)
+        for t in range(t0 - 3600, t0 + 900, 180):
+            hs, as_ = next(((x[2], x[3]) for x in reversed(g["tl"]) if x[0] <= t), (0, 0))
+            margin = hs - as_
+            h["snaps"].append((gc0, None, margin))
+            bet = bet or C.lead_call(h, True, C.cfb_side(hr, ar), margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
+            last = (hs, as_)
+        fired += bet == ("away" if lead > 0 else "home")
+print(f"college replay fired {fired}/{n}")
+assert n >= 18 and fired >= .85 * n
 print("ok")

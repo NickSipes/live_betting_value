@@ -563,7 +563,7 @@ const legend = (...items) => items.map(t => `<span class="li">${t}</span>`).join
 const PROP_LEG = legend("Bets that the model is watching.",
   `<span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`);
 const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts from fair`,
-  `<span class="chip hot">CALL</span> NFL: points on the trailing team, top-third teams, first 11+ lead`,
+  `<span class="chip hot">CALL</span> Top-third teams, first 11+ lead. NFL: the trailing favorite. NCAAF: the unranked leader over a ranked team`,
   "tap a card for line movement + key plays");
 
 // ---------- data helpers ----------
@@ -671,6 +671,10 @@ function viewPast() {
     const sc = (S.spreadCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
     if (sc.length) html += `<div class="leg" style="margin-top:6px"><b>Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}</b></div>`;
   }
+  if (R.sport === "cfb") {
+    const sc = (S.cfbCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
+    if (sc.length) html += `<div class="leg" style="margin-top:14px"><b>Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}</b></div>`;
+  }
   html += section(`${R.sport}-past-games`, "Games", [`${finals.length} final`, summary].filter(Boolean).join(" · "),
     R.sport === "nfl" ? "Tap a game for its player props and spread chart." : "Games with a line chart were tracked live; the rest show the final score only.",
     finals.map(([id, r]) => finalCard(R.sport, id, r, byGame[id] || [])), "No finished games this week.");
@@ -731,6 +735,7 @@ async function loadAux() {
   try { S.nflHist = await (await fetch("nfl_history.json?" + Date.now())).json(); } catch (e) {}
   try { S.calls = await (await fetch("calls.json?" + Date.now())).json(); } catch (e) {}
   try { S.spreadCalls = await (await fetch("spread_calls.json?" + Date.now())).json(); } catch (e) {}
+  try { S.cfbCalls = await (await fetch("cfb_spread_calls.json?" + Date.now())).json(); } catch (e) {}
   for (const sport of ["nfl", "cfb"])
     try { S.games[sport] = await (await fetch(`${sport}_games.json?` + Date.now())).json(); } catch (e) {}
 }

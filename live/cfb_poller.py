@@ -42,6 +42,8 @@ POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possessi
 # NFL only: both teams top third by record, take the trailing team, only if it was the pregame favorite,
 # at the first fresh quote after a lead first hits 11+ (analysis/lead_spread_value.py: 14-5 at +37% on
 # 2024-25 before minute 55, 2-0 in 2026). College failed this test, favorites included.
+# College, same trigger, the reverse bet: take the unranked leader when only the trailing team is ranked.
+# 13-5 flipped from the trailing bets (10-3, 3-2): found after the fact, leader prices never tested.
 LEAD_CALL = 11
 LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
 LEAD_MAX_GAP = 600   # game seconds back to the last poll; more means we can't say when the lead happened
@@ -132,8 +134,9 @@ def top_third(week):
     """Teams in the top third by win% going into `week`: 2+ games played, ties share a rank, same
     as analysis/team_shapes.py ratings. Finished regular-season games only."""
     rec = {}
+    sep = "&" if "?" in ESPN else "?"
     for wk in range(1, week):
-        for ev in get(f"{ESPN}?week={wk}&seasontype=2").get("events", []):
+        for ev in get(f"{ESPN}{sep}week={wk}&seasontype=2").get("events", []):
             if ev["status"]["type"]["state"] != "post":
                 continue
             a, b = ev["competitions"][0]["competitors"]
@@ -149,11 +152,24 @@ def top_third(week):
     return {t for t, p in pct.items()
             if 1 - 2 * (sum(x > p for x in v) + .5 * (sum(x == p for x in v) - 1)) / (n - 1) > 1 / 3}
 
-def lead_call(h, top, pregame, margin, gc, scored, now, poll, quote):
+def nfl_side(pregame):
+    """Lead call filter by leader sign (+1 home): the trailing team was the pregame favorite. A pick'em doesn't count."""
+    return lambda sign: None if pregame is None else sign * pregame > 0
+
+def cfb_side(hrank, arank):
+    """Lead call filter by leader sign (+1 home): the leader is unranked and the trailing team is ranked."""
+    def ok(sign):
+        if hrank is None or arank is None:
+            return None
+        lead, trail = (hrank, arank) if sign > 0 else (arank, hrank)
+        return lead > 25 and trail <= 25
+    return ok
+
+def lead_call(h, top, side_ok, margin, gc, scored, now, poll, quote):
     """The trailing team's bet ('home'/'away') the moment the lead call fires, else None; state in
     h["lead11"]. Only the first 11+ lead counts, and it has to be seen happening: no prior poll close
     to this one means an old lead, not a new one. top: both teams top third, None while that's unknown.
-    pregame: home spread; the trailing team must have been favored (a pick'em doesn't count, as backtested).
+    side_ok: nfl_side or cfb_side, False blocks the call and None waits.
     The score has to stick for a poll and the quote has to be newer than it; a lead back under 11
     before that ends it, as it did in the backtest."""
     st = h.get("lead11")
@@ -167,13 +183,13 @@ def lead_call(h, top, pregame, margin, gc, scored, now, poll, quote):
         st = h["lead11"] = {"t": now, "gc": gc, "margin": margin, "sign": 1 if margin > 0 else -1, "done": bool(why), "why": why}
     if st["done"]:
         return None
-    fav = None if pregame is None else st["sign"] * pregame > 0
-    why = ("not_top" if top is False else "underdog" if fav is False else "lead_gone" if st["sign"] * margin < LEAD_CALL
+    fits = side_ok(st["sign"])
+    why = ("not_top" if top is False else "side_rule" if fits is False else "lead_gone" if st["sign"] * margin < LEAD_CALL
            else "timeout" if now - st["t"] > LEAD_MAX_WAIT else None)
     if why:
         st.update(done=True, why=why)   # archived: blocked leads get graded later from h["quotes"]
         return None
-    if top is None or fav is None or scored or not quote or quote["updated"] < st["t"] - poll:
+    if top is None or fits is None or scored or not quote or quote["updated"] < st["t"] - poll:
         return None
     st.update(done=True, why="called")
     return "away" if st["sign"] > 0 else "home"
@@ -212,7 +228,8 @@ def reg_entry(ev, week):
     t = {c["homeAway"]: c for c in comp["competitors"]}
     st = ev["status"]["type"]["state"]
     score = lambda side: int(t[side]["score"]) if st != "pre" and t[side].get("score") not in (None, "") else None
-    return {"week": week, "date": ev["date"], "state": st,
+    rank = lambda side: (t[side].get("curatedRank") or {}).get("current") or 99
+    return {"week": week, "date": ev["date"], "state": st, "hrank": rank("home"), "arank": rank("away"),
             "detail": ev["status"]["type"].get("shortDetail"),
             "aabbr": t["away"]["team"]["abbreviation"], "habbr": t["home"]["team"]["abbreviation"],
             "alogo": t["away"]["team"].get("logo"), "hlogo": t["home"]["team"].get("logo"),
@@ -397,7 +414,7 @@ class CFB:
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}
         self.tops = (None, set())
-        self.calls_path = f"{DOCS}/spread_calls.json"
+        self.calls_path = f'{DOCS}/{"spread" if SPORT == "nfl" else "cfb_spread"}_calls.json'   # each poller owns its file
 
     def save_call(self, call):
         d = json.load(open(self.calls_path)) if os.path.exists(self.calls_path) else []
@@ -538,7 +555,7 @@ class CFB:
         if not live:
             return rows
         week = (sb.get("week") or {}).get("number")
-        if SPORT == "nfl" and self.tops[0] != week:
+        if self.tops[0] != week:
             try:
                 self.tops = (week, top_third(week) if (sb.get("season") or {}).get("type") == 2 else set())
             except Exception as e:
@@ -615,21 +632,24 @@ class CFB:
                                                next((v for k, v in books.items() if g["home"] in k or k in g["home"]), None)))
             status = "EDGE" if (not scored and edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
-            if SPORT == "nfl":
-                q = next((v for k, v in detail.items() if g["home"] in k or k in g["home"]), None)
-                top = None if self.tops[0] != week else g["habbr"] in self.tops[1] and g["aabbr"] in self.tops[1]
-                h["top"] = top
-                bet = lead_call(h, top, S0, margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
-                if bet:
-                    ab, line = (g["habbr"], L) if bet == "home" else (g["aabbr"], -L)
-                    h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
-                                 "line": line, "price": q[bet], "clock": g["clock"], "gc": g["gc"], "t": time.time(),
-                                 "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
-                                 "books": h["quotes"][-1][4]}
-                    self.save_call(h["call"])
-                    push.queue(f'Bet {ab} {line:+g} ({q[bet]:+d})', f'Top-vs-top, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
-                               tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
-                    notify(f"NFL CALL: {lbl}", f'{ab} {line:+g} ({q[bet]:+d}) | {g["as"]}-{g["hs"]} {g["clock"]}')
+            q = next((v for k, v in detail.items() if g["home"] in k or k in g["home"]), None)
+            top = None if self.tops[0] != week else g["habbr"] in self.tops[1] and g["aabbr"] in self.tops[1]
+            h["top"] = top
+            rr = self.reg.get(gid, {})
+            bet = lead_call(h, top, nfl_side(S0) if SPORT == "nfl" else cfb_side(rr.get("hrank"), rr.get("arank")),
+                            margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
+            if bet and SPORT == "cfb":
+                bet = "home" if bet == "away" else "away"   # the college rule takes the leader
+            if bet:
+                ab, line = (g["habbr"], L) if bet == "home" else (g["aabbr"], -L)
+                h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
+                             "line": line, "price": q[bet], "clock": g["clock"], "gc": g["gc"], "t": time.time(),
+                             "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
+                             "books": h["quotes"][-1][4]}
+                self.save_call(h["call"])
+                push.queue(f'Bet {ab} {line:+g} ({q[bet]:+d})', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
+                           tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
+                notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({q[bet]:+d}) | {g["as"]}-{g["hs"]} {g["clock"]}')
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',

@@ -183,13 +183,7 @@
   .card.new { animation:callflash .75s ease-in-out 4; }
   .cbets { margin:2px 0 6px; }
   .cbets .ttl { font-size:12px; font-weight:650; color:var(--ink-1); margin-bottom:4px; }
-  .cbets table { margin-top:0; font-size:12.5px; border-radius:10px; }
-  .cbets th { font-size:10px; padding:6px 10px; }
-  .cbets td { padding:7px 10px; font-variant-numeric:tabular-nums; }
-  .cbets th, .cbets td { white-space:nowrap; }
-  .cbets .tscroll { overflow-x:auto; touch-action:pan-x; }
   @media (max-width: 640px) {
-    .cbets th, .cbets td { padding:6px 7px; }
     .wrap { padding:12px 16px 48px; }
     .nav { margin:-12px 0 4px; padding:10px 0 8px; }
     h1 { font-size:18px; }
@@ -764,7 +758,7 @@ const GL = 3600;
 let CW = 700, CH = 330;
 const CM = { t: 12, r: 14, b: 30, l: 58 };
 let MC = null;
-const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)", inj: "#9085e9" };
+const EVCOLOR = { score: "var(--orange)", to: "var(--red)", mom: "var(--yellow)", inj: "#9085e9", call: "var(--yellow)" };
 
 const clean = pts => {
   const m = new Map();
@@ -905,6 +899,7 @@ function hideCursor() {   // the tooltip only shows while the plot is touched; a
   document.getElementById("mread").hidden = true;
   if (MC?.pinned && pinnedGc !== null) return setCursor(pinnedGc);
   pinnedGc = null;
+  document.querySelectorAll("#evlist .ev.on").forEach(r => r.classList.remove("on"));
   document.querySelectorAll("#modal .mxh").forEach(xh => xh.setAttribute("visibility", "hidden"));
 }
 
@@ -914,7 +909,7 @@ function placeTip(e) {
   rd.hidden = false;
   const box = rd.parentElement.getBoundingClientRect(), w = rd.offsetWidth;
   rd.style.left = `${Math.max(m.left + 4, Math.min(e.clientX - w / 2, m.right - 4 - w)) - box.left}px`;
-  const above = e.clientY - rd.offsetHeight - 16;
+  const above = e.clientY - rd.offsetHeight - 10;
   rd.style.top = `${(above < m.top + 4 ? e.clientY + 28 : above) - box.top}px`;   // no room above: below the finger
 }
 
@@ -964,7 +959,12 @@ function markRow(i, scroll) {
   row.classList.add("on");
   if (scroll) { const list = document.getElementById("evlist"); list.scrollTop = row.offsetTop - list.offsetTop; }
 }
-function rowJump(i) { setCursor(ROWS[i].gc, true); markRow(i, false); }
+function rowJump(i) {   // snap to the row's spot on the plot, tooltip included
+  const r = ROWS[i], b = document.getElementById("mcsvg").getBoundingClientRect(), y = r.y ?? stepVal(MC.series[0].pts, r.gc);
+  setCursor(r.gc, true);
+  markRow(i, false);
+  placeTip({ clientX: b.left + MC.X(r.gc) / CW * b.width, clientY: b.top + (y === null ? CM.t : MC.Y(y)) / CH * b.height });
+}
 function evJump(i) {   // a dot on the chart
   const ev = MC?.events?.[i];
   if (!ev) return;
@@ -975,7 +975,7 @@ function evJump(i) {   // a dot on the chart
 function renderRows() {
   const list = document.getElementById("evlist");
   if (list) list.innerHTML = ROWS.map((r, i) => `<div class="ev${r.cls ? "" : " minor"}" id="ev-${i}" onclick="rowJump(${i})">
-    <span class="clk">${gcLabel(r.gc)}</span>
+    <span class="clk">${r.clk ?? gcLabel(r.gc)}</span>
     <span class="ttl">${r.cls ? `<i style="background:${EVCOLOR[r.cls] || "var(--orange)"}"></i>` : ""}${r.label}</span>
     <span class="sc">${r.sc}</span><span class="txt">${r.text}</span></div>`).join("");
 }
@@ -1149,21 +1149,12 @@ function openProp(id, rec) {
     },
   });
 
-  const lead = call || pre;   // the header speaks for the live call when there is one
-  const verdict = !lead ? "" : won(lead, cum) ? `<span class="chip hot">WIN</span> cleared O ${lead.line}`
-    : lead.result === "loss" ? `<span class="chip watch">LOSS</span> finished ${cum} vs O ${lead.line}`
-    : `needs ${Math.round((lead.line - cum) * 10) / 10} more yds to clear the called line (O ${lead.line})`;
   const res = c => won(c, cum) ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
-  const bets = !(call || pre) ? "" : `
-    <div class="cbets"><div class="ttl">Called Bets</div>
-      <div class="tscroll"><table><thead><tr><th>call</th><th>score</th><th>clock</th><th>yards</th><th>line</th><th>result</th></tr></thead>
-      <tbody>${[pre, call].filter(Boolean).map(c => `<tr><td>${c.type === "pregame" ? "pregame" : "model pick"}</td>
-        <td>${c.score ?? "—"}</td><td>${c.clock}</td><td>${c.cum}</td><td>O ${c.line}</td><td><b>${res(c)}</b></td></tr>`).join("")}
-      </tbody></table></div></div>`;
+  const bets = !(call || pre) ? "" : `<div class="cbets"><div class="ttl">Called Bets</div></div><div id="evlist"></div>`;
   const tms = h.game.split(" @ "), me = tms.findIndex(t => h.logo?.endsWith(`/${t.toLowerCase()}.png`));
   showModal(`
     <h3 style="justify-content:center;text-align:center">${logoImg(h.logo)} ${h.player} ${h.market === "rec" ? "Rec" : "Rush"} Over Probability${me < 0 ? "" : ` @ ${tms[1 - me]}`}</h3>
-    <div class="meta">${verdict || (rec ? `final ${rec.final} yds vs pregame O ${rec.l0}` : "")}</div>
+    <div class="meta">${call || pre || !rec ? "" : `final ${rec.final} yds vs pregame O ${rec.l0}`}</div>
     <div class="cplot"><div id="mread" hidden></div>${chart}</div>
     <div class="mleg"><span><i style="background:var(--blue)"></i>book line</span>
       <span><i style="background:var(--green)"></i>yards</span>
@@ -1171,6 +1162,10 @@ function openProp(id, rec) {
       ${call || pre ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called</span>` : ""}
       <span>ticks = ${unit}</span></div>
     ${bets}`);
+  // called bets are rows like the game plays, newest first; a pregame call snaps to the first snapshot
+  ROWS = [call, pre].filter(Boolean).map(c => ({ gc: Math.max(c.gc ?? 0, linePts[0]?.[0] ?? 1), y: c.line, clk: c.clock, cls: "call",
+    label: `${c.type === "pregame" ? "Pregame" : "Model pick"} · O ${c.line}`, sc: res(c), text: "" }));
+  renderRows();
   bindChart();
 }
 
@@ -1188,6 +1183,9 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal()
 // play list while it is scrolled; a sideways drag is never a swipe.
 let swipe = null;
 const modalEl = document.getElementById("modal");
+modalEl.addEventListener("pointerdown", e => {   // a tap off the plot and its rows puts the tooltip away
+  if (document.getElementById("mread")?.hidden === false && !e.target.closest(".ev, .mhit, .evdot, .prev")) hideCursor();
+});
 modalEl.addEventListener("pointerdown", e => {
   if (e.pointerType === "mouse" || e.target.closest(".mhit, .prev") || e.target.closest("#evlist")?.scrollTop > 0) return;
   swipe = { x: e.clientX, y: e.clientY };

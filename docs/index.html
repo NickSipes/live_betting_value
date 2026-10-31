@@ -1238,7 +1238,16 @@ function openHowTo() {
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <button onclick="testBook('fanduel')">Test FanDuel</button>
         <button onclick="testBook('draftkings')">Test DraftKings</button>
-      </div>` : ""}</div>`);
+      </div>
+      <div id="testlinks" style="display:flex;gap:16px;margin-bottom:8px"></div>` : ""}</div>`);
+  if (pushSub) fillTestLinks();
+}
+async function fillTestLinks() {
+  let d = {};
+  try { d = await (await fetch("test_links.json?" + Date.now())).json(); } catch (e) {}
+  const el = document.getElementById("testlinks"), fresh = l => l && Date.now() / 1000 - l.t <= 1800;
+  if (el) el.innerHTML = [["fanduel", "Open FanDuel"], ["draftkings", "Open DraftKings"]].filter(([b]) => fresh(d[b]))
+    .map(([b, txt]) => `<a href="${d[b].url}" target="_blank" rel="noopener">${txt}</a>`).join("") || "No live bet links right now.";
 }
 async function testBook(book) {
   const name = book === "fanduel" ? "FanDuel" : "DraftKings";

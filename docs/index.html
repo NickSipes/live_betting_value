@@ -615,6 +615,13 @@ function viewLive() {
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
     html += section("nfl-live-props", "Picks on Deck", `${opps.length} watching`, PROP_LEG,
       opps.map(propLiveCard), all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
+  } else {
+    const active = games.filter(g => g.call && !g.call.result);
+    html += section("cfb-active-calls", "Active Picks", `${active.length} pending`, "Bets that the model has taken",
+      active.map(g => spreadLiveCard(kind, g)), "No open picks right now.");
+    const deck = games.filter(g => !g.call && S.games.cfb?.[g.id]?.watch);
+    html += section("cfb-live-props", "Picks on Deck", `${deck.length} watching`, "Bets that the model is watching.",
+      deck.map(g => spreadLiveCard(kind, g)), "The model isn't watching any bets right now.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${games.length} live`, SPREAD_LEG,
     games.map(g => spreadLiveCard(kind, g)), `No live ${SPORTNAME[R.sport]} games right now.`);

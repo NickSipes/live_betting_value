@@ -82,6 +82,11 @@ def first_over(bk):
     book = next((b for b in ("fanduel", "draftkings") if b in (bk or {})), None)
     return (book, bk[book][0], bk[book][1]) if book else None
 
+def bet_open(call, bk):
+    """Is the called book still at or better than the alert's good-to line? No quote: keep the last answer."""
+    q = (bk or {}).get(call.get("book"))
+    return q[0] <= call["line"] + 1 if q else call.get("open", True)
+
 def call_gate(x, dkey):
     """No call while down > 3, and never an over against a top-3 defense (going into
     the week). A touch-count rule was dropped: on week 7 it only blocked winners."""
@@ -351,7 +356,7 @@ def team_stats(box_team):
 class Monitor:
     def __init__(self, poll):
         self.poll = poll
-        self.books = {}
+        self.books, self.slips = {}, {}
         self.hist_path = f"{DATA}/history.json"
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.pl_path = f"{DATA}/pregame_lines.json"   # espn_id -> {"name|kind": closing line}
@@ -488,9 +493,10 @@ class Monitor:
     def odds_quotes(self, odds_event):
         d = get(f"{ODDS}/events/{odds_event['id']}/odds?apiKey={KEY}"
                 f"&bookmakers=draftkings,fanduel&markets={MARKETS['rec']},{MARKETS['rush']}"
-                f"&oddsFormat=american")
+                f"&oddsFormat=american&includeLinks=true")
         quotes = {}   # (name, kind) -> line (FD preferred)
         self.books = {}   # (name, kind) -> {book: [line, over price, under price]}, archived per change
+        self.slips = {}   # (name, kind) -> {book: over's bet slip link}, saved on a call
         for b in d.get("bookmakers", []):
             for m in b.get("markets", []):
                 kind = "rec" if m["key"] == MARKETS["rec"] else "rush"
@@ -501,6 +507,7 @@ class Monitor:
                     under = next((u.get("price") for u in m["outcomes"] if u["name"] == "Under"
                                   and u.get("description") == o["description"] and u.get("point") == o["point"]), None)
                     self.books.setdefault(k, {})[b["key"]] = [float(o["point"]), o.get("price"), under]
+                    self.slips.setdefault(k, {})[b["key"]] = o.get("link")
                     if b["key"] == "fanduel" or k not in quotes:
                         quotes[k] = float(o["point"])
         return quotes
@@ -768,6 +775,9 @@ class Monitor:
             for (name, kind), L in quotes.items():
                 f = self.features(name, kind, L, game, players, tstats)
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
+                c = self.hist.get(hkey, {}).get("call")
+                if c and "result" not in c:
+                    c["open"] = bet_open(c, self.books.get((name, kind)))
                 if hkey in self.hist and name in players:
                     side = "hlogo" if players[name]["team"] == game["home"] else "alogo"
                     self.hist[hkey]["meta"] = {"player": name, "market": kind, "logo": game.get(side),
@@ -790,7 +800,7 @@ class Monitor:
                     h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing"}
                 if p >= CALL and "call" not in h and call_gate(x, dkey):
                     book, line, price = first_over(bk) or ("fanduel", L, None)
-                    h["call"] = {**snap, "line": line, "book": book, "price": price}
+                    h["call"] = {**snap, "line": line, "book": book, "price": price, "link": self.slips.get((name, kind), {}).get(book)}
                     push.send(f'Bet {name} Over {line} {"rec" if kind == "rec" else "rush"} yds'
                               f'{f" ({price:+d})" if price else ""} on {push.BOOK[book]}, good to {line + 1:g}',
                               f'Model gives it {round(p * 100)}% · {game["away_abbr"]} {game["as"]}–{game["home_abbr"]} {game["hs"]}, '

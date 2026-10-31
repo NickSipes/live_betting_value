@@ -134,6 +134,13 @@ def pick_quote(row, bet, since=0):
             return b, q[0] if home else -q[0], q[1] if home else q[2]
     return None
 
+def bet_open(call, row):
+    """Is the called book still at or better than the alert's good-to line? No quote this poll: keep the last answer."""
+    q = (row or {}).get(call.get("book"))
+    if not q:
+        return call.get("open", True)
+    return (q[0] if call["bet"] == "home" else -q[0]) >= call["line"] - 1
+
 def books_agree(row):
     """False when the books are 2+ points apart: one hasn't caught up, so the number can't be trusted."""
     pts = [q[0] for q in (row or {}).values()]
@@ -579,6 +586,7 @@ class CFB:
         detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
         books = {}    # same key -> {book: [home points, home price, away price, updated]}, archived per poll
         links = {}    # book -> a live bet slip link, for the page's test buttons
+        slips = {}    # same key as quotes -> {book: {home, away: bet slip link}}, saved on a call
         fresh_cut = (datetime.datetime.now(datetime.timezone.utc)
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")
         for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american&includeLinks=true"):
@@ -589,6 +597,7 @@ class CFB:
                     for o in m.get("outcomes", []):
                         if o["name"] == e["home_team"] and o.get("point") is not None:
                             other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
+                            slips.setdefault(e["home_team"], {})[b["key"]] = {"home": o.get("link"), "away": other.get("link")}
                             if o.get("link"):
                                 links[b["key"]] = {"url": o["link"], "bet": f'{e["home_team"]} {float(o["point"]):+g}', "t": time.time()}
                             books.setdefault(e["home_team"], {})[b["key"]] = [
@@ -662,11 +671,14 @@ class CFB:
                 h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
                              "line": line, "price": price, "book": book, "clock": g["clock"], "gc": g["gc"], "t": time.time(),
                              "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
-                             "books": h["quotes"][-1][4]}
+                             "books": h["quotes"][-1][4],
+                             "link": next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).get(book, {}).get(bet)}
                 self.save_call(h["call"])
                 push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}, good to {line - 1:+g}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
                            tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
                 notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
+            if h.get("call") and not h["call"].get("result"):
+                h["call"]["open"] = bet_open(h["call"], h["quotes"][-1][4])
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',

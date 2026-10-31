@@ -10,7 +10,6 @@ self.addEventListener("push", e => {
 self.addEventListener("notificationclick", e => {
   e.notification.close();
   const url = new URL(e.notification.data.url, self.registration.scope).href;
-  if (!url.startsWith(self.registration.scope)) return e.waitUntil(clients.openWindow(url));   // a sportsbook: can't navigate there in place
   e.waitUntil(clients.matchAll({ type: "window" }).then(ws =>
     ws.length ? ws[0].navigate(url).then(w => (w || ws[0]).focus()) : clients.openWindow(url)));
 });

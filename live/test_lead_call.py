@@ -58,6 +58,11 @@ assert C.pick_quote(row, "away") == ("fanduel", 20.5, -125)
 assert C.pick_quote(row, "home", since=200) is None and C.pick_quote(None, "home") is None
 assert C.pick_quote({"draftkings": [-3, -110, -110, 100]}, "home") == ("draftkings", -3, -110)
 assert C.pick_quote({"fanduel": [-3, -110, -110, 1], "draftkings": [-4, -105, -115, 100]}, "home", since=50)[0] == "draftkings"   # FD stale
+home = {"bet": "home", "line": -9.5, "book": "fanduel"}; away = {"bet": "away", "line": 9.5, "book": "fanduel"}
+q = lambda p: {"fanduel": [p, -110, -110, 1]}
+assert C.bet_open(home, q(-10.5)) and not C.bet_open(home, q(-11)) and C.bet_open(home, q(-7))      # good to -10.5, then gone
+assert C.bet_open(away, q(-8.5)) and not C.bet_open(away, q(-8)) and C.bet_open(away, q(-12))       # +9.5 good to +8.5
+assert C.bet_open(home, {"draftkings": [-20, 0, 0, 1]}) and not C.bet_open({**home, "open": False}, None)   # no quote keeps the answer
 assert not C.books_agree(row) and not C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-5, 0, 0, 0]})
 assert C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-4, 0, 0, 0]}) and C.books_agree({"fanduel": [-3, 0, 0, 0]}) and C.books_agree(None)
 

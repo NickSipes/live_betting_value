@@ -153,6 +153,11 @@ CFB uses its own fit (`analysis/cfb_spread_model.py`, 570 FBS games of 2026): da
 0.73 × the possession value; rows logged before 2026-10-30 used 0.24 / 1.0, and before 2026-10-27
 the NFL's 0.28.
 
+**`docs/spread_calls.json`** — NFL spread calls (`live/cfb_poller.py`, `lead_call`): both teams top
+third by record going in, trailing team at the first fresh quote after a lead first reaches 11+ before
+minute 55. List of `{id, game, week, bet ("home"/"away"), team, line (on the bet side), price,
+clock, gc, t, score, pregame, fair, result (win/loss/push, null until final), final}`.
+
 **`live/hist_nfl_spreads.json`**, `hist_cfb_spreads.json` — working state for spreads in games
 not yet final (same layout as the archive plus `poss`, `t`).
 

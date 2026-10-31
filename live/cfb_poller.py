@@ -39,6 +39,12 @@ EDGE_FLAG = 4.0     # points of edge to flag
 # fit jointly. Live backtest on 16 archived CFB games: EDGE flags cover ~47%, no edge yet.
 LEAK = {"nfl": 0.28, "cfb": 0.31}[SPORT]
 POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possession term
+# NFL only: both teams top third by record, take the trailing team at the first fresh quote after
+# a lead first hits 11+ (analysis/lead_spread_value.py: 29-17 on 2024-25). College failed this test.
+LEAD_CALL = 11
+LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
+LEAD_MAX_GAP = 600   # game seconds back to the last poll; more means we can't say when the lead happened
+LEAD_MAX_WAIT = 900  # seconds from the score; the backtest's bet window
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -120,6 +126,56 @@ def edge_push(g, L, fair):
     sp = lambda v: "PK" if v == 0 else f"{v:+g}"
     return (f"Bet {ab} {sp(line)}",
             f'Model has {ab} {sp(fr)} · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}')
+
+def top_third(week):
+    """Teams in the top third by win% going into `week`: 2+ games played, ties share a rank, same
+    as analysis/team_shapes.py ratings. Finished regular-season games only."""
+    rec = {}
+    for wk in range(1, week):
+        for ev in get(f"{ESPN}?week={wk}&seasontype=2").get("events", []):
+            if ev["status"]["type"]["state"] != "post":
+                continue
+            a, b = ev["competitions"][0]["competitors"]
+            for x, y in ((a, b), (b, a)):
+                r = rec.setdefault(x["team"]["abbreviation"], [0.0, 0])
+                sx, sy = int(x["score"]), int(y["score"])
+                r[0] += 1 if sx > sy else .5 if sx == sy else 0
+                r[1] += 1
+    pct = {t: w / n for t, (w, n) in rec.items() if n >= 2}
+    v, n = list(pct.values()), len(pct)
+    if n <= 8:
+        return set()
+    return {t for t, p in pct.items()
+            if 1 - 2 * (sum(x > p for x in v) + .5 * (sum(x == p for x in v) - 1)) / (n - 1) > 1 / 3}
+
+def lead_call(h, top, margin, gc, scored, now, poll, quote):
+    """The trailing team's bet ('home'/'away') the moment the lead call fires, else None; state in
+    h["lead11"]. Only the first 11+ lead counts, and it has to be seen happening: no prior poll close
+    to this one means an old lead, not a new one. top: both teams top third, None while that's unknown.
+    The score has to stick for a poll and the quote has to be newer than it; a lead back under 11
+    before that ends it, as it did in the backtest."""
+    st = h.get("lead11")
+    if st is None:
+        if abs(margin) < LEAD_CALL or gc >= 3600:
+            return None
+        prior = h["snaps"][:-1]   # snaps[-1] is this poll
+        seen = any(abs(s[2]) >= LEAD_CALL for s in prior)
+        blind = not prior or gc - prior[-1][0] > LEAD_MAX_GAP
+        st = h["lead11"] = {"t": now, "sign": 1 if margin > 0 else -1, "done": seen or blind or gc >= LEAD_LATEST}
+    if st["done"]:
+        return None
+    if top is False or st["sign"] * margin < LEAD_CALL or now - st["t"] > LEAD_MAX_WAIT:
+        st["done"] = True
+        return None
+    if top is None or scored or not quote or quote["updated"] < st["t"] - poll:
+        return None
+    st["done"] = True
+    return "away" if st["sign"] > 0 else "home"
+
+def cover(call, hs, as_):
+    """'win' / 'loss' / 'push' for a settled call; call line is on the bet side."""
+    m = (hs - as_ if call["bet"] == "home" else as_ - hs) + call["line"]
+    return "win" if m > 0 else "loss" if m < 0 else "push"
 
 def backfill_fair(h):
     """Snaps saved before fair was stored (4 fields) get it rebuilt from their own
@@ -304,6 +360,13 @@ class CFB:
         self.bf_path = f"{DATA}/backfilled_{SPORT}.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
         self.status = {}
+        self.tops = (None, set())
+        self.calls_path = f"{DOCS}/spread_calls.json"
+
+    def save_call(self, call):
+        d = json.load(open(self.calls_path)) if os.path.exists(self.calls_path) else []
+        d = [c for c in d if c["id"] != call["id"]] + [call]
+        json.dump(d, open(self.calls_path, "w"))
 
     def backfill(self, need, live):
         """Joined games after kickoff: rebuild the line + margin from kickoff using
@@ -374,11 +437,16 @@ class CFB:
             r = self.reg.get(gid)
             if not r or r["state"] != "post":
                 continue
+            if self.hist[gid].get("call") and (r["hs"] is None or r["as"] is None):
+                continue   # a call has to settle: wait for ESPN to post the final
             h = self.hist.pop(gid)
             events = espn_events(fetch_summary(gid), r["hid"]) or h.get("events", [])
+            if h.get("call"):
+                h["call"].update(result=cover(h["call"], r["hs"], r["as"]), final=f'{r["as"]}-{r["hs"]}')
+                self.save_call(h["call"])
             done.setdefault(r["week"], {})[gid] = {
                 "meta": h.get("meta"), "pregame": h.get("pregame"), "snaps": h.get("snaps", []),
-                "events": events, "final": f'{r["as"]}-{r["hs"]}'}
+                "events": events, "final": f'{r["as"]}-{r["hs"]}', "call": h.get("call")}
             r["has_hist"] = True
         for wk, recs in done.items():
             merge_json(f"{ARCHIVE}/{SPORT}_w{wk}.json", recs)
@@ -415,6 +483,12 @@ class CFB:
             }
         if not live:
             return rows
+        week = (sb.get("week") or {}).get("number")
+        if SPORT == "nfl" and self.tops[0] != week:
+            try:
+                self.tops = (week, top_third(week) if (sb.get("season") or {}).get("type") == 2 else set())
+            except Exception as e:
+                print("top-third fetch failed", repr(e))
         need = [gid for gid, g in live.items() if g["gc"] > 300 and gid not in self.backfilled]
         if need:
             try:
@@ -422,6 +496,7 @@ class CFB:
             except Exception as e:
                 print("backfill error", repr(e))
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
+        detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
         fresh_cut = (datetime.datetime.now(datetime.timezone.utc)
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")
         for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american"):
@@ -433,6 +508,9 @@ class CFB:
                         if o["name"] == e["home_team"] and o.get("point") is not None:
                             if b["key"] == "fanduel" or e["home_team"] not in quotes:
                                 quotes[e["home_team"]] = float(o["point"])
+                                other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
+                                detail[e["home_team"]] = {"home": o["price"], "away": other.get("price"),
+                                                          "updated": iso_ts(m.get("last_update") or b["last_update"])}
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})
@@ -477,6 +555,19 @@ class CFB:
             h["snaps"] = h["snaps"][-200:]
             status = "EDGE" if (not scored and edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
+            if SPORT == "nfl":
+                q = next((v for k, v in detail.items() if g["home"] in k or k in g["home"]), None)
+                top = None if self.tops[0] != week else g["habbr"] in self.tops[1] and g["aabbr"] in self.tops[1]
+                bet = lead_call(h, top, margin, g["gc"], scored, time.time(), self.poll, q if L is not None else None)
+                if bet:
+                    ab, line = (g["habbr"], L) if bet == "home" else (g["aabbr"], -L)
+                    h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
+                                 "line": line, "price": q[bet], "clock": g["clock"], "gc": g["gc"], "t": time.time(),
+                                 "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None}
+                    self.save_call(h["call"])
+                    push.queue(f'Bet {ab} {line:+g} ({q[bet]:+d})', f'Top-vs-top, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
+                               tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
+                    notify(f"NFL CALL: {lbl}", f'{ab} {line:+g} ({q[bet]:+d}) | {g["as"]}-{g["hs"]} {g["clock"]}')
             rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',
@@ -484,7 +575,7 @@ class CFB:
                          "clock": g["clock"],
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
-                         "status": status,
+                         "status": "CALL" if h.get("call") else status, "call": h.get("call"),
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"])})
             if status != self.status.get(gid) and status != "watch":
                 push.queue(*edge_push(g, L, fair), tag=f"{SPORT}|{gid}", url=f"./#{SPORT}/live")
@@ -503,7 +594,7 @@ class CFB:
             except Exception as e:
                 print("cycle error", repr(e))
                 rows = []
-            rows.sort(key=lambda r: -(abs(r["edge"]) if r["edge"] is not None else -1))
+            rows.sort(key=lambda r: (not r.get("call"), -(abs(r["edge"]) if r["edge"] is not None else -1)))
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),
                        "ts": time.time(),
                        "edge_flag": EDGE_FLAG, "games": rows},

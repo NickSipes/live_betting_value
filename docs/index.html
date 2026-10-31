@@ -309,7 +309,7 @@ function renderAges() {
 }
 setInterval(renderAges, 5000);
 
-const chipCls = s => s === "TRIGGER" || s === "EDGE" ? "hot" : s === "NEAR" ? "warm" : "watch";
+const chipCls = s => s === "TRIGGER" || s === "EDGE" || s === "CALL" ? "hot" : s === "NEAR" ? "warm" : "watch";
 // spreads only bet in half points; also rounds fair values saved to a tenth before Oct 30
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
   (v = Math.round(v * 2) / 2) === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
@@ -480,6 +480,7 @@ function spreadLiveCard(kind, g) {
       <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
       <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
     </div>
+    ${g.call ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>` : ""}
   </div>`;
 }
 function upcomingCard(r) {
@@ -548,6 +549,7 @@ const legend = (...items) => items.map(t => `<span class="li">${t}</span>`).join
 const PROP_LEG = legend("Bets that the model is watching.",
   `<span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`);
 const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts from fair`,
+  `<span class="chip hot">CALL</span> NFL: points on the trailing team, top-third teams, first 11+ lead`,
   "tap a card for line movement + key plays");
 
 // ---------- data helpers ----------
@@ -652,6 +654,8 @@ function viewPast() {
     if (led.length)
       html += `<div class="leg" style="margin-top:14px"><b>Season record: ${[rec("live"), rec("pregame")].filter(Boolean).join(" · ")}</b>
         <br>every settled call, with the model's inputs for model picks, is saved in calls.json</div>`;
+    const sc = (S.spreadCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
+    if (sc.length) html += `<div class="leg" style="margin-top:6px"><b>Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}</b></div>`;
   }
   html += section(`${R.sport}-past-games`, "Games", [`${finals.length} final`, summary].filter(Boolean).join(" · "),
     R.sport === "nfl" ? "Tap a game for its player props and spread chart." : "Games with a line chart were tracked live; the rest show the final score only.",
@@ -712,6 +716,7 @@ async function loadAux() {
     try { S.spreadHist[kind] = await (await fetch(SPREADS[kind].hist + "?" + Date.now())).json(); } catch (e) {}
   try { S.nflHist = await (await fetch("nfl_history.json?" + Date.now())).json(); } catch (e) {}
   try { S.calls = await (await fetch("calls.json?" + Date.now())).json(); } catch (e) {}
+  try { S.spreadCalls = await (await fetch("spread_calls.json?" + Date.now())).json(); } catch (e) {}
   for (const sport of ["nfl", "cfb"])
     try { S.games[sport] = await (await fetch(`${sport}_games.json?` + Date.now())).json(); } catch (e) {}
 }

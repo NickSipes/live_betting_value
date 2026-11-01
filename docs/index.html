@@ -36,14 +36,17 @@
   .wrap { max-width:1060px; margin:0 auto;   /* safe areas: notch / home bar in the home-screen app */
           padding:max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
                   calc(60px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-  .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
-  .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .brand { flex:1; min-width:0; }
+  .top h1 { margin:0; font-size:18px; letter-spacing:-.01em; }
+  .top .meta { display:block; margin-top:2px; font-size:12px; color:var(--ink-2); font-variant-numeric:tabular-nums; }
   .betlink { display:block; margin-top:10px; padding:9px; border-radius:12px; text-align:center; font-weight:650; font-size:13.5px;
              color:#fff; background:var(--green); text-decoration:none; }
   .betlink.lean { color:var(--ink-1); background:var(--surface-2); border:1px solid var(--border); font-weight:600; }
-  .topbtns { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-  .topbtns button { padding:5px 8px; font-size:12.5px; white-space:nowrap; border-radius:12px; }
-  @media (max-width:480px) { .top { gap:6px; } .top .meta { flex-basis:100%; text-align:right; } }
+  .topbtns { display:flex; gap:8px; flex:none; }
+  .topbtns button { width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:12px; }
+  .topbtns .wl { font-size:12.5px; font-weight:700; }
+  .topbtns svg { width:20px; height:20px; flex:none; }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
   .tabrow { display:flex; flex-direction:column; }
   .leg .li + .li::before { content:"·"; margin:0 8px; color:var(--muted); }
@@ -216,13 +219,12 @@
 <div class="wrap">
   <div class="nav">
     <div class="top">
-      <h1>Live Bet Predictor</h1>
-      <button id="notifbtn" onclick="alertsClick()" hidden></button>
+      <div class="brand"><h1>Live Bet Predictor</h1><span class="meta" id="updated"></span></div>
       <div class="topbtns">
-        <button onclick="openHowTo()">How To</button>
-        <button onclick="openWinRate()">Win Rate</button>
+        <button id="notifbtn" onclick="alertsClick()" hidden></button>
+        <button onclick="openHowTo()" aria-label="How To" title="How To"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .8c0 1.7-2.5 2.2-2.5 4"/><path d="M12 17.2h.01"/></svg></button>
+        <button class="wl" onclick="openWinRate()" aria-label="Win Rate" title="Win Rate">W-L</button>
       </div>
-      <span class="meta" id="updated"></span>
     </div>
     <div class="tabrow">
       <div class="tabs sport" id="sporttabs"></div>
@@ -279,8 +281,10 @@ let pushSub = null;
 function alertsLabel() {
   const b = document.getElementById("notifbtn");
   b.hidden = !(PUSH_OK || IOS_BROWSER);
-  b.textContent = !PUSH_OK ? "📲 Install for alerts" : pushSub ? "🔔 Alerts on"
-    : Notification.permission === "denied" ? "🔕 Alerts blocked" : "🔔 Turn on alerts";
+  const blocked = PUSH_OK && !pushSub && Notification.permission === "denied";
+  const label = !PUSH_OK ? "Install for alerts" : pushSub ? "Alerts on" : blocked ? "Alerts blocked" : "Turn on alerts";
+  b.setAttribute("aria-label", label); b.title = label;
+  b.innerHTML = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="${pushSub ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/>${blocked ? '<path d="M3 3l18 18"/>' : ""}</svg>`;
 }
 const b64key = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
 const postSub = (path, sub) => fetch(path, { method: "POST", body: JSON.stringify(sub) });
@@ -313,7 +317,7 @@ const ageText = ts => {
 function renderAges() {
   const seen = Object.values(lastTs).filter(Boolean);   // the stalest feed, so "now" is never optimistic
   document.getElementById("updated").textContent = seen.length
-    ? "updated " + ageText(Math.min(...seen)).replace("just now", "now") : "";
+    ? "Updated " + ageText(Math.min(...seen)).replace("just now", "now") : "";
   const stale = [];
   for (const [k, ts] of Object.entries(lastTs))
     if (ts && (Date.now() / 1000 - ts) > 900) stale.push(`${k} data is ${ageText(ts).replace(" ago", "")} old`);

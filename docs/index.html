@@ -8,62 +8,41 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Live Bets">
-<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eef2f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
 <title>Live Bet Predictor</title>
-<script>
-  if (new URLSearchParams(location.search).get("theme") === "navy") {
-    document.documentElement.dataset.theme = "navy";
-    document.head.insertAdjacentHTML("beforeend", '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">');
-  }
-</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
 <style>
   :root {
     color-scheme: light dark;
-    --surface: #fcfcfb; --surface-2: #f3f3f0; --page: #f9f9f7;
-    --ink-1: #0b0b0b; --ink-2: #52514e; --muted: #898781;
-    --border: rgba(11,11,11,0.10); --grid: #e1e0d9; --baseline: #c3c2b7;
+    --surface: #ffffff; --surface-2: #e8eef6; --page: #eef2f8;
+    --ink-1: #0b1626; --ink-2: #47566b; --muted: #74839a;
+    --border: rgba(15,35,70,0.12); --grid: #dde5f0; --baseline: #b6c3d6;
     --green: #1baf7a; --orange: #eb6834; --blue: #2a78d6; --red: #d03b3b; --yellow: #c98500; --pink: #c2418f;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --surface: #1a1a19; --surface-2: #232322; --page: #0d0d0d;
-      --ink-1: #f0efec; --ink-2: #c3c2b7;
-      --border: rgba(255,255,255,0.10); --grid: #2c2c2a; --baseline: #383835;
-      --green: #199e70; --orange: #d95926; --blue: #3987e5; --red: #e66767; --yellow: #eda100;
-    }
-  }
-  /* navy preview: add ?theme=navy to the address. Tokens only, so layout and behavior stay put. */
-  :root[data-theme="navy"] {
-    --surface: #ffffff; --surface-2: #e8eef6; --page: #eef2f8;
-    --ink-1: #0b1626; --ink-2: #47566b; --muted: #74839a;
-    --border: rgba(15,35,70,0.12); --grid: #dde5f0; --baseline: #b6c3d6;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root[data-theme="navy"] {
       --surface: #121a2b; --surface-2: #1a2438; --page: #0b1220;
       --ink-1: #f1f5fb; --ink-2: #a9b6c9; --muted: #7c8aa0;
       --border: rgba(148,163,184,0.16); --grid: #25304a; --baseline: #3a4763;
+      --green: #199e70; --orange: #d95926; --blue: #3987e5; --red: #e66767; --yellow: #eda100;
     }
-    :root[data-theme="navy"] .tabs button.on { background:#fff; color:#0b1220; }
   }
-  :root[data-theme="navy"] body { font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; }
-  :root[data-theme="navy"] .card { box-shadow:0 1px 2px rgba(5,12,30,.18), 0 6px 16px rgba(5,12,30,.14); }
-  :root[data-theme="navy"] .trow .sc { font-size:19px; }
-  :root[data-theme="navy"] .tabs, :root[data-theme="navy"] .betlink, :root[data-theme="navy"] .topbtns button { border-radius:12px; }
+  @media (prefers-color-scheme: dark) { .tabs button.on { background:#fff; color:#0b1220; } }
+  .card { box-shadow:0 1px 2px rgba(5,12,30,.18), 0 6px 16px rgba(5,12,30,.14); }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--page); color:var(--ink-1);
-         font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+         font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; }
   .wrap { max-width:1060px; margin:0 auto;   /* safe areas: notch / home bar in the home-screen app */
           padding:max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
                   calc(60px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
   .top { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
   .top .meta { margin-left:auto; color:var(--muted); font-variant-numeric:tabular-nums; }
-  .betlink { display:block; margin-top:10px; padding:9px; border-radius:9px; text-align:center; font-weight:650; font-size:13.5px;
+  .betlink { display:block; margin-top:10px; padding:9px; border-radius:12px; text-align:center; font-weight:650; font-size:13.5px;
              color:#fff; background:var(--green); text-decoration:none; }
   .betlink.lean { color:var(--ink-1); background:var(--surface-2); border:1px solid var(--border); font-weight:600; }
   .topbtns { margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-  .topbtns button { padding:5px 8px; font-size:12.5px; white-space:nowrap; }
+  .topbtns button { padding:5px 8px; font-size:12.5px; white-space:nowrap; border-radius:12px; }
   @media (max-width:480px) { .top { gap:6px; } .top .meta { flex-basis:100%; text-align:right; } }
   h1 { font-size:19px; margin:0; letter-spacing:-0.01em; }
   .tabrow { display:flex; flex-direction:column; }
@@ -100,7 +79,7 @@
   .trow { display:flex; align-items:center; gap:8px; margin:2px 0; }
   .trow img { width:22px; height:22px; object-fit:contain; }
   .trow .ab { font-weight:650; width:48px; }
-  .trow .sc { font-size:17px; font-weight:700; margin-left:auto; font-variant-numeric:tabular-nums; }
+  .trow .sc { font-size:19px; font-weight:700; margin-left:auto; font-variant-numeric:tabular-nums; }
   .sub { font-size:12px; color:var(--ink-2); margin-top:7px; display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; }
   .nums { display:flex; gap:14px; margin-top:9px; font-size:12.5px; font-variant-numeric:tabular-nums; flex-wrap:wrap; }
   .nums div span { display:block; color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; }

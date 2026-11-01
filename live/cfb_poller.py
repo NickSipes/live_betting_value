@@ -123,12 +123,12 @@ def fair_spread(S0, margin, gc, side, yl):
     f = -(margin * (1 - LEAK * rem) + POSS * ep + (-S0) * rem)
     return round(f * 2) / 2   # spreads only bet in half points, so fair (and edge) are too
 
-def pick_quote(row, bet, since=0):
+def pick_quote(row, bet, since=0, order=("fanduel", "draftkings")):
     """(book, line on the bet side, price): FanDuel first, as backtested, DraftKings if it can't be used.
     Never the best number: on a moving game that's the slow book. row: {book: [home points, home price,
     away price, updated]}."""
     home = bet == "home"
-    for b in ("fanduel", "draftkings"):
+    for b in order:
         q = (row or {}).get(b)
         if q and q[3] >= since and (q[1] if home else q[2]) is not None:
             return b, q[0] if home else -q[0], q[1] if home else q[2]
@@ -142,7 +142,8 @@ def lean(edge, fair, slip):
     if not edge or fair is None or not event:
         return None
     bet = "home" if edge > 0 else "away"
-    return {"bet": bet, "line": math.floor(fair if bet == "home" else -fair) + .5, "link": event}
+    return {"bet": bet, "line": math.floor(fair if bet == "home" else -fair) + .5, "link": event,
+            "links": {b: v["event"] for b, v in slip.items() if v.get("event")}}
 
 def bet_open(call, row):
     """Is the called book still at or better than the alert's good-to line? No quote this poll: keep the last answer."""
@@ -682,10 +683,13 @@ class CFB:
                              "line": line, "price": price, "book": book, "clock": g["clock"], "gc": g["gc"], "t": time.time(),
                              "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
                              "books": h["quotes"][-1][4],
-                             "link": next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).get(book, {}).get(bet)}
+                             "link": next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).get(book, {}).get(bet),
+                             "links": {b: v.get(bet) for b, v in next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).items()}}
                 self.save_call(h["call"])
                 push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}, good to {line - 1:+g}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
-                           tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live")
+                           tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live",
+                           variants={b: f'Bet {ab} {o[1]:+g} ({o[2]:+d}) on {push.BOOK[b]}, good to {o[1] - 1:+g}'
+                                     for b in push.BOOK if (o := pick_quote(h["quotes"][-1][4], bet, h["lead11"]["t"] - self.poll, (b,)))})
                 notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
             if h.get("call") and not h["call"].get("result"):
                 h["call"]["open"] = bet_open(h["call"], h["quotes"][-1][4])

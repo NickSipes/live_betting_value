@@ -733,9 +733,10 @@ class Monitor:
                     k = next((k for k in quotes if k[1] == w["market"] and short_name(k[0]) == short_name(w["player"])), None)
                     L = quotes.get(k)
                     book = (first_over(books.get(k)) or (None,))[0]
-                    link = slips.get(k, {}).get(book)
-                    if (w.get("line"), w.get("book"), w.get("link")) != (L, book, link):
-                        w.update(line=L, book=book, link=link)
+                    link, links = slips.get(k, {}).get(book), slips.get(k, {})
+                    lines = {b: q[0] for b, q in books.get(k, {}).items()}
+                    if (w.get("line"), w.get("book"), w.get("link"), w.get("links"), w.get("lines")) != (L, book, link, links, lines):
+                        w.update(line=L, book=book, link=link, links=links, lines=lines)
                         changed = True
             except Exception as e:
                 print("watchlist line fetch error", repr(e))
@@ -811,11 +812,14 @@ class Monitor:
                     h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing"}
                 if p >= CALL and "call" not in h and call_gate(x, dkey):
                     book, line, price = first_over(bk) or ("fanduel", L, None)
-                    h["call"] = {**snap, "line": line, "book": book, "price": price, "link": self.slips.get((name, kind), {}).get(book)}
+                    h["call"] = {**snap, "line": line, "book": book, "price": price, "link": self.slips.get((name, kind), {}).get(book),
+                                 "links": self.slips.get((name, kind), {})}
                     push.send(f'Bet {name} Over {line} {"rec" if kind == "rec" else "rush"} yds'
                               f'{f" ({price:+d})" if price else ""} on {push.BOOK[book]}, good to {line + 1:g}',
                               f'Model gives it {round(p * 100)}% · {game["away_abbr"]} {game["as"]}–{game["home_abbr"]} {game["hs"]}, '
-                              f'{game["clock"]}', tag=hkey, url="./#nfl/live")
+                              f'{game["clock"]}', tag=hkey, url="./#nfl/live",
+                              variants={b: f'Bet {name} Over {q[0]} {"rec" if kind == "rec" else "rush"} yds ({q[1]:+d}) on {push.BOOK[b]}, good to {q[0] + 1:g}'
+                                        for b, q in (bk or {}).items() if q[1] is not None})
                 c = h.get("call")
                 if c and "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
@@ -874,7 +878,8 @@ class Monitor:
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
                     push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {push.BOOK[book]}',
                               f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
-                              tag=hkey + "|pre", url="./#nfl/live")
+                              tag=hkey + "|pre", url="./#nfl/live",
+                              variants={b: f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {n}' for b, n in push.BOOK.items()})
                 if not c or (c.get("src") != "closing" and "result" not in c):
                     h["pre"] = c = {"type": "pregame", "src": "closing", "clock": "pregame", "gc": 0,
                                     "line": closing[k], "cum": 0, "p": None, "t": (c or {}).get("t", time.time()),

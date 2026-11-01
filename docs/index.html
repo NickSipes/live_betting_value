@@ -287,7 +287,14 @@ function alertsLabel() {
   b.innerHTML = `<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="${pushSub ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9"/><path d="M10 20a2 2 0 0 0 4 0"/>${blocked ? '<path d="M3 3l18 18"/>' : ""}</svg>`;
 }
 const b64key = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0));
-const postSub = (path, sub) => fetch(path, { method: "POST", body: JSON.stringify(sub) });
+const postSub = (path, sub) => fetch(path, { method: "POST", body: JSON.stringify({ ...sub, book: getBook() }) });
+function setBook(b) {
+  try { localStorage.setItem("book", b); } catch (e) {}
+  if (pushSub) postSub("api/subscribe", pushSub.toJSON());
+  const top = document.querySelector("#modal .mscroll")?.scrollTop;
+  render(); openHowTo();
+  if (top) document.querySelector("#modal .mscroll").scrollTop = top;
+}
 async function alertsClick() {
   if (!PUSH_OK) return alert("Tap Share, then “Add to Home Screen”. Open Live Bets from your home screen and tap “Turn on alerts”.");
   try {
@@ -367,9 +374,21 @@ function propLiveCard(o) {
   </div>`;
 }
 // same layout as propLiveCard, but for the called line: progress bar = yards toward it
-const leanBtn = g => { const l = g.lean, num = v => (v > 0 ? "+" : "") + v;
-  return l && !g.call ? `<a class="betlink lean" href="${l.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet ${l.bet === "home" ? g.habbr : g.aabbr} ${num(l.line)} on FanDuel</a>` : ""; };
-const betBtn = c => c.link && !c.result && c.open !== false ? `<a class="betlink" href="${c.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet on ${c.book === "draftkings" ? "DraftKings" : "FanDuel"}</a>` : "";
+const leanBtn = g => { const l = g.lean; if (!l || g.call) return "";
+  const b = l.links?.[getBook()] ? getBook() : "fanduel";
+  return `<a class="betlink lean" href="${l.links?.[b] ?? l.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet ${l.bet === "home" ? g.habbr : g.aabbr} ${num(l.line)} on ${BOOKS[b]}</a>`; };
+// the book override lives on this device; "auto" keeps the system's pick (FanDuel first)
+const BOOKS = { auto: "System picks", fanduel: "FanDuel", draftkings: "DraftKings" };
+const getBook = () => { try { return localStorage.getItem("book") || "auto"; } catch (e) { return "auto"; } };
+const num = v => (v > 0 ? "+" : "") + v;
+const bookFor = c => { const b = getBook(); return b !== "auto" && c.links?.[b] ? b : c.book; };
+const betBtn = c => {
+  if (!c.link || c.result || c.open === false) return "";
+  const b = bookFor(c), q = c.books?.[b];
+  const line = c.lines?.[b] ?? (q ? (c.bet === "away" ? -q[0] : q[0]) : null);
+  const note = line != null && line !== c.line ? ` (${c.bet ? num(line) : "O " + line})` : "";
+  return `<a class="betlink" href="${c.links?.[b] ?? c.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet on ${BOOKS[b]}${note}</a>`;
+};
 function callCard(c, isNew) {
   const o = c.o, pre = c.type === "pregame";
   return `
@@ -453,7 +472,7 @@ function plotCursor(e) {
   const week = Math.max(x0, Math.min(x1, Math.round(x0 + (vx - L) / (W - L - R) * (x1 - x0))));
   cur.setAttribute("x1", X(week)); cur.setAttribute("x2", X(week)); cur.setAttribute("visibility", "visible");
   const d = rows(week);
-  document.getElementById("mread").innerHTML = tipHtml(`Week ${week}`, d.sub, d.stats);
+  document.getElementById("mread").innerHTML = tipHtml(d.title || `Week ${week}`, d.sub, d.stats);
   placeTip(e);
 }
 // Good Matchups: the player's yards in the prop's market (green) and the yards the defense
@@ -661,8 +680,12 @@ function viewLive() {
     // a prop leaves the live board at the final and lands in the ledger
     const onBoard = new Set(mine.map(c => `${c.player}|${c.market}|${c.type}`));
     const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !onBoard.has(`${c.player}|${c.market}|${c.type || "live"}`));
-    html += section("nfl-active-calls", title, `${active.length + spreadPicks.length} active`, "Bets that the model has taken",
+    // a Good Matchup leaves Upcoming at kickoff; the poller adds its pick once it sees the game live, so hold the card here until then
+    const seen = c => `${c.player.split(" ").at(-1)}|${c.market}`, taken = new Set([...mine, ...ledger].map(seen));
+    const kicked = (S.watch?.entries || []).filter(w => w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !taken.has(seen(w)));
+    html += section("nfl-active-calls", title, `${active.length + spreadPicks.length + kicked.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
+       ...kicked.map(w => propPreCard({ ...w, link: null })),
        ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(propResultCard)], "No picks yet this week.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
@@ -1283,7 +1306,9 @@ function openHowTo() {
   MC = null;
   showModal(`
     <h3>How To</h3>
-    <div class="mscroll"><p style="margin:0">The model is trained on historical game and odds data. Every live bet alert names the book, FanDuel first, and the worst line still worth betting. If the line has moved past that, skip it.</p>
+    <div class="mscroll"><h4 style="margin:12px 0 0">Sportsbook</h4>
+    <div class="tabs" style="margin-bottom:12px">${Object.entries(BOOKS).map(([b, n]) => `<button class="${getBook() === b ? "on" : ""}" onclick="setBook('${b}')">${n}</button>`).join("")}</div>
+    <p style="margin:0">The model is trained on historical game and odds data. Every live bet alert names your book and the worst line still worth betting. System picks uses FanDuel first. If the line has moved past that, skip it.</p>
     ${part("Rules for NFL spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, and the trailing team was the pregame favorite. Bet the trailing team once the score has held for one check, a fresh quote is in, and the books are within 2 points."])}
     ${part("Rules for NFL props", [
@@ -1305,15 +1330,21 @@ async function fillTestLinks() {
   if (el) el.innerHTML = [["fanduel", "Open FanDuel"], ["draftkings", "Open DraftKings"]].filter(([b]) => fresh(d[b]))
     .map(([b, txt]) => `<a href="${d[b].url}" target="_blank" rel="noopener">${txt}</a>`).join("") || "No live bet links right now.";
 }
-// Called bets by week, one dot per category. Pushes don't count. Weeks are each league's own.
+// Called bets by calendar week, one dot per category. Pushes don't count. Weeks run Tuesday to Monday,
+// so an NFL slate stays whole and a college Saturday sits with that weekend's NFL games.
+const weekStart = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 5) % 7); return d; };
+const WEEK0 = 4.32e8;   // the epoch was a Thursday: count weeks from the first Tuesday
+const weekId = d => Math.round((d.getTime() - WEEK0) / 6048e5);
+const weekDay = (id, days) => new Date(id * 6048e5 + WEEK0 + (days + .5) * 864e5).toLocaleDateString([], { month: "short", day: "numeric" });   // midday: clear of DST edges
+const calledAt = c => c.t ? c.t * 1000 : c.settled_t ? c.settled_t * 1000 : c.settled ? Date.parse(c.settled) : null;
 function openWinRate() {
   const props = S.calls?.calls || [];
   const cats = [["NFL spreads", S.spreadCalls, "var(--green)", "circle"],
                 ["NFL live props", props.filter(c => (c.type || "live") === "live"), "var(--orange)", "square"],
                 ["NFL pregame props", props.filter(c => c.type === "pregame"), "var(--pink)", "triangle"],
                 ["NCAAF spreads", S.cfbCalls, "var(--blue)", "diamond"]].map(([name, calls, color, shape]) => {
-    const done = (calls || []).filter(c => c.week != null && (c.result === "win" || c.result === "loss")), weeks = {};
-    for (const c of done) { (weeks[c.week] ||= [0, 0])[1]++; if (c.result === "win") weeks[c.week][0]++; }
+    const done = (calls || []).filter(c => calledAt(c) && (c.result === "win" || c.result === "loss")), weeks = {};
+    for (const c of done) { const id = weekId(weekStart(calledAt(c))); (weeks[id] ||= [0, 0])[1]++; if (c.result === "win") weeks[id][0]++; }
     return { name, color, shape, weeks, w: done.filter(c => c.result === "win").length, n: done.length };
   });
   const rate = ([w, n]) => `${w}/${n} calls · ${Math.round(w / n * 100)}%`;
@@ -1327,12 +1358,17 @@ function openWinRate() {
   if (all.length) {
     const W = 340, H = 230, L = 36, R = 16, T = 12, B = 24, x0 = Math.min(...all), x1 = Math.max(...all);
     const X = x => L + 14 + (W - L - R - 28) * (x1 > x0 ? (x - x0) / (x1 - x0) : .5), Y = y => T + (H - T - B) * (1 - y / 100);
-    PLOT = { W, L, R, x0, x1, X, rows: week => ({ sub: "", stats: cats.map(c => [c.name, c.weeks[week] ? rate(c.weeks[week]) : "no calls"]) }) };
+    const short = id => weekDay(id, 0);
+    const leagueWeek = (id, sport, name) => { const r = Object.values(S.games[sport] || {}).find(g => weekId(weekStart(Date.parse(g.date))) === id); return r ? `${name} week ${r.week}` : ""; };
+    PLOT = { W, L, R, x0, x1, X, rows: week => ({ title: `${short(week)} – ${weekDay(week, 6)}`,
+      sub: [leagueWeek(week, "nfl", "NFL"), leagueWeek(week, "cfb", "NCAAF")].filter(Boolean).join(" · "),
+      stats: cats.map(c => [c.name, c.weeks[week] ? rate(c.weeks[week]) : "no calls"]) }) };
     let s = `<svg viewBox="0 0 ${W} ${H}">`;
     for (const v of [0, 25, 50, 75, 100])
       s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/>
             <text x="${L - 6}" y="${Y(v) + 3.5}" class="tick" text-anchor="end">${v}%</text>`;
-    for (let w = x0; w <= x1; w++) s += `<text x="${X(w)}" y="${H - 8}" class="tick" text-anchor="middle">w${w}</text>`;
+    const every = Math.ceil((x1 - x0 + 1) / 6);   // about six dates fit a phone
+    for (let w = x0; w <= x1; w += every) s += `<text x="${X(w)}" y="${H - 8}" class="tick" text-anchor="middle">${short(w)}</text>`;
     s += `<line x1="${L}" x2="${W - R}" y1="${Y(52.4)}" y2="${Y(52.4)}" stroke="var(--ink-2)" stroke-dasharray="4 3"/>
           <text x="${W - R}" y="${Y(52.4) - 4}" class="tick" text-anchor="end">break-even</text>
           <line class="mxh" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-width="1" visibility="hidden"/>`;

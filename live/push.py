@@ -48,7 +48,10 @@ def subscribe(sub):
         return False
     if not os.path.exists(_path(ep)) and len(os.listdir(SUBS)) >= MAX_SUBS:
         return False
-    json.dump({"endpoint": ep, "keys": {"p256dh": keys["p256dh"], "auth": keys["auth"]}}, open(_path(ep), "w"))
+    rec = {"endpoint": ep, "keys": {"p256dh": keys["p256dh"], "auth": keys["auth"]}}
+    if sub.get("book") in BOOK:
+        rec["book"] = sub["book"]   # this device's sportsbook override; none = the system picks
+    json.dump(rec, open(_path(ep), "w"))
     return True
 
 def unsubscribe(endpoint):
@@ -57,12 +60,18 @@ def unsubscribe(endpoint):
     except (OSError, TypeError):
         pass
 
-def _send(payload):
+def payload_for(m, sub):
+    """The alert for one device: its chosen book's wording when there is one."""
+    title = (m.get("variants") or {}).get(sub.get("book")) or m["title"]
+    return json.dumps({"title": title, "body": m["body"], "tag": m["tag"], "url": m["url"]})
+
+def _send(m):
     from pywebpush import webpush, WebPushException
     for f in os.listdir(SUBS):
         try:
             sub = json.load(open(f"{SUBS}/{f}"))
-            webpush(sub, payload, vapid_private_key=KEY, vapid_claims=dict(CLAIMS), ttl=900, timeout=10)
+            webpush({k: sub[k] for k in ("endpoint", "keys")}, payload_for(m, sub),
+                    vapid_private_key=KEY, vapid_claims=dict(CLAIMS), ttl=900, timeout=10)
         except WebPushException as e:
             if e.response is not None and e.response.status_code in (404, 410):
                 unsubscribe(sub["endpoint"])   # browser dropped it (app deleted, alerts turned off)
@@ -71,18 +80,18 @@ def _send(payload):
         except Exception as e:
             print("push error", repr(e)[:200])
 
-def send(title, body, tag=None, url="./"):
+def send(title, body, tag=None, url="./", variants=None):
     """Fire-and-forget so a slow push service never delays a poll cycle."""
     if AVAILABLE and os.path.exists(KEY) and os.path.isdir(SUBS):
-        payload = json.dumps({"title": title, "body": body, "tag": tag, "url": url})
-        threading.Thread(target=_send, args=(payload,), daemon=True).start()
+        m = {"title": title, "body": body, "tag": tag, "url": url, "variants": variants}
+        threading.Thread(target=_send, args=(m,), daemon=True).start()
 
-def queue(title, body, tag=None, url="./"):
+def queue(title, body, tag=None, url="./", variants=None):
     """For the spread pollers: leave the message for the server process (drain), so
     they never load pywebpush themselves (~30 MB each on a 256 MB machine)."""
     os.makedirs(OUTBOX, exist_ok=True)
     p = f"{OUTBOX}/{time.time_ns()}.json"
-    json.dump({"title": title, "body": body, "tag": tag, "url": url}, open(p + ".tmp", "w"))
+    json.dump({"title": title, "body": body, "tag": tag, "url": url, "variants": variants}, open(p + ".tmp", "w"))
     os.replace(p + ".tmp", p)   # drain never sees a half-written file
 
 def drain():

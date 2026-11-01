@@ -567,7 +567,7 @@ function spreadResultCard(sport, c) {
   const r = S.games[sport]?.[c.id] || {}, [aab, hab] = c.game.split(" @ "), [as, hs] = (c.final || "0-0").split("-");
   const num = v => (v > 0 ? "+" : "") + v;
   return `
-  <div class="card ${c.result === "win" ? "hot" : "watch"} click" ${on(() => sport === "nfl" ? go(sport, "past", c.week, c.id) : openSpread(KINDOF[sport], c.id))}>
+  <div class="card ${c.result === "win" ? "hot" : "watch"} click" ${on(() => sport === "nfl" ? go(sport, "past", c.week, c.id) : openFinal(sport, c.week, c.id))}>
     <div class="trow">${logoImg(r.alogo)}<span class="ab">${aab}</span><span class="sc">${as}</span></div>
     <div class="trow">${logoImg(r.hlogo)}<span class="ab">${hab}</span><span class="sc">${hs}</span></div>
     <div class="sub"><b>Bet ${c.team} ${num(c.line)}${c.price != null ? ` (${num(c.price)})` : ""}</b>
@@ -622,6 +622,8 @@ const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
 const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj));
 
+// a final's chart lives in the week's archive, which only Past loads
+async function openFinal(sport, wk, id) { await loadArchive(sport, wk); openSpread(KINDOF[sport], id); }
 async function loadArchive(sport, wk) {
   const k = `${sport}_w${wk}`;
   if (!(k in S.arch)) {
@@ -931,14 +933,6 @@ function svgChart(cfg) {
       s += `<path d="${d}" fill="none" stroke="${R.color}" stroke-width="2" stroke-linejoin="round"/>`;
     }
   }
-  for (const st of cfg.stars || []) {   // where each bet was called: x = game clock, y = the line at the call
-    const [cx, cy] = [X(st[0]), Y(st[1])], pts = [];
-    for (let k = 0; k < 10; k++) {
-      const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 3.6 : 8.5;
-      pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
-    }
-    s += `<polygon points="${pts.join(" ")}" fill="var(--yellow)" stroke="var(--surface)" stroke-width="1.5"/>`;
-  }
   // usage rug: one tick per target/carry (approximate timing from poll deltas)
   if (cfg.rug) for (const g of cfg.rug)
     s += `<line x1="${X(g)}" x2="${X(g)}" y1="${CM.t + ph - 8}" y2="${CM.t + ph}" stroke="var(--ink-2)" stroke-width="2" opacity="0.8"/>`;
@@ -953,6 +947,14 @@ function svgChart(cfg) {
     s += `<circle class="evdot" data-i="${i}" cx="${X(ev.gc)}" cy="${y === null ? CM.t + ph / 2 : Y(y)}" r="${mob ? 4.5 : 5}"
            fill="${EVCOLOR[ev.cls] || "var(--orange)"}" stroke="var(--surface)" stroke-width="2" style="cursor:pointer"/>`;
   });
+  for (const st of cfg.stars || []) {   // where each bet was called: x = game clock, y = the line at the call
+    const [cx, cy] = [X(st[0]), Y(st[1])], pts = [];
+    for (let k = 0; k < 10; k++) {
+      const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 3.6 : 8.5;
+      pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
+    }
+    s += `<polygon points="${pts.join(" ")}" fill="var(--yellow)" stroke="var(--surface)" stroke-width="1.5"/>`;
+  }
   return s + "</svg>";
 }
 
@@ -1164,8 +1166,11 @@ function openSpread(kind, id) {
     if (b && b.g1 === g0 && b.color === color) { b.g1 = g1; b.pts.push([g0, g1, -sn[4]]); }
     else edges.push({ g0, g1, color, pts: [[g0, g1, -sn[4]]] });
   });
+  // the chart's y is the home team's margin: the negative of the home spread
+  const call = g?.call || h.call || ((sport === "nfl" ? S.spreadCalls : S.cfbCalls) || []).find(c => c.id === id);
+  const stars = call ? [[Math.max(call.gc, 1), call.bet === "home" ? -call.line : call.line]] : [];
   const chart = svgChart({
-    mode: "area", yfmt, events, hcolor, acolor, edges, pinned: true,
+    mode: "area", yfmt, events, hcolor, acolor, edges, pinned: true, stars,
     pregame: h.pregame !== null && h.pregame !== undefined ? -h.pregame : null,
     series: [{ pts: fav, noclean: 1 }],
     tip: gc => {
@@ -1193,7 +1198,7 @@ function openSpread(kind, id) {
       <div class="tm home"><div style="text-align:right"><div class="sc">${hsc}</div><div class="ab">${ha}</div></div>${logoImg(h.meta.hlogo)}</div>
     </div>
     <div class="cplot"><div id="mread" hidden></div>${chart}</div>
-    <div class="mleg">${leg.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("")}${edgeLeg}</div>
+    <div class="mleg">${leg.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("")}${edgeLeg}${call ? `<span><span class="star" style="margin:0 4px 0 0">★</span>called ${call.team} ${call.line > 0 ? "+" : ""}${call.line}</span>` : ""}</div>
     <div id="evlist"></div>`);
   ROWS = [...events].reverse();   // key plays now; every play once ESPN answers
   renderRows();

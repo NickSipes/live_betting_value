@@ -11,6 +11,12 @@
 <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
 <title>Live Bet Predictor</title>
+<script>
+  if (new URLSearchParams(location.search).get("theme") === "navy") {
+    document.documentElement.dataset.theme = "navy";
+    document.head.insertAdjacentHTML("beforeend", '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">');
+  }
+</script>
 <style>
   :root {
     color-scheme: light dark;
@@ -27,6 +33,24 @@
       --green: #199e70; --orange: #d95926; --blue: #3987e5; --red: #e66767; --yellow: #eda100;
     }
   }
+  /* navy preview: add ?theme=navy to the address. Tokens only, so layout and behavior stay put. */
+  :root[data-theme="navy"] {
+    --surface: #ffffff; --surface-2: #e8eef6; --page: #eef2f8;
+    --ink-1: #0b1626; --ink-2: #47566b; --muted: #74839a;
+    --border: rgba(15,35,70,0.12); --grid: #dde5f0; --baseline: #b6c3d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="navy"] {
+      --surface: #121a2b; --surface-2: #1a2438; --page: #0b1220;
+      --ink-1: #f1f5fb; --ink-2: #a9b6c9; --muted: #7c8aa0;
+      --border: rgba(148,163,184,0.16); --grid: #25304a; --baseline: #3a4763;
+    }
+    :root[data-theme="navy"] .tabs button.on { background:#fff; color:#0b1220; }
+  }
+  :root[data-theme="navy"] body { font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; }
+  :root[data-theme="navy"] .card { box-shadow:0 1px 2px rgba(5,12,30,.18), 0 6px 16px rgba(5,12,30,.14); }
+  :root[data-theme="navy"] .trow .sc { font-size:19px; }
+  :root[data-theme="navy"] .tabs, :root[data-theme="navy"] .betlink, :root[data-theme="navy"] .topbtns button { border-radius:12px; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--page); color:var(--ink-1);
          font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }

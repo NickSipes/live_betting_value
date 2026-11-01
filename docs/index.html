@@ -560,7 +560,7 @@ const RESULT = { win: "WIN ✓", loss: "LOSS", push: "PUSH" };
 function propResultCard(c) {
   return `
   <div class="card ${c.result === "win" ? "hot" : ""} click" ${on(() => go("nfl", "past", c.week, c.espn_id))}>
-    <div class="trow"><span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
+    <div class="trow">${c.logo ? logoImg(c.logo) : ""}<span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
       <span class="chip ${c.result === "win" ? "hot" : "watch"}" style="margin-left:auto">${RESULT[c.result]}</span></div>
     <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
     <div class="sub"><span>${c.game}</span><span>${c.final} yds</span></div>
@@ -727,13 +727,17 @@ function viewPast() {
           [spreadLinkCard("nfl", id, r), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
     }
     const led = S.calls?.calls || [];
+    const logoOf = c => Object.values(S.parch[wk] || {}).find(r => r.player === c.player && r.market === c.market)?.logo;
+    const spreads = (S.spreadCalls || []).filter(c => c.result && c.week === wk);
+    const weekProps = led.filter(c => c.week === wk).sort((a, b) => ((a.type || "live") === "live" ? 0 : 1) - ((b.type || "live") === "live" ? 0 : 1) || (a.result === "win" ? 0 : 1) - (b.result === "win" ? 0 : 1));
+    const nPicks = spreads.length + weekProps.length;
+    html += section(`nfl-past-picks-w${wk}`, `Week ${wk} Picks`, `${nPicks} ${nPicks === 1 ? "pick" : "picks"}`, "",
+      [...spreads.map(c => spreadResultCard("nfl", c)), ...weekProps.map(c => propResultCard({ ...c, logo: logoOf(c) }))], "No picks this week.");
     const rec = t => { const r = led.filter(c => (c.type || "live") === t), w = r.filter(c => c.result === "win").length;
-                       return r.length ? `${t === "live" ? "Model picks" : "pregame calls"} ${w}–${r.length - w} (${Math.round(w / r.length * 100)}%)` : ""; };
-    if (led.length)
-      html += `<div class="leg" style="margin-top:14px"><b>Season record: ${[rec("live"), rec("pregame")].filter(Boolean).join(" · ")}</b>
-        <br>every settled call, with the model's inputs for model picks, is saved in calls.json</div>`;
+                       return r.length ? `${t === "live" ? "Model picks" : "Pregame calls"}: ${w}–${r.length - w}` : ""; };
     const sc = (S.spreadCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
-    if (sc.length) html += `<div class="leg" style="margin-top:6px"><b>Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}</b></div>`;
+    const lines = [rec("live"), rec("pregame"), sc.length ? `Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}` : ""].filter(Boolean);
+    if (lines.length) html += `<div class="leg" style="margin-top:14px"><b>${lines.join(" · ")}</b></div>`;
   }
   if (R.sport === "cfb") {
     const picks = (S.cfbCalls || []).filter(c => c.result && c.week === wk);

@@ -811,9 +811,11 @@ async function refreshSpread(kind) {
 }
 // scores.json: ESPN score/clock/possession every 10s (lines and model stay on the slower poll)
 async function refreshScores() {
+  try { S.yards = await (await fetch("yards.json?" + Date.now())).json(); } catch (e) {}
   try { S.scores = await (await fetch("scores.json?" + Date.now())).json(); } catch (e) {}
 }
 function applyScores() {
+  for (const o of S.props?.opps || []) { const y = S.yards?.[o.eid]?.[o.id]; if (y != null) o.cum = y; }   // yards refresh every 10s, odds every 2 min
   for (const [kind, sport] of Object.entries(SPORTOF)) {
     const sc = S.scores?.[sport] || {};
     for (const g of S.spread[kind]?.games || []) {

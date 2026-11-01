@@ -44,6 +44,7 @@ POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possessi
 # 2024-25 before minute 55, 2-0 in 2026). College failed this test, favorites included.
 # College, same trigger, the reverse bet: take the unranked leader when only the trailing team is ranked.
 # 13-5 flipped from the trailing bets (10-3, 3-2): found after the fact, leader prices never tested.
+SCORE_GAP = 15       # seconds: the soonest a score can pull the next poll forward
 LEAD_CALL = 11
 BOOK_GAP = 2         # points apart at which a lead call waits for the books to agree
 LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
@@ -151,6 +152,17 @@ def bet_open(call, row):
     if not q:
         return call.get("open", True)
     return (q[0] if call["bet"] == "home" else -q[0]) >= call["line"] - 1
+
+def score_moved(old, new):
+    """Did a game both reads have seen change score? {id: {as, hs}}, from the 10-second scores.json."""
+    return any((old[g].get("as"), old[g].get("hs")) != (new[g].get("as"), new[g].get("hs")) for g in old.keys() & new.keys())
+
+def live_scores():
+    """This sport's latest scores; {} if the feed can't be read, which only means no early poll."""
+    try:
+        return {k: v for k, v in json.load(open(f"{DOCS}/scores.json"))[SPORT].items() if v.get("state") == "in"}
+    except (OSError, ValueError, KeyError):
+        return {}
 
 def books_agree(row):
     """False when the books are 2+ points apart: one hasn't caught up, so the number can't be trusted."""
@@ -660,7 +672,7 @@ class CFB:
                 sit_now = f'{ab} ball' + (f' · {ptxt}' if ptxt else "") + (f' · {dd}' if dd else "")
             backfill_fair(h)
             h["snaps"].append((now_gc, L, margin, sit_now, None if fair is None else round(fair, 1)))
-            h["snaps"] = h["snaps"][-200:]
+            h["snaps"] = h["snaps"][-600:]
             # every poll, kept apart from snaps so their shape stays put: wall clock, scores, each book's price
             h.setdefault("quotes", []).append((round(time.time()), g["gc"], g["as"], g["hs"],
                                                next((v for k, v in books.items() if g["home"] in k or k in g["home"]), None)))
@@ -713,6 +725,15 @@ class CFB:
             self.status[gid] = status
         return rows
 
+    def wait(self):
+        """Sleep until the next poll, or poll early when a score lands: that's when lines move and calls
+        fire. The score feed is free, so this adds a poll only when something happened."""
+        start, seen = time.time(), live_scores()
+        while time.time() - start < self.poll:
+            time.sleep(min(5, max(0, start + self.poll - time.time())))
+            if time.time() - start >= SCORE_GAP and score_moved(seen, live_scores()):
+                return
+
     def run(self, once=False):
         while True:
             try:
@@ -738,7 +759,7 @@ class CFB:
                   f'{sum(1 for r in rows if r["status"]!="watch")} flagged')
             if once:
                 break
-            time.sleep(self.poll)
+            self.wait()
 
 def check_poss(eids):
     """Replay finished games: after each drive's last play, does latest_poss name the team

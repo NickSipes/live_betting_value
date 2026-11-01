@@ -475,23 +475,7 @@ class Monitor:
     def espn_players(self, espn_id):
         """name -> per-kind (yds, events) + team side; plus per-side team stats."""
         s = get(f"{ESPN}/summary?event={espn_id}")
-        players, tstats = {}, {}
-        for tp in s.get("boxscore", {}).get("players", []):
-            side = tp["team"]["displayName"]
-            for cat in tp.get("statistics", []):
-                kind = {"receiving": "rec", "rushing": "rush"}.get(cat.get("name"))
-                if not kind:
-                    continue
-                labels = [l.upper() for l in cat.get("labels", [])]
-                for a in cat.get("athletes", []):
-                    row = dict(zip(labels, a.get("stats", [])))
-                    name = a["athlete"]["displayName"]
-                    try:
-                        yds = float(row.get("YDS", 0) or 0)
-                        nev = float(row.get("TGTS") or row.get("CAR") or row.get("REC") or 0)
-                    except ValueError:
-                        continue
-                    players.setdefault(name, {"team": side})[kind] = (yds, nev)
+        players, tstats = box_players(s), {}
         for bt in s.get("boxscore", {}).get("teams", []):
             tstats[bt["team"]["displayName"]] = team_stats(bt)
         return players, tstats
@@ -967,6 +951,54 @@ def live_score(ev):
         out.update(poss_side=side, poss=f'{ab} ball' + (f', {sit["possessionText"]}' if sit.get("possessionText") else ""))
     return out
 
+def box_players(s):
+    """ESPN game summary -> name -> per-kind (yds, events) + team side."""
+    players = {}
+    for tp in s.get("boxscore", {}).get("players", []):
+        side = tp["team"]["displayName"]
+        for cat in tp.get("statistics", []):
+            kind = {"receiving": "rec", "rushing": "rush"}.get(cat.get("name"))
+            if not kind:
+                continue
+            labels = [l.upper() for l in cat.get("labels", [])]
+            for a in cat.get("athletes", []):
+                row = dict(zip(labels, a.get("stats", [])))
+                name = a["athlete"]["displayName"]
+                try:
+                    yds = float(row.get("YDS", 0) or 0)
+                    nev = float(row.get("TGTS") or row.get("CAR") or row.get("REC") or 0)
+                except ValueError:
+                    continue
+                players.setdefault(name, {"team": side})[kind] = (yds, nev)
+    return players
+
+def tracked_yards(summary, ids):
+    """{"name|kind": yards} for the props on the board. ids: those same keys."""
+    out = {}
+    for name, p in box_players(summary).items():
+        for kind in ("rec", "rush"):
+            if f"{name}|{kind}" in ids and kind in p:
+                out[f"{name}|{kind}"] = p[kind][0]
+    return out
+
+def stats_loop():
+    """Tracked players' yards from ESPN's free box scores every 10s, so cards move between odds
+    polls. Apart from scores_loop: a slow box score can't delay scores or alerts. Display only:
+    P, calls and wins stay on the odds poll."""
+    while True:
+        out = {}
+        try:
+            opps = json.load(open(f"{DOCS}/state.json")).get("opps", [])
+            for eid in {o["eid"] for o in opps if o.get("eid")}:
+                out[eid] = tracked_yards(get(f"{ESPN}/summary?event={eid}", timeout=8), {o["id"] for o in opps if o.get("eid") == eid})
+        except Exception as e:
+            print("stats error", repr(e)[:120])
+        if out:
+            tmp = f"{DOCS}/yards.json.tmp"
+            json.dump({"ts": time.time(), **out}, open(tmp, "w"))
+            os.replace(tmp, f"{DOCS}/yards.json")
+        time.sleep(10 if out else 60)
+
 def scores_loop():
     """Score/clock/possession from ESPN's free scoreboards every 10s, so the board moves
     between odds polls (which stay at --poll to save credits). The page overlays it."""
@@ -1014,6 +1046,7 @@ if __name__ == "__main__":
         push.init(DOCS)
         threading.Thread(target=serve, daemon=True).start()
         threading.Thread(target=scores_loop, daemon=True).start()
+        threading.Thread(target=stats_loop, daemon=True).start()
         print(f"dashboard: http://{HOST}:{PORT}")
     Monitor(poll).run(demo="--demo" in sys.argv, once="--once" in sys.argv)
     if "--demo" in sys.argv:

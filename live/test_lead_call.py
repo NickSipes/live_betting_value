@@ -73,6 +73,9 @@ m = {"title": "FD", "body": "b", "tag": None, "url": "./", "variants": {"draftki
 assert json.loads(C.push.payload_for(m, {"book": "draftkings"}))["title"] == "DK"
 assert json.loads(C.push.payload_for(m, {}))["title"] == "FD" and json.loads(C.push.payload_for(m, {"book": "fanduel"}))["title"] == "FD"
 assert json.loads(C.push.payload_for({**m, "variants": None}, {"book": "draftkings"}))["title"] == "FD"
+s0 = {"G": {"as": 7, "hs": 0}}
+assert C.score_moved(s0, {"G": {"as": 14, "hs": 0}}) and not C.score_moved(s0, {"G": {"as": 7, "hs": 0}})
+assert not C.score_moved(s0, {"H": {"as": 3, "hs": 0}})                              # a new game isn't a score
 assert not C.books_agree(row) and not C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-5, 0, 0, 0]})
 assert C.books_agree({"fanduel": [-3, 0, 0, 0], "draftkings": [-4, 0, 0, 0]}) and C.books_agree({"fanduel": [-3, 0, 0, 0]}) and C.books_agree(None)
 

@@ -13,9 +13,9 @@ cp -n /app/docs/*_games.json "$DOCS_DIR/" 2>/dev/null || true
 cp -rn /app/docs/archive/. "$DOCS_DIR/archive/" 2>/dev/null || true
 
 cd /app/live
-python3 -u poller.py --poll 180 &
-python3 -u cfb_poller.py --poll 120 &
-python3 -u cfb_poller.py --sport nfl --poll 180 &
+python3 -u poller.py --poll 120 &
+python3 -u cfb_poller.py --poll 60 &
+python3 -u cfb_poller.py --sport nfl --poll 60 &
 wait -n
 echo "a poller exited; stopping so Fly restarts the machine"
 exit 1

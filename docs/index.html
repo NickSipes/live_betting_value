@@ -628,7 +628,7 @@ const legend = (...items) => items.map(t => `<span class="li">${t}</span>`).join
 const PROP_LEG = legend("Bets that the model is watching.",
   `<span class="star">★</span> Good Matchup (top player vs bottom-10 defense)`);
 const SPREAD_LEG = legend(`<span class="chip hot">EDGE</span> live line ≥4 pts from fair`,
-  `<span class="chip hot">CALL</span> Top-third teams, first 11+ lead. NFL: the trailing favorite. NCAAF: the unranked leader over a ranked team`,
+  `<span class="chip hot">CALL</span> NFL: a top-third team trails by 10+. NCAAF: top-third teams, first 11+ lead, the unranked leader over a ranked team`,
   "tap a card for line movement + key plays");
 
 // ---------- data helpers ----------
@@ -670,7 +670,8 @@ function viewLive() {
   const doneSpreads = (R.sport === "nfl" ? S.spreadCalls : S.cfbCalls) || [];
   const settled = doneSpreads.filter(c => c.result && c.week === wk).map(c => spreadResultCard(R.sport, c));
   const spreadPicks = games.filter(g => g.call && !g.call.result);
-  const deck = R.sport === "cfb" ? games.filter(g => !g.call && S.games.cfb?.[g.id]?.watch) : [];
+  // NFL: a game meeting 2 of the call's 3 checks (trailing team top third, 10+ lead, before minute 55) is watched
+  const deck = games.filter(g => !g.call && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch : (g.crit || []).filter(Boolean).length >= 2));
   const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g));
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
@@ -691,8 +692,8 @@ function viewLive() {
     // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
-    html += section("nfl-live-props", "Watchlist Picks", `${opps.length} watching`, PROP_LEG,
-      opps.map(propLiveCard), all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
+    html += section("nfl-live-props", "Watchlist Picks", `${opps.length + deck.length} watching`, PROP_LEG,
+      [...deck.map(g => spreadLiveCard(kind, g)), ...opps.map(propLiveCard)], all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   } else {
     html += section("cfb-active-calls", title, `${spreadPicks.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...settled], "No picks yet this week.");
@@ -1312,7 +1313,7 @@ function openHowTo() {
     <div class="tabs" style="margin-bottom:12px">${Object.entries(BOOKS).map(([b, n]) => `<button class="${getBook() === b ? "on" : ""}" onclick="setBook('${b}')">${n}</button>`).join("")}</div>
     <p style="margin:0">The model is trained on historical game and odds data. Every live bet alert names your book and the worst line still worth betting. System picks uses FanDuel first. If the line has moved past that, skip it.</p>
     ${part("Rules for NFL spreads", [edge,
-      "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, and the trailing team was the pregame favorite. Bet the trailing team once the score has held for one check, a fresh quote is in, and the books are within 2 points."])}
+      "<b>CALL:</b> the trailing team is in the top third by record, and a team first leads by 10+ before minute 55. Bet the trailing team once the score has held for one check, a fresh quote is in, and the books are within 2 points."])}
     ${part("Rules for NFL props", [
       "<b>MODEL PICK:</b> live overs on receiving or rushing yards when the model gives at least 60%, between minutes 10 and 51. The line must be 15+ yards and at least 3 yards above the player's total so far.",
       "<b>Never called:</b> while the player's team is down more than 3, or against a top-3 defense for that stat over its last 3 games played.",

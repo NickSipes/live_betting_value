@@ -13,7 +13,7 @@ def run(polls, top=True, snaps=((800, None, 3),), pre="fav"):
     tops = top if isinstance(top, list) else [top] * len(polls)
     for (m, gc, t, sc, q), tp in zip(polls, tops):
         h["snaps"].append((gc, None, m))     # the poller logs the snap before it checks
-        if b := C.lead_call(h, tp, C.nfl_side((3 if m > 0 else -3) if pre == "fav" else pre), m, gc, sc, t, 180, q):
+        if b := C.lead_call(h, tp, lambda s: True if pre == "fav" else pre, m, gc, sc, t, 180, q):
             return b
 
 assert run([(14, 900, 1000, True, Q), (14, 1000, 1180, False, Q)]) == "away"        # home leads, away gets the points
@@ -33,17 +33,22 @@ good = [(14, 900, 1000, True, Q), (14, 1000, 1180, False, Q)]
 assert run(good + [(14, 1100, 1360, False, Q)], top=[None, None, True]) == "away"    # lookup failed at the lead, recovered
 assert run(good, top=[True, None]) is None                                           # unknown never fires
 assert run(good + [(14, 1100, 1360, False, Q)], top=[None, False, True]) is None     # a real no ends it
-assert run(good, pre=-3) is None                                                     # trailing team was the underdog
-assert run(good, pre=0) is None                                                      # a pick'em isn't a favorite
+assert run(good, pre=False) is None                                                  # trailing team not top third
+assert C.nfl_side({"BUF"}, "BUF", "KC")(-1) is True and C.nfl_side({"BUF"}, "BUF", "KC")(1) is False   # home BUF trails / leads
+assert C.nfl_side(None, "BUF", "KC")(1) is None
+assert C.nfl_criteria({"KC"}, "BUF", "KC", 14, 1800) == [True, True, True]          # KC trails by 14 at the half
+assert C.nfl_criteria({"KC"}, "BUF", "KC", 7, 1800) == [True, False, True]           # 2 of 3: watched
+assert C.nfl_criteria({"KC"}, "BUF", "KC", 0, 1800) == [False, False, True]          # tied: nobody trails
+assert C.nfl_criteria(None, "BUF", "KC", -12, 3400) == [False, True, False]
 assert run(good, pre=None) is None                                                   # unknown never fires
 def why(polls, **kw):
     h = {"snaps": [(kw.get("gc0", 800), None, 3)]}
     for m, gc, t, sc in polls:
         h["snaps"].append((gc, None, m))
-        C.lead_call(h, kw.get("top", True), C.nfl_side(kw.get("pre", 3)), m, gc, sc, t, 180, Q)
+        C.lead_call(h, kw.get("top", True), lambda s: kw.get("pre", True), m, gc, sc, t, 180, Q)
     return h["lead11"]["why"]
 assert why([(14, 900, 1000, True), (14, 1000, 1180, False)]) == "called"
-assert why([(14, 900, 1000, True)], pre=-3) == "side_rule"
+assert why([(14, 900, 1000, True)], pre=False) == "side_rule"
 assert why([(14, 900, 1000, True)], top=False) == "not_top"
 assert why([(14, 3300, 1000, True)], gc0=3200) == "late"
 assert why([(14, 900, 1000, True), (7, 1000, 1180, True)]) == "lead_gone"
@@ -114,12 +119,14 @@ P.archive_finals()
 rec = json.load(open(f"{C.ARCHIVE}/{C.SPORT}_w3.json"))["H"]
 assert rec["quotes"][0][4]["fanduel"][1] == -110 and rec["lead11"]["why"] == "underdog" and rec["top"] is True and rec["date"]
 
-# replay: every flagged NFL game before minute 55 should fire; the bet goes to the trailing side
+# replay: NFL games with a first 10+ lead before minute 55 should fire; the bet goes to the trailing side
+import lead_spread_value
 from lead_spread_value import season_games
+lead_spread_value.LEAD, C.LEAD_CALL = 10, 10     # the NFL threshold; this module runs as the college poller
 fired = n = 0
 for season in (2024, 2025):
     for g in season_games("NFL", season):
-        if not g["top"] or g["trig"][1] >= C.LEAD_LATEST or g["sp"] is None or g["trig"][2] * g["sp"] <= 0:
+        if not g["top"] or g["trig"][1] >= C.LEAD_LATEST:
             continue
         n += 1
         t0, gc0, lead, h0, a0 = g["trig"]
@@ -129,11 +136,13 @@ for season in (2024, 2025):
             hs, as_ = next(((x[2], x[3]) for x in reversed(g["tl"]) if x[0] <= t), (0, 0))
             margin = hs - as_
             h["snaps"].append((gc0, None, margin))
-            bet = bet or C.lead_call(h, True, C.nfl_side(g["sp"]), margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
+            bet = bet or C.lead_call(h, True, lambda s: True, margin, gc0, margin != last[0] - last[1], t, 180, {"updated": t})
             last = (hs, as_)
         fired += bet == ("away" if lead > 0 else "home")
 print(f"replay fired {fired}/{n}")
 assert fired >= .85 * n
+
+lead_spread_value.LEAD, C.LEAD_CALL = 11, 11
 
 # college: the 18 flagged games with only the trailing team ranked, at poll speed
 fired = n = 0

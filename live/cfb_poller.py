@@ -39,13 +39,15 @@ EDGE_FLAG = 4.0     # points of edge to flag
 # fit jointly. Live backtest on 16 archived CFB games: EDGE flags cover ~47%, no edge yet.
 LEAK = {"nfl": 0.28, "cfb": 0.31}[SPORT]
 POSS = {"nfl": 1.0, "cfb": 0.73}[SPORT]   # multiplier on the linear EP possession term
-# NFL only: both teams top third by record, take the trailing team, only if it was the pregame favorite,
-# at the first fresh quote after a lead first hits 11+ (analysis/lead_spread_value.py: 14-5 at +37% on
-# 2024-25 before minute 55, 2-0 in 2026). College failed this test, favorites included.
+# NFL: take the trailing team when it is top third by record, at the first fresh quote after a lead first
+# hits 10+ before minute 55. 69-43-1 on 2024-26 (+15%, CI -2% to +32%): found by searching and graded mostly
+# on estimated lines, so it is on probation. Each call records leader_top, the shadow test: the same bets
+# where the leader is top third too (real prices 23-6 vs 17-18). The old rule (both top, trailing favorite,
+# 11+) went 16-5 on real prices. College failed the trailing bet, favorites included.
 # College, same trigger, the reverse bet: take the unranked leader when only the trailing team is ranked.
 # 13-5 flipped from the trailing bets (10-3, 3-2): found after the fact, leader prices never tested.
 SCORE_GAP = 15       # seconds: the soonest a score can pull the next poll forward
-LEAD_CALL = 11
+LEAD_CALL = {"nfl": 10, "cfb": 11}[SPORT]
 BOOK_GAP = 2         # points apart at which a lead call waits for the books to agree
 LEAD_LATEST = 3300   # leads reached from minute 55 aren't called: quotes get long (+630) and can't be trusted to fill
 LEAD_MAX_GAP = 600   # game seconds back to the last poll; more means we can't say when the lead happened
@@ -191,9 +193,15 @@ def top_third(week):
     return {t for t, p in pct.items()
             if 1 - 2 * (sum(x > p for x in v) + .5 * (sum(x == p for x in v) - 1)) / (n - 1) > 1 / 3}
 
-def nfl_side(pregame):
-    """Lead call filter by leader sign (+1 home): the trailing team was the pregame favorite. A pick'em doesn't count."""
-    return lambda sign: None if pregame is None else sign * pregame > 0
+def nfl_criteria(tops, habbr, aabbr, margin, gc):
+    """The NFL call's three checks for the page: the trailing team is top third, a 10+ lead, before minute 55.
+    Two of three puts the game on the watchlist; the call itself still comes from lead_call."""
+    trail = aabbr if margin > 0 else habbr if margin < 0 else None
+    return [bool(tops and trail in tops), abs(margin) >= LEAD_CALL, gc < LEAD_LATEST]
+
+def nfl_side(tops, habbr, aabbr):
+    """Lead call filter by leader sign (+1 home): the trailing team is top third. tops None: not known yet, wait."""
+    return lambda sign: None if tops is None else (aabbr if sign > 0 else habbr) in tops
 
 def cfb_side(hrank, arank):
     """Lead call filter by leader sign (+1 home): the leader is unranked and the trailing team is ranked."""
@@ -679,10 +687,12 @@ class CFB:
             status = "EDGE" if (not scored and edge is not None and abs(edge) >= EDGE_FLAG) else "watch"
             lbl = f'{g["aabbr"]} @ {g["habbr"]}'
             q = next((v for k, v in detail.items() if g["home"] in k or k in g["home"]), None)
-            top = None if self.tops[0] != week else g["habbr"] in self.tops[1] and g["aabbr"] in self.tops[1]
+            tops = self.tops[1] if self.tops[0] == week else None
+            top = None if tops is None else g["habbr"] in tops and g["aabbr"] in tops
             h["top"] = top
             rr = self.reg.get(gid, {})
-            bet = lead_call(h, top, nfl_side(S0) if SPORT == "nfl" else cfb_side(rr.get("hrank"), rr.get("arank")),
+            bet = lead_call(h, None if tops is None else (True if SPORT == "nfl" else top),   # NFL: the side rule checks the trailing team
+                            nfl_side(tops, g["habbr"], g["aabbr"]) if SPORT == "nfl" else cfb_side(rr.get("hrank"), rr.get("arank")),
                             margin, g["gc"], scored, time.time(), self.poll,
                             q if L is not None and books_agree(h["quotes"][-1][4]) else None)
             if bet and SPORT == "cfb":
@@ -694,18 +704,19 @@ class CFB:
                 h["call"] = {"id": gid, "game": lbl, "week": self.reg.get(gid, {}).get("week"), "bet": bet, "team": ab,
                              "line": line, "price": price, "book": book, "clock": g["clock"], "gc": g["gc"], "t": time.time(),
                              "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "fair": fair, "result": None, "final": None,
-                             "books": h["quotes"][-1][4],
+                             "books": h["quotes"][-1][4], "leader_top": top if SPORT == "nfl" else None,
                              "link": next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).get(book, {}).get(bet),
                              "links": {b: v.get(bet) for b, v in next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), {}).items()}}
                 self.save_call(h["call"])
-                push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}, good to {line - 1:+g}', f'{"Top-vs-top" if SPORT == "nfl" else "Unranked leader"}, 11+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
+                push.queue(f'Bet {ab} {line:+g} ({price:+d}) on {push.BOOK[book]}, good to {line - 1:+g}', f'{"Top-third team trails" if SPORT == "nfl" else "Unranked leader"}, {LEAD_CALL}+ lead · {g["aabbr"]} {g["as"]}–{g["habbr"]} {g["hs"]}, {g["clock"]}',
                            tag=f"{SPORT}call|{gid}", url=f"./#{SPORT}/live",
                            variants={b: f'Bet {ab} {o[1]:+g} ({o[2]:+d}) on {push.BOOK[b]}, good to {o[1] - 1:+g}'
                                      for b in push.BOOK if (o := pick_quote(h["quotes"][-1][4], bet, h["lead11"]["t"] - self.poll, (b,)))})
                 notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
             if h.get("call") and not h["call"].get("result"):
                 h["call"]["open"] = bet_open(h["call"], h["quotes"][-1][4])
-            rows.append({"id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
+            rows.append({"crit": nfl_criteria(tops, g["habbr"], g["aabbr"], margin, g["gc"]) if SPORT == "nfl" else None,
+                         "id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',
                          "poss_side": side,

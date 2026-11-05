@@ -346,7 +346,8 @@ const MKT = m => m === "rec" ? "Receiving yds" : "Rushing yds";
 const P_MIN = 0.55;  // Watchlist Picks: props at 55%+ that haven't been called yet
 // a 70% call wins once the player clears the line from the moment of the call;
 // the poller settles it (result) live on a win, or at the final on a loss
-const won = (call, yds) => !!call && (call.result ? call.result === "win" : yds > call.line);
+const won = (call, yds) => !!call && (call.result ? call.result === "win" : call.side === "under" ? yds < call.line : yds > call.line);
+const ou = c => c.side === "under" ? "U" : "O";
 const onWatch = (player, market) => (S.watch?.entries || []).some(w => w.player === player && w.market === market);
 const star = (player, market) => onWatch(player, market) ? `<span class="star" title="Good Matchup" aria-label="Good Matchup">★</span>` : "";
 
@@ -395,13 +396,13 @@ function callCard(c, isNew) {
   <div class="card ${pre ? "" : "hot"} click ${isNew ? "new" : ""}" ${on(() => openProp(o.id))}>
     <div class="trow">${logoImg(o.logo)}
       <span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
-      <span class="chip ${c.result ? "hot" : pre ? "pre" : "hot"}" style="margin-left:auto">${c.result ? "WIN ✓" : pre ? "PREGAME" : "MODEL PICK"}</span>
+      <span class="chip ${c.result === "loss" ? "watch" : c.result ? "hot" : pre ? "pre" : "hot"}" style="margin-left:auto">${c.result ? RESULT[c.result] : pre ? "PREGAME" : "MODEL PICK"}</span>
     </div>
-    <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
+    <div class="mk">${MKT(c.market)}<b>${ou(c)} ${c.line}</b></div>
     <div class="sub"><span>${o.game} · ${o.clock}</span></div>
     <div class="nums">
       <div><span>yards</span><b>${o.cum}</b></div>
-      <div><span>needed</span><b>${Math.max(0, Math.ceil(c.line - o.cum))}</b></div>
+      <div><span>${c.side === "under" ? "room" : "needed"}</span><b>${Math.max(0, Math.ceil(c.line - o.cum))}</b></div>
       <div><span>called</span><b>${pre ? "pregame" : c.clock}</b></div>
       <div><span>Probability</span><b>${o.p ? o.p.toFixed(2) : "—"}</b></div>
     </div>
@@ -585,7 +586,7 @@ function propResultCard(c) {
   <div class="card ${c.result === "win" ? "hot" : ""} click" ${on(() => go("nfl", "past", c.week, c.espn_id))}>
     <div class="trow">${c.logo ? logoImg(c.logo) : ""}<span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
       <span class="chip ${c.result === "win" ? "hot" : "watch"}" style="margin-left:auto">${RESULT[c.result]}</span></div>
-    <div class="mk">${MKT(c.market)}<b>O ${c.line}</b></div>
+    <div class="mk">${MKT(c.market)}<b>${ou(c)} ${c.line}</b></div>
     <div class="sub"><span>${c.game}</span><span>${c.final} yds</span></div>
   </div>`;
 }
@@ -646,7 +647,7 @@ const now = () => Date.now();
 // the earliest week with a game not yet final, so results clear when its last game ends
 const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(r => r.state !== "post").map(r => r.week); return w.length ? Math.min(...w) : null; };
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
-const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj));
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj) && !w.qb_out);
 
 // a final's chart lives in the week's archive, which only Past loads
 async function openFinal(sport, wk, id) { await loadArchive(sport, wk); openSpread(KINDOF[sport], id); }
@@ -683,7 +684,7 @@ function viewLive() {
     const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !onBoard.has(`${c.player}|${c.market}|${c.type || "live"}`));
     // a Good Matchup leaves Upcoming at kickoff; the poller adds its pick once it sees the game live, so hold the card here until then
     const seen = c => `${c.player.split(" ").at(-1)}|${c.market}`, taken = new Set([...mine, ...ledger].map(seen));
-    const kicked = (S.watch?.entries || []).filter(w => w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !taken.has(seen(w)));
+    const kicked = (S.watch?.entries || []).filter(w => w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !taken.has(seen(w)));
     html += section("nfl-active-calls", title, `${active.length + spreadPicks.length + kicked.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
        ...kicked.map(w => propPreCard({ ...w, link: null })),
@@ -1317,7 +1318,8 @@ function openHowTo() {
     ${part("Rules for NFL props", [
       "<b>MODEL PICK:</b> live overs on receiving or rushing yards when the model gives at least 60%, between minutes 10 and 51. The line must be 15+ yards and at least 3 yards above the player's total so far.",
       "<b>Never called:</b> while the player's team is down more than 3, or against a top-3 defense for that stat over its last 3 games played.",
-      "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve."])}
+      "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve, or he's a WR whose usual QB isn't starting.",
+      "<b>RB UNDER:</b> any running back with a rushing line between 20.5 and 41.5 yards, when his team's usual QB starts. Bet the under at the closing line."])}
     ${part("Rules for NCAAF spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check, a fresh quote is in, and the books are within 2 points.",
       "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}

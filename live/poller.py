@@ -112,6 +112,56 @@ def espn_injuries():
                 out[short_name(nm)] = i["status"]
     return out
 
+def qb_status(week, cache_path):
+    """ESPN team abbr -> (usual starter, this week's QB1, QB1's starts so far). A start = most attempts in a
+    game (box scores cached per game in cache_path); QB1 is ESPN's depth chart. Free ESPN calls."""
+    import collections as _c
+    cache = json.load(open(cache_path)) if os.path.exists(cache_path) else {}
+    for wk in range(1, week):
+        for ev in get(f"{ESPN}/scoreboard?week={wk}&seasontype=2").get("events", []):
+            if ev["id"] in cache or ev["status"]["type"]["state"] != "post":
+                continue
+            starters = {}
+            try:
+                box = get(f"{ESPN}/summary?event={ev['id']}").get("boxscore", {})
+            except Exception as e:
+                print("QB box score fetch failed", ev["id"], repr(e)[:80])
+                continue   # try again next check
+            for tp in box.get("players", []):
+                for cat in tp.get("statistics", []):
+                    if cat.get("name") == "passing":
+                        i = [l.upper() for l in cat.get("labels", [])].index("C/ATT")
+                        att = lambda a: int((a.get("stats") or ["0/0"] * (i + 1))[i].split("/")[-1] or 0)
+                        best = max(cat.get("athletes", []), key=att, default=None)
+                        if best:
+                            starters[tp["team"]["abbreviation"]] = best["athlete"]["displayName"]
+            cache[ev["id"]] = starters
+            json.dump(cache, open(cache_path, "w"))   # each game once, even if a later fetch fails
+    starts = _c.defaultdict(_c.Counter)
+    for g in cache.values():
+        for t, q in g.items():
+            starts[t][q] += 1
+    out = {}
+    for t in get(f"{ESPN}/teams").get("sports", [{}])[0].get("leagues", [{}])[0].get("teams", []):
+        tm = t["team"]; usual = starts[tm["abbreviation"]].most_common(1)
+        if not usual:
+            continue
+        qb1 = next((dc["positions"]["qb"]["athletes"][0]["displayName"]
+                    for dc in get(f"{ESPN}/teams/{tm['id']}/depthcharts").get("depthchart", []) if dc.get("positions", {}).get("qb")), None)
+        out[tm["abbreviation"]] = (usual[0][0], qb1, starts[tm["abbreviation"]][qb1] if qb1 else None)
+    return out
+
+QB_EXEMPT = {"NYG"}   # never treated as playing a backup (user call)
+RB_UNDER = (20.5, 41.5)   # RB rushing under when the line is above the first and at most the second
+
+def qb_backup(qbs, inj, team):
+    """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
+    if team in QB_EXEMPT or team not in qbs:
+        return None
+    usual, qb1, n = qbs[team]
+    backup = (qb1 is not None and n < 2) or (inj.get(short_name(usual or "")) in INJ_OUT and qb1 in (None, usual))
+    return (qb1 if qb1 and qb1 != usual else usual) if backup else None
+
 def refresh_watchlist():
     """Advance docs/watchlist.json to the upcoming week once the current slate ends.
     Same picks as analysis/export_live.py used to make: top-N player (season ypg rank
@@ -372,6 +422,8 @@ class Monitor:
         self.status = {}    # opp id -> NEAR/TRIGGER
         self.wl_t = {}        # game -> last watchlist line refresh (2 credits a game)
         self.form_t = 0       # last preview-form fetch attempt (hourly retry on ESPN errors)
+        self.qb_t = 0         # last usual-QB check for WR Good Matchups and RB unders (every 3h)
+        self.qbs, self.inj = {}, {}
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -639,7 +691,8 @@ class Monitor:
                 if not c:
                     continue
                 if "result" not in c:
-                    c.update(result="win" if final > c["line"] else "loss", settled_t=time.time())
+                    won = final < c["line"] if c.get("side") == "under" else final > c["line"]
+                    c.update(result="win" if won else "loss", settled_t=time.time())
                 settled.append({"week": wk, "espn_id": eid, "game": h["meta"]["game"], "player": name,
                                 "market": kind, "pregame_line": h.get("l0"), "final": final,
                                 "settled": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -678,7 +731,7 @@ class Monitor:
         entries = wl.get("entries", [])
         if not entries:
             return
-        changed = False
+        changed, inj = False, {}
         try:
             inj = espn_injuries()
             for w in entries:
@@ -688,6 +741,20 @@ class Monitor:
                     changed = True
         except Exception as e:
             print("injury fetch error", repr(e))
+        if time.time() - self.qb_t > 10800 or any(0 < kick_in(w) <= WL_NEAR for w in entries):
+            self.qb_t = time.time()
+            try:   # WR overs need the usual QB: skip the pick when he's out or not QB1 this week
+                qbs = self.qbs = qb_status(wl.get("week") or 1, f"{DATA}/qb_starts.json")
+                self.inj = inj
+                for w in entries:
+                    if w["pos"] != "WR":
+                        continue
+                    out = qb_backup(qbs, inj, ALIAS.get(w["team"], w["team"]))
+                    if w.get("qb_out") != out:
+                        w["qb_out"] = out
+                        changed = True
+            except Exception as e:
+                print("QB check error", repr(e))
         try:   # venue + forecast for the preview card (free; the forecast moves through the week)
             info = game_info(wl.get("week"))
             for w in entries:
@@ -847,7 +914,7 @@ class Monitor:
                     continue   # no pregame line = no bet was available
                 name, kind = k.rsplit("|", 1)
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
-                if w.get("inj") in INJ_OUT:   # injury report says no bet
+                if w.get("inj") in INJ_OUT or w.get("qb_out"):   # injured, or a WR without his usual QB: no bet
                     if name not in players and "result" not in self.hist.get(hkey, {}).get("pre", {"result": 0}):
                         del self.hist[hkey]["pre"]   # ruled out after the pick: he never played, so no card or grade
                     continue
@@ -871,6 +938,34 @@ class Monitor:
                 cum = players.get(name, {}).get(kind, (0, 0))[0]
                 if "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
+            # RB rushing unders at the closing line (analysis/prop_search.py: 2024 +21%, 2025 +5%, 2026 +12% at
+            # real prices), only when the team's usual QB starts; no QB check yet means no bet
+            for k, L in closing.items():
+                name, kind = k.rsplit("|", 1)
+                pr = PRIORS.get(name, {})
+                team = ALIAS.get(pr.get("team"), pr.get("team"))
+                if (kind != "rush" or not RB_UNDER[0] < L <= RB_UNDER[1] or pr.get("rush", {}).get("pos") != "RB"
+                        or team not in (game["home_abbr"], game["away_abbr"]) or not self.qbs
+                        or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT):
+                    continue
+                hkey = f'{game["espn_id"]}|{name}|{kind}'
+                h = self.hist.setdefault(hkey, {"l0": L, "l0_closing": True, "last_change": 0, "snaps": []})
+                if not h.get("meta"):
+                    side = "hlogo" if team == game["home_abbr"] else "alogo"
+                    h["meta"] = {"player": name, "market": kind, "logo": game.get(side), "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
+                c = h.get("pre")
+                if c and c.get("side") != "under":
+                    continue   # already a Good Matchup over
+                if not c:
+                    book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
+                    push.send(f'Bet {name} Under {L} rush yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
+                              tag=hkey + "|pre", url="./#nfl/live",
+                              variants={b: f'Bet {name} Under {L} rush yds on {n}' for b, n in push.BOOK.items()})
+                    h["pre"] = c = {"type": "pregame", "side": "under", "rule": "rb_under", "src": "closing", "clock": "pregame",
+                                    "gc": 0, "line": L, "cum": 0, "p": None, "t": time.time(), "score": "kickoff", "rebuilt": False}
+                cum = players.get(name, {}).get(kind, (0, 0))[0]
+                if "result" not in c and cum > c["line"]:
+                    c.update(result="loss", lost_at=game["clock"], settled_t=time.time())
             # a call stays listed until it settles, even when the prop isn't scored this
             # cycle (line pulled, within 3 yds of the line, or past the scoring window)
             for hkey, h in self.hist.items():

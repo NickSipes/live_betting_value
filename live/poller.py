@@ -424,6 +424,8 @@ class Monitor:
         self.form_t = 0       # last preview-form fetch attempt (hourly retry on ESPN errors)
         self.qb_t = 0         # last usual-QB check for WR Good Matchups and RB unders (every 3h)
         self.qbs, self.inj = {}, {}
+        self.rb_t = {}        # Odds API event id -> last RB rushing-line refresh (1 credit)
+        self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -719,6 +721,49 @@ class Monitor:
             json.dump(d, open(path, "w"))
             print(f"archived {len(recs)} player props to week {wk}")
 
+    def rb_unders(self):
+        """Upcoming RB Unders for the page (docs/rb_unders.json): every RB rushing line of 20.5-41.5 whose
+        team's usual QB starts. Lines refresh every 3h, every 5 min in a game's last hour, 1 credit each.
+        The pick itself is still made at kickoff on the closing line (cycle)."""
+        now = time.time()
+        evs = get(f"{ODDS}/events?apiKey={KEY}")   # free
+        for e in evs:
+            kick = datetime.datetime.fromisoformat(e["commence_time"].replace("Z", "+00:00")).timestamp()
+            gap = 300 if kick - now <= 3600 else 10800
+            if not 0 < kick - now < 7 * 86400 or now - self.rb_t.get(e["id"], 0) < gap:
+                continue
+            self.rb_t[e["id"]] = now
+            d = get(f"{ODDS}/events/{e['id']}/odds?apiKey={KEY}&bookmakers=fanduel,draftkings"
+                    f"&markets={MARKETS['rush']}&oddsFormat=american&includeLinks=true")
+            lines = {}
+            for b in d.get("bookmakers", []):
+                for m in b.get("markets", []):
+                    for o in m.get("outcomes", []):
+                        if o["name"] == "Under" and o.get("point") is not None:
+                            lines.setdefault(o["description"], {})[b["key"]] = [float(o["point"]), o.get("price"), o.get("link")]
+            self.rb_games[e["id"]] = {"kick": e["commence_time"], "home": e["home_team"], "away": e["away_team"], "lines": lines}
+        self.rb_games = {k: g for k, g in self.rb_games.items()
+                         if datetime.datetime.fromisoformat(g["kick"].replace("Z", "+00:00")).timestamp() > now - 6 * 3600}
+        out = []
+        for gid, g in self.rb_games.items():
+            for name, books in g["lines"].items():
+                pr = PRIORS.get(name, {})
+                book = "fanduel" if "fanduel" in books else "draftkings"
+                L = books[book][0]
+                team = ALIAS.get(pr.get("team"), pr.get("team"))
+                if (pr.get("rush", {}).get("pos") != "RB" or not RB_UNDER[0] < L <= RB_UNDER[1]
+                        or not self.qbs or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT):
+                    continue
+                out.append({"player": name, "team": pr.get("team"), "market": "rush", "side": "under", "line": L,
+                            "price": books[book][1], "book": book, "link": books[book][2],
+                            "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
+                            "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
+                            "inj": self.inj.get(short_name(name))})
+        out.sort(key=lambda w: (w["kick_iso"], w["game"], w["player"]))
+        tmp = f"{DOCS}/rb_unders.json.tmp"
+        json.dump({"ts": now, "entries": out}, open(tmp, "w"))
+        os.replace(tmp, f"{DOCS}/rb_unders.json")
+
     def watchlist_extras(self):
         """Annotate Good Matchups with the injury report (every cycle, free), the
         current pregame prop line (hourly, every minute in a game's last hour:
@@ -1013,6 +1058,10 @@ class Monitor:
                     self.watchlist_extras()
                 except Exception as e:
                     print("watchlist refresh error", repr(e))
+                try:
+                    self.rb_unders()
+                except Exception as e:
+                    print("RB unders error", repr(e))
                 json.dump(histout, open(f"{DOCS}/nfl_history.json", "w"))
             opps.sort(key=lambda o: -o["p"])
             json.dump({"updated": datetime.datetime.now().strftime("%H:%M:%S"),

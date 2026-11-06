@@ -387,7 +387,7 @@ const betBtn = c => {
   if (!c.link || c.result || c.open === false) return "";
   const b = bookFor(c), q = c.books?.[b];
   const line = c.lines?.[b] ?? (q ? (c.bet === "away" ? -q[0] : q[0]) : null);
-  const note = line != null && line !== c.line ? ` (${c.bet ? num(line) : "O " + line})` : "";
+  const note = line != null && line !== c.line ? ` (${c.bet ? num(line) : ou(c) + " " + line})` : "";
   return `<a class="betlink" href="${c.links?.[b] ?? c.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Bet on ${BOOKS[b]}${note}</a>`;
 };
 function callCard(c, isNew) {
@@ -412,6 +412,19 @@ function callCard(c, isNew) {
 }
 const callsOf = o => [o.pre, o.call].filter(Boolean).map(c => ({
   ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`, o }));
+function rbUnderCard(w) {
+  return `
+  <div class="card final">
+    <div class="trow">${logoImg(nflLogo(w.team))}
+      <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
+      ${w.inj ? `<span class="chip warm" title="${w.inj}">${w.inj.toUpperCase()}</span>` : ""}
+      <span class="chip pre" style="margin-left:auto">PREGAME</span>
+    </div>
+    <div class="mk">${MKT("rush")}<span class="chip hot" style="margin-left:6px">Bet U ${w.line}</span></div>
+    <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso)}</span></div>
+    ${betBtn(w)}
+  </div>`;
+}
 function propPreCard(w, chip = "PREGAME") {
   const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
     title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
@@ -716,6 +729,10 @@ function viewUpcoming() {
     html += section("nfl-up-props", "Good Matchups", `week ${S.watch?.week ?? ""} · ${w.length} players`,
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
+    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now());
+    html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
+      "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the team's usual QB starts. Against real closing lines this won in 2024 (+21%), 2025 (+5%) and 2026 (+12%), while other RB unders lost. The pick is made at kickoff on the closing line.",
+      rb.map(rbUnderCard), "No RB Unders right now.");
   }
   // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section
   const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup) : [];
@@ -811,7 +828,10 @@ function render() {
 async function refreshProps() {
   try { S.props = await (await fetch("state.json?" + Date.now())).json(); } catch (e) {}
   if (!S.watch || Date.now() - S.watchT > ((S.watch.entries || []).some(w => w.kick_iso && new Date(w.kick_iso) - now() > 0 && new Date(w.kick_iso) - now() < 3600e3) ? 30e3 : 300e3))
+  {
+    try { S.rbu = await (await fetch("rb_unders.json?" + Date.now())).json(); } catch (e) {}
     try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
+  }
   if (S.props) { lastTs.props = S.props.ts; renderAges(); }
 }
 async function refreshSpread(kind) {

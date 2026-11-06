@@ -1278,7 +1278,7 @@ function openProp(id, rec) {
     },
   });
 
-  const res = c => won(c, cum) ? "WIN ✓" : c.result === "loss" ? "LOSS" : "pending";
+  const res = c => c.result ? RESULT[c.result] : c.side !== "under" && won(c, cum) ? "WIN ✓" : "pending";   // an under only wins at the final
   const bets = !(call || pre) ? "" : `<div class="cbets"><div class="ttl">Called Bets</div></div><div id="evlist"></div>`;
   const tms = h.game.split(" @ "), me = tms.findIndex(t => h.logo?.endsWith(`/${t.toLowerCase()}.png`));
   showModal(`
@@ -1293,7 +1293,7 @@ function openProp(id, rec) {
     ${bets}`);
   // called bets are rows like the game plays, newest first; a pregame call snaps to the first snapshot
   ROWS = [call, pre].filter(Boolean).map(c => ({ gc: Math.max(c.gc ?? 0, linePts[0]?.[0] ?? 1), y: c.line, clk: c.clock, cls: "call",
-    label: `${c.type === "pregame" ? "Pregame" : "Model pick"} · O ${c.line}`, sc: res(c), text: "" }));
+    label: `${c.type === "pregame" ? "Pregame" : "Model pick"} · ${ou(c)} ${c.line}`, sc: res(c), text: "" }));
   renderRows();
   bindChart();
 }

@@ -36,6 +36,11 @@ assert run(good + [(14, 1100, 1360, False, Q)], top=[None, False, True]) is None
 assert run(good, pre=False) is None                                                  # trailing team not top third
 assert C.nfl_side({"BUF"}, "BUF", "KC")(-1) is True and C.nfl_side({"BUF"}, "BUF", "KC")(1) is False   # home BUF trails / leads
 assert C.nfl_side(None, "BUF", "KC")(1) is None
+assert C.cfb_criteria(True, 12, 99) == [True, True] and C.cfb_criteria(True, 12, 8) == [True, False]
+assert C.cfb_criteria(False, 99, 5) == [False, True] and C.cfb_criteria(None, None, 5) == [False, True]
+fz = lambda h, a, hs, as_: {"date": "", "h": ["1", h, 99, hs], "a": ["2", a, 99, as_]}
+FW = {1: [fz(t, f"L{i}", 21, 7) for i, t in enumerate("ABCDEFGHIJ")], 2: [fz(t, f"M{i}", 7, 21) for i, t in enumerate("ABCDE")] + [fz(t, f"N{i}", 21, 7) for i, t in enumerate("FGHIJ")]}
+assert C.tops_from(FW, 3) == set("FGHIJ") and C.tops_from(FW, 2) == set() and C.tops_from(FW, 1) == set()   # 1-game teams don't rank
 assert C.nfl_criteria({"KC"}, "BUF", "KC", 14, 1800) == [True, True, True]          # KC trails by 14 at the half
 assert C.nfl_criteria({"KC"}, "BUF", "KC", 7, 1800) == [True, False, True]           # 2 of 3: watched
 assert C.nfl_criteria({"KC"}, "BUF", "KC", 0, 1800) == [False, False, True]          # tied: nobody trails

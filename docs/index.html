@@ -672,7 +672,9 @@ function viewLive() {
   const settled = doneSpreads.filter(c => c.result && c.week === wk).map(c => spreadResultCard(R.sport, c));
   const spreadPicks = games.filter(g => g.call && !g.call.result);
   // NFL: a game meeting 2 of the call's 3 checks (trailing team top third, 10+ lead, before minute 55) is watched
-  const deck = games.filter(g => !g.call && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch : (g.crit || []).filter(Boolean).length >= 2));
+  // NCAAF: the pregame watch tag, or both teams top third with exactly one ranked (an unranked team taking an 11+ lead calls)
+  const deck = games.filter(g => !g.call && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch || (g.crit || []).every(Boolean) && (g.crit || []).length
+    : (g.crit || []).filter(Boolean).length >= 2));
   const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g));
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
@@ -715,9 +717,15 @@ function viewUpcoming() {
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
   }
+  // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section
+  const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup) : [];
+  if (R.sport === "cfb")
+    html += section("cfb-up-watch", "Watchlist Games", `${setup.length} games`,
+      "Both teams top third by record and exactly one ranked: a call fires if the unranked team leads by 11+.",
+      setup.map(([, r]) => upcomingCard(r)), "No upcoming Watchlist Games.");
   const weeks = [...new Set(pre.map(([, r]) => r.week))].sort((a, b) => a - b);
   for (const wk of weeks) {
-    const g = pre.filter(([, r]) => r.week === wk);
+    const g = pre.filter(([, r]) => r.week === wk && !r.setup);
     html += section(`${R.sport}-up-games-w${wk}`, `Week ${wk} games`, `${g.length} scheduled`, "",
       g.map(([, r]) => upcomingCard(r)), "");
   }

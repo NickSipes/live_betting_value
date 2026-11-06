@@ -90,7 +90,7 @@ def build(season):
             if len(gids) != 1:
                 continue
             p = gids[0]; pos = ros[p][0]
-            if pos not in ("WR", "TE", "RB"):
+            if pos not in ("WR", "TE", "RB", "QB"):
                 continue
             pt, d = tm[(g, p)]
             hist = [(x, yds[kind].get((x, p), 0.0)) for x in prior if (x, p) in played]

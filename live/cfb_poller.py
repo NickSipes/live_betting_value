@@ -186,6 +186,10 @@ def top_third(week):
                 sx, sy = int(x["score"]), int(y["score"])
                 r[0] += 1 if sx > sy else .5 if sx == sy else 0
                 r[1] += 1
+    return top_of(rec)
+
+def top_of(rec):
+    """{team: [wins, games]} -> the top third by win%, ties sharing a rank; 2+ games, 9+ teams."""
     pct = {t: w / n for t, (w, n) in rec.items() if n >= 2}
     v, n = list(pct.values()), len(pct)
     if n <= 8:
@@ -193,11 +197,29 @@ def top_third(week):
     return {t for t, p in pct.items()
             if 1 - 2 * (sum(x > p for x in v) + .5 * (sum(x == p for x in v) - 1)) / (n - 1) > 1 / 3}
 
+def tops_from(finals, week):
+    """top_third(week) from cached finals ({week: finals_of(...)}): games of earlier weeks only."""
+    rec = {}
+    for wk, fs in finals.items():
+        if wk < week:
+            for f in fs:
+                for me, you in ((f["h"], f["a"]), (f["a"], f["h"])):
+                    r = rec.setdefault(me[1], [0.0, 0])
+                    r[0] += 1 if me[3] > you[3] else .5 if me[3] == you[3] else 0
+                    r[1] += 1
+    return top_of(rec)
+
 def nfl_criteria(tops, habbr, aabbr, margin, gc):
     """The NFL call's three checks for the page: the trailing team is top third, a 10+ lead, before minute 55.
     Two of three puts the game on the watchlist; the call itself still comes from lead_call."""
     trail = aabbr if margin > 0 else habbr if margin < 0 else None
     return [bool(tops and trail in tops), abs(margin) >= LEAD_CALL, gc < LEAD_LATEST]
+
+def cfb_criteria(top, hrank, arank):
+    """The college call's setup for the page: both teams top third, and exactly one ranked (an unranked
+    team taking an 11+ lead would fire). Both true puts a live game on the watchlist."""
+    ranked = [r is not None and r <= 25 for r in (hrank, arank)]
+    return [bool(top), ranked[0] != ranked[1]]
 
 def nfl_side(tops, habbr, aabbr):
     """Lead call filter by leader sign (+1 home): the trailing team is top third. tops None: not known yet, wait."""
@@ -545,6 +567,9 @@ class CFB:
                     w.update(result=cover({"bet": w["side"], "line": w["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
                 if w:
                     new["watch"] = w
+                if SPORT == "cfb" and new["state"] == "pre" and self.finals:   # Watchlist Games: the call's setup
+                    tops = tops_from(self.finals, new["week"])
+                    new["setup"] = all(cfb_criteria(new["habbr"] in tops and new["aabbr"] in tops, new["hrank"], new["arank"]))
                 self.reg[ev["id"]] = new
 
     def archive_finals(self):
@@ -715,7 +740,7 @@ class CFB:
                 notify(f"{SPORT.upper()} CALL: {lbl}", f'{ab} {line:+g} ({price:+d}) {push.BOOK[book]} | {g["as"]}-{g["hs"]} {g["clock"]}')
             if h.get("call") and not h["call"].get("result"):
                 h["call"]["open"] = bet_open(h["call"], h["quotes"][-1][4])
-            rows.append({"crit": nfl_criteria(tops, g["habbr"], g["aabbr"], margin, g["gc"]) if SPORT == "nfl" else None,
+            rows.append({"crit": nfl_criteria(tops, g["habbr"], g["aabbr"], margin, g["gc"]) if SPORT == "nfl" else cfb_criteria(top, rr.get("hrank"), rr.get("arank")),
                          "id": gid, "game": lbl, "habbr": g["habbr"], "aabbr": g["aabbr"],
                          "hlogo": g["hlogo"], "alogo": g["alogo"],
                          "poss": ptxt and f'{g["habbr"] if side == "home" else g["aabbr"]} ball, {ptxt}',

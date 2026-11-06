@@ -949,6 +949,8 @@ class Monitor:
                         or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT):
                     continue
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
+                if hkey not in self.hist and game["gc"] > 300:
+                    continue
                 h = self.hist.setdefault(hkey, {"l0": L, "l0_closing": True, "last_change": 0, "snaps": []})
                 if not h.get("meta"):
                     side = "hlogo" if team == game["home_abbr"] else "alogo"
@@ -956,6 +958,8 @@ class Monitor:
                 c = h.get("pre")
                 if c and c.get("side") != "under":
                     continue   # already a Good Matchup over
+                if not c and game["gc"] > 300:
+                    continue   # a pregame bet: only made around kickoff, never mid-game (e.g. after a restart)
                 if not c:
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
                     push.send(f'Bet {name} Under {L} rush yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',

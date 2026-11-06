@@ -154,6 +154,17 @@ def qb_status(week, cache_path):
 QB_EXEMPT = {"NYG"}   # never treated as playing a backup (user call)
 RB_UNDER = (20.5, 41.5)   # RB rushing under when the line is above the first and at most the second
 
+def scoring_ranks(week):
+    """ESPN team abbr -> scoring rank (1 = most points per game) from regular-season games before `week`."""
+    pts = {}
+    for wk in range(1, week):
+        for ev in get(f"{ESPN}/scoreboard?week={wk}&seasontype=2").get("events", []):
+            if ev["status"]["type"]["state"] == "post":
+                for c in ev["competitions"][0]["competitors"]:
+                    pts.setdefault(c["team"]["abbreviation"], []).append(int(c["score"]))
+    ppg = {t: sum(v) / len(v) for t, v in pts.items()}
+    return {t: 1 + sum(x > p for x in ppg.values()) for t, p in ppg.items()}
+
 def qb_backup(qbs, inj, team):
     """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
     if team in QB_EXEMPT or team not in qbs:
@@ -426,6 +437,7 @@ class Monitor:
         self.qbs, self.inj = {}, {}
         self.rb_t = {}        # Odds API event id -> last RB rushing-line refresh (1 credit)
         self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
+        self.ranks = (0, {})  # (fetched at, scoring rank by ESPN abbr), refreshed every 3h
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -744,6 +756,10 @@ class Monitor:
             self.rb_games[e["id"]] = {"kick": e["commence_time"], "home": e["home_team"], "away": e["away_team"], "lines": lines}
         self.rb_games = {k: g for k, g in self.rb_games.items()
                          if datetime.datetime.fromisoformat(g["kick"].replace("Z", "+00:00")).timestamp() > now - 6 * 3600}
+        if now - self.ranks[0] > 10800:
+            wk = (get(f"{ESPN}/scoreboard").get("week") or {}).get("number") or 1
+            self.ranks = (now, scoring_ranks(wk))
+        ranks = self.ranks[1]
         out = []
         for gid, g in self.rb_games.items():
             for name, books in g["lines"].items():
@@ -758,7 +774,7 @@ class Monitor:
                             "price": books[book][1], "book": book, "link": books[book][2],
                             "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
                             "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
-                            "inj": self.inj.get(short_name(name))})
+                            "inj": self.inj.get(short_name(name)), "off_rank": ranks.get(team), "teams": len(ranks)})
         out.sort(key=lambda w: (w["kick_iso"], w["game"], w["player"]))
         tmp = f"{DOCS}/rb_unders.json.tmp"
         json.dump({"ts": now, "entries": out}, open(tmp, "w"))
@@ -989,9 +1005,11 @@ class Monitor:
                 name, kind = k.rsplit("|", 1)
                 pr = PRIORS.get(name, {})
                 team = ALIAS.get(pr.get("team"), pr.get("team"))
+                ranks = self.ranks[1]   # bottom third of scoring only; no ranks yet means no bet
                 if (kind != "rush" or not RB_UNDER[0] < L <= RB_UNDER[1] or pr.get("rush", {}).get("pos") != "RB"
                         or team not in (game["home_abbr"], game["away_abbr"]) or not self.qbs
-                        or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT):
+                        or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT
+                        or not ranks.get(team, 0) > len(ranks) * 2 / 3):
                     continue
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
                 if hkey not in self.hist and game["gc"] > 300:

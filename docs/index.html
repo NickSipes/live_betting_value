@@ -421,6 +421,7 @@ function rbUnderCard(w) {
       <span class="chip pre" style="margin-left:auto">PREGAME</span>
     </div>
     <div class="mk">${MKT("rush")}<span class="chip hot" style="margin-left:6px">Bet U ${w.line}</span></div>
+    <div class="sub"><span>Team scoring rank</span><span>#${w.off_rank} of ${w.teams}</span></div>
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso)}</span></div>
     ${betBtn(w)}
   </div>`;
@@ -729,9 +730,10 @@ function viewUpcoming() {
     html += section("nfl-up-props", "Good Matchups", `week ${S.watch?.week ?? ""} · ${w.length} players`,
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
-    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now());
+    // only backs whose team is in the bottom third of scoring: the one split that held in 2024 and 2025-26
+    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && x.off_rank > (x.teams || 32) * 2 / 3);
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
-      "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the team's usual QB starts. Against real closing lines this won in 2024 (+21%), 2025 (+5%) and 2026 (+12%), while other RB unders lost. The pick is made at kickoff on the closing line.",
+      "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the team's usual QB starts. Against real closing lines this won in 2024 (+21%), 2025 (+5%) and 2026 (+12%), while other RB unders lost. Shown here: only backs whose team ranks in the bottom third of scoring, the one extra filter that held in both 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",
       rb.map(rbUnderCard), "No RB Unders right now.");
   }
   // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section
@@ -1347,7 +1349,7 @@ function openHowTo() {
       "<b>MODEL PICK:</b> live overs on receiving or rushing yards when the model gives at least 60%, between minutes 10 and 51. The line must be 15+ yards and at least 3 yards above the player's total so far.",
       "<b>Never called:</b> while the player's team is down more than 3, or against a top-3 defense for that stat over its last 3 games played.",
       "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve, or he's a WR whose usual QB isn't starting.",
-      "<b>RB UNDER:</b> any running back with a rushing line between 20.5 and 41.5 yards, when his team's usual QB starts. Bet the under at the closing line."])}
+      "<b>RB UNDER:</b> any running back with a rushing line between 20.5 and 41.5 yards, when his team's usual QB starts and it ranks in the bottom third of scoring. Bet the under at the closing line."])}
     ${part("Rules for NCAAF spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check, a fresh quote is in, and the books are within 2 points.",
       "<b>WATCHING:</b> an underdog coming off a loss in a game with a ranked team. This is tracked only, not a pick. Tap the game to see why."])}

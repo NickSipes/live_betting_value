@@ -73,6 +73,25 @@ cd analysis && ../.venv/bin/python export_live.py
   Home field by conference (`--hfa`, FBS-vs-FBS, pooled 2025-26): power conferences ~4-5 (SEC 4.8, Big Ten 4.8,
   Big 12 4.4, ACC 3.8, se ~1), Group of Five 2.5-3.7, Sun Belt 0.9 — SEC vs Big 12 is within noise; power vs
   Sun Belt is real. Fitting it per conference (`--conf`) does not change the backtest.
+- Pregame shared-opponent lean as a gate on the live CFB bets (2026-11-07; lean = the <=4-week rule's side: the line 4+
+  from what two or more shared opponents imply, rated on earlier weeks only): **no change to the live rule.** The lean
+  rarely exists when the live bets fire: two shared opponents met within four weeks takes half a season, so it is on
+  0 of 56 2026 lead bets (weeks 3-8), 28 of 144 in 2025 (all week 9+), and 17 of 89 first EDGE flags on the 82 archived
+  2026 games (weeks 8-10, `data/fly/docs/archive/cfb_w*.json`). Bet side agrees with the lean / disagrees / no lean:
+
+  | live bet | season | agree | disagree | no lean |
+  |---|---|---|---|---|
+  | EDGE flag, first per game-side (`fair_spread`, 0.31 / 0.73) | 2026 | 7-1 | 2-7 | 39-33 |
+  | EDGE flag | 2025 | no live snapshots | | |
+  | trailing team +pts, flagged top vs top (`lead_spread_value.py`) | 2025 | 2-4 | 7-10 | 31-40 |
+  | trailing team +pts, every 11+ lead | 2025 | 3-5 | 7-13 | 48-68 |
+  | leader -pts, college variant (only the trailing team ranked) | 2025 | 1-0 | 1-0 | 8-3 |
+  | trailing team +pts, 11+ leads graded from the archive's quotes | 2026 | 2-1 | 0-4 | 14-21 |
+  | leader -pts, same games | 2026 | 4-0 | 1-2 | 21-14 |
+
+  2026 leans the lean's way everywhere (EDGE 7-1 vs 2-7, leader 4-0 vs 1-2) on 17 and 7 bets; 2025 runs the other way
+  (trailing bets with the lean 3-5, against it 7-13). One season, under 20 bets per cut: not a gate. Re-run when the
+  2026 archive reaches December, the weeks the lean exists; EDGE flags themselves are 48-41 on the 82 games.
 - WR1 with a real WR2 out (60+ rec yds/game teammate, no target in the game) goes 7-18 (28%, p=0.03) at the
   closing over, 29-38 with a 45 ypg teammate (`analysis/wr_mate_out.py`, 2024-26). The book raises the line
   ~6 yds expecting the volume; the WR1 produces the same relative to their season average as usual

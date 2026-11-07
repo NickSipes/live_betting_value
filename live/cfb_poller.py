@@ -234,6 +234,33 @@ def cfb_side(hrank, arank):
         return lead > 25 and trail <= 25
     return ok
 
+LATEST_TXT = "Q4 5:00"   # LEAD_LATEST, minute 55, as the page says it
+def live_need(top, hrank, arank, habbr, aabbr, margin, gc, lead11, tops=None):
+    """What has to happen for the lead call to fire on this game, in words for the live Watchlist card,
+    or why it no longer can (lead11: the game's first-lead state from lead_call). margin: home minus away."""
+    off = {"seen": "the first lead came before tracking started", "no_history": "the first lead came before tracking started",
+           "late": f"the first {LEAD_CALL}+ lead came after {LATEST_TXT}", "lead_gone": f"the {LEAD_CALL}+ lead did not hold",
+           "side_rule": "the ranked team led first" if SPORT == "cfb" else "the trailing team is not top third",
+           "not_top": "a team is outside the top third", "timeout": "no fresh quote within 15 min of the lead"}
+    if lead11 and lead11.get("done"):
+        return f"Call off: {off.get(lead11.get('why'), lead11.get('why'))}"
+    if lead11:
+        return "Call pending: the lead holds for a poll and a fresh quote lands"
+    if gc >= LEAD_LATEST:
+        return f"Call off: past {LATEST_TXT}"
+    if SPORT == "cfb":
+        ranked = [r is not None and r <= 25 for r in (hrank, arank)]
+        if ranked[0] == ranked[1]:
+            return "Watching only: the call needs exactly one ranked team"
+        if top is False:
+            return "Watching only: the call needs both teams top third by record"
+        u = aabbr if ranked[0] else habbr
+        return f"To pick: {u} leads by {LEAD_CALL}+ before {LATEST_TXT} (now {u} {margin if u == habbr else -margin:+d})"
+    tt = [t for t in (habbr, aabbr) if tops and t in tops]
+    if not tt:
+        return "Watching only: the call needs a top-third team trailing"
+    return f"To pick: {' or '.join(tt)} trails by {LEAD_CALL}+ before {LATEST_TXT} (now {habbr} {margin:+d})"
+
 def lead_call(h, top, side_ok, margin, gc, scored, now, poll, quote):
     """The trailing team's bet ('home'/'away') the moment the lead call fires, else None; state in
     h["lead11"]. Only the first 11+ lead counts, and it has to be seen happening: no prior poll close
@@ -903,6 +930,7 @@ class CFB:
                          "score": f'{g["as"]}-{g["hs"]}', "pregame": S0, "line": L,
                          "fair": None if fair is None else round(fair, 1), "edge": edge,
                          "status": "CALL" if h.get("call") else status, "call": h.get("call"),
+                         "need": live_need(top, rr.get("hrank"), rr.get("arank"), g["habbr"], g["aabbr"], margin, g["gc"], h.get("lead11"), tops),
                          "side": None if edge is None else (g["habbr"] if edge > 0 else g["aabbr"]),
                          "lean": None if scored else lean(edge, fair,
                                                           next((v for k, v in slips.items() if g["home"] in k or k in g["home"]), None))})

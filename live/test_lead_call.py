@@ -175,3 +175,14 @@ page = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs
 for fn in set(re.findall(r'onclick="(\w+)\(', page)) - {"if"}:
     assert re.search(rf"(function {fn}\b|const {fn}\b)", page), fn
 print("ok")
+
+# the live Watchlist card: what has to happen for the college call, or why it can't
+N = lambda **k: C.live_need(**{"top": True, "hrank": 99, "arank": 8, "habbr": "MINN", "aabbr": "UCLA", "margin": -3, "gc": 1200, "lead11": None, **k})
+assert N() == "To pick: MINN leads by 11+ before Q4 5:00 (now MINN -3)"
+assert N(hrank=8, arank=99, margin=-3) == "To pick: UCLA leads by 11+ before Q4 5:00 (now UCLA +3)"
+assert N(hrank=8, arank=9).startswith("Watching only: the call needs exactly one ranked")
+assert N(top=False).startswith("Watching only: the call needs both teams top third")
+assert N(gc=3300) == "Call off: past Q4 5:00"
+assert N(lead11={"done": True, "why": "side_rule"}) == "Call off: the ranked team led first"
+assert N(lead11={"done": False}).startswith("Call pending")
+print("live_need ok")

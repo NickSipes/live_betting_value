@@ -547,7 +547,7 @@ function openPreview(w) {
       ${det("status", w.inj && `<span style="color:var(--orange)">${w.inj}</span>`)}
     </div>`);
 }
-function spreadLiveCard(kind, g, plain) {
+function spreadLiveCard(kind, g, plain, need) {   // need: the Watchlist card says what has to happen for the call
   const [as, hs] = (g.score || "0-0").split("-");
   return `
   <div class="card ${plain ? "watch" : chipCls(g.status)} click" ${on(() => openSpread(kind, g.id))}>
@@ -563,6 +563,7 @@ function spreadLiveCard(kind, g, plain) {
       <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
       <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
     </div>
+    ${need && g.need && !g.call ? `<div class="sub" style="display:block">${g.need}</div>` : ""}
     ${g.call && !plain ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line}${g.call.price != null ? ` (${g.call.price > 0 ? "+" : ""}${g.call.price})` : ""}</b><span>called ${g.call.clock}</span></div>${betBtn(g.call)}` : ""}
     ${leanBtn(g)}
   </div>`;
@@ -760,12 +761,12 @@ function viewLive() {
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
       (onWatch(b.player, b.market) - onWatch(a.player, a.market)) || b.p - a.p);
     html += section("nfl-live-props", "Watchlist Picks", `${opps.length + deck.length} watching`, PROP_LEG,
-      [...deck.map(g => spreadLiveCard(kind, g)), ...opps.map(propLiveCard)], all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
+      [...deck.map(g => spreadLiveCard(kind, g, false, true)), ...opps.map(propLiveCard)], all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   } else {
     html += section("cfb-active-calls", title, `${spreadPicks.length + gsPicks.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...gsPicks.map(g => spreadLiveCard(kind, g)), ...settled], "No picks yet this week.");
     html += section("cfb-live-props", "Watchlist Picks", `${deck.length} watching`, "Bets that the model is watching.",
-      deck.map(g => spreadLiveCard(kind, g)), "The model isn't watching any bets right now.");
+      deck.map(g => spreadLiveCard(kind, g, false, true)), "The model isn't watching any bets right now.");
   }
   html += section(`${R.sport}-live-games`, `${SPORTNAME[R.sport]} game spreads`, `${rest.length} live`, R.sport === "cfb" ? "tap a card for line movement + key plays" : SPREAD_LEG,
     rest.map(g => spreadLiveCard(kind, g, R.sport === "cfb")), games.length ? "No other live games right now." : `No live ${SPORTNAME[R.sport]} games right now.`);

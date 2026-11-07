@@ -733,8 +733,9 @@ function viewLive() {
   const gsPick = g => !g.call && S.games[R.sport]?.[g.id]?.spread_pick;
   const gsPicks = games.filter(gsPick).map(g => ({ ...g, status: "PICK", call: { ...gsPick(g), clock: "pregame", link: null } }));
   // NFL: a game meeting 2 of the call's 3 checks (trailing team top third, 10+ lead, before minute 55) is watched
-  // NCAAF: the pregame watch tag, or both teams top third with exactly one ranked (an unranked team taking an 11+ lead calls)
-  const deck = games.filter(g => !g.call && !gsPick(g) && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch || (g.crit || []).every(Boolean) && (g.crit || []).length
+  // NCAAF: both teams top third with exactly one ranked (an unranked team taking an 11+ lead calls), while the call can still fire;
+  // the pregame watch tag stays off the deck: it is tracked, never bet
+  const deck = games.filter(g => !g.call && !gsPick(g) && (R.sport === "cfb" ? (g.crit || []).every(Boolean) && (g.crit || []).length && !/^Call off/.test(g.need || "")
     : (g.crit || []).filter(Boolean).length >= 2));
   const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g) && !gsPick(g));
   if (R.sport === "nfl") {

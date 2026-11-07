@@ -563,7 +563,7 @@ function spreadLiveCard(kind, g, plain) {
       <div><span>fair</span><b>${fmtS(g.fair, g)}</b></div>
       <div><span>edge</span><b>${g.edge ?? "—"}${g.side ? " " + g.side : ""}</b></div>
     </div>
-    ${g.call && !plain ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line} (${g.call.price > 0 ? "+" : ""}${g.call.price})</b><span>called ${g.call.clock}</span></div>${betBtn(g.call)}` : ""}
+    ${g.call && !plain ? `<div class="sub"><b>Bet ${g.call.team} ${g.call.line > 0 ? "+" : ""}${g.call.line}${g.call.price != null ? ` (${g.call.price > 0 ? "+" : ""}${g.call.price})` : ""}</b><span>called ${g.call.clock}</span></div>${betBtn(g.call)}` : ""}
     ${leanBtn(g)}
   </div>`;
 }
@@ -726,11 +726,14 @@ function viewLive() {
   const doneSpreads = (R.sport === "nfl" ? S.spreadCalls : S.cfbCalls) || [];
   const settled = doneSpreads.filter(c => c.result && c.week === wk).map(c => spreadResultCard(R.sport, c));
   const spreadPicks = games.filter(g => g.call && !g.call.result);
+  // NCAAF Game Spreads picks move here at kickoff, shown as their live game with the pregame bet
+  const gsPick = g => !g.call && S.games[R.sport]?.[g.id]?.spread_pick;
+  const gsPicks = games.filter(gsPick).map(g => ({ ...g, call: { ...gsPick(g), clock: "pregame", link: null } }));
   // NFL: a game meeting 2 of the call's 3 checks (trailing team top third, 10+ lead, before minute 55) is watched
   // NCAAF: the pregame watch tag, or both teams top third with exactly one ranked (an unranked team taking an 11+ lead calls)
-  const deck = games.filter(g => !g.call && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch || (g.crit || []).every(Boolean) && (g.crit || []).length
+  const deck = games.filter(g => !g.call && !gsPick(g) && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch || (g.crit || []).every(Boolean) && (g.crit || []).length
     : (g.crit || []).filter(Boolean).length >= 2));
-  const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g));
+  const rest = games.filter(g => !spreadPicks.includes(g) && !deck.includes(g) && !gsPick(g));
   if (R.sport === "nfl") {
     const all = S.props?.opps || [];
     const mine = all.flatMap(callsOf);
@@ -742,9 +745,13 @@ function viewLive() {
     // a Good Matchup leaves Upcoming at kickoff; the poller adds its pick once it sees the game live, so hold the card here until then
     const seen = c => `${c.player.split(" ").at(-1)}|${c.market}`, taken = new Set([...mine, ...ledger].map(seen));
     const kicked = (S.watch?.entries || []).filter(w => w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out && !taken.has(seen(w)));
-    html += section("nfl-active-calls", title, `${active.length + spreadPicks.length + kicked.length} active`, "Bets that the model has taken",
+    // RB/WR unders too, for 30 min: the poller only makes those picks in the first 5 minutes of game clock
+    const kickedU = [...(S.rbu?.entries || []).filter(rbShown), ...(S.wru?.entries || [])].filter(w =>
+      w.kick_iso && new Date(w.kick_iso) <= now() && now() - new Date(w.kick_iso) < 18e5 && !taken.has(seen(w)));
+    html += section("nfl-active-calls", title, `${active.length + spreadPicks.length + kicked.length + kickedU.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
        ...kicked.map(w => propPreCard({ ...w, link: null })),
+       ...kickedU.map(w => (w.market === "rec" ? wrUnderCard : rbUnderCard)({ ...w, link: null })),
        ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(propResultCard)], "No picks yet this week.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
@@ -753,8 +760,8 @@ function viewLive() {
     html += section("nfl-live-props", "Watchlist Picks", `${opps.length + deck.length} watching`, PROP_LEG,
       [...deck.map(g => spreadLiveCard(kind, g)), ...opps.map(propLiveCard)], all.length ? "The model isn't watching any bets right now." : "No player props live right now.");
   } else {
-    html += section("cfb-active-calls", title, `${spreadPicks.length} active`, "Bets that the model has taken",
-      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...settled], "No picks yet this week.");
+    html += section("cfb-active-calls", title, `${spreadPicks.length + gsPicks.length} active`, "Bets that the model has taken",
+      [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...gsPicks.map(g => spreadLiveCard(kind, g)), ...settled], "No picks yet this week.");
     html += section("cfb-live-props", "Watchlist Picks", `${deck.length} watching`, "Bets that the model is watching.",
       deck.map(g => spreadLiveCard(kind, g)), "The model isn't watching any bets right now.");
   }
@@ -763,44 +770,39 @@ function viewLive() {
   return html;
 }
 
+// RB unders: only backs whose team is in the bottom third of scoring, the one split that held in 2024 and 2025-26
+const rbShown = x => x.off_rank > (x.teams || 32) * 2 / 3;
+// Pregame Picks, by sport: every list the tab shows (its count is their total)
+function pregamePicks(sport) {
+  if (sport === "nfl") return {
+    w: watchUpcoming(),
+    rb: (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd() && rbShown(x)).sort(byKick),
+    wru: (S.wru?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd()).sort(byKick) };
+  const pre = upcomingGames(sport);   // NCAAF: Game Spreads picks, then games meeting the call's setup (both teams top third, exactly one ranked)
+  return { sp: pre.filter(([, r]) => r.spread_pick), setup: pre.filter(([, r]) => r.setup && !r.spread_pick) };
+}
 function viewUpcoming() {
-  const pre = upcomingGames(R.sport);
+  const { w, rb, wru, sp, setup } = pregamePicks(R.sport);
   let html = "";
   if (R.sport === "nfl") {
-    const w = watchUpcoming();
     html += section("nfl-up-props", "Good Matchups", `${w.length} players`,
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
-    // only backs whose team is in the bottom third of scoring: the one split that held in 2024 and 2025-26
-    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd() && x.off_rank > (x.teams || 32) * 2 / 3).sort(byKick);
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
       "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the usual QB starts and the team ranks in the bottom third of scoring. Against real closing lines this won in 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",
       rb.map(rbUnderCard), "No RB Unders right now.");
-    const wru = (S.wru?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd()).sort(byKick);
     html += section("nfl-up-wr", "WR Unders", `${wru.length} players`,
       "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the under went 18-7 in 2024-26. The pick is made at kickoff on the closing line.",
       wru.map(wrUnderCard), "No WR Unders right now.");
   }
-  // NCAAF: Game Spreads picks, then games meeting the call's setup (both teams top third, exactly one ranked)
-  const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup && !r.spread_pick) : [];
   if (R.sport === "cfb") {
-    const sp = pre.filter(([, r]) => r.spread_pick);
     html += section("cfb-up-spreads", "Game Spreads", `${sp.length} picks`,
       "Games with a Top 25 team where both teams played the same opponent within four weeks of each other, two or more of them. Home field spread (3.8 points) is taken out of each result and the two teams' margins against shared opponents is compared. When the shared opponent spread sits 4+ points from the posted line, the game is featured here. Against closing lines: 26-14 (65%) in 2025 and 5-2 so far in 2026. The pick is made at kickoff on the closing line.",
       sp.map(([, r]) => spreadPickCard(r)), "No Game Spreads picks this week.");
-  }
-  if (R.sport === "cfb")
     html += section("cfb-up-watch", "Watchlist Games", `${setup.length} games`,
-      "Both teams top third by record and exactly one ranked: a call fires if the unranked team leads by 11+.",
+      "Games where both teams are in the top third by record and exactly one team is ranked. If the unranked team is the first to take an 11+ point lead before the final 5 minutes, the model bets the unranked team's live spread. Looking back, that bet covered 13-5, a pattern found after the fact and not yet tested at real live prices.",
       setup.map(([, r]) => upcomingCard(r)), "No upcoming Watchlist Games.");
-  const weeks = [...new Set(pre.map(([, r]) => r.week))].sort((a, b) => a - b);
-  for (const wk of weeks) {
-    const g = pre.filter(([, r]) => r.week === wk && !r.setup && !r.spread_pick);
-    html += section(`${R.sport}-up-games-w${wk}`, `Week ${wk} games`, `${g.length} scheduled`, "",
-      g.map(([, r]) => upcomingCard(r)), "");
   }
-  if (!weeks.length)
-    html += section(`${R.sport}-up-games`, "Games", "", "", [], "No upcoming games.");
   return html;
 }
 
@@ -865,7 +867,7 @@ function render() {
   document.getElementById("sporttabs").innerHTML = ["nfl", "cfb"].map(s => `
     <button class="${R.sport === s ? "on" : ""}" ${on(() => go(s, R.view))}>
       ${liveN[s] ? '<span class="livedot"></span>' : ""}${SPORTNAME[s]}</button>`).join("");
-  const counts = { live: liveN[R.sport], upcoming: upcomingGames(R.sport).length, past: null };
+  const counts = { live: liveN[R.sport], upcoming: Object.values(pregamePicks(R.sport)).reduce((n, l) => n + l.length, 0), past: null };
   document.getElementById("viewtabs").innerHTML = ["live", "upcoming", "past"].map(v => `
     <button class="${R.view === v ? "on" : ""}" ${on(() => go(R.sport, v))}>
       ${v === "upcoming" ? "Pregame Picks" : v[0].toUpperCase() + v.slice(1)}${counts[v] ? `<span class="n">${counts[v]}</span>` : ""}</button>`).join("");

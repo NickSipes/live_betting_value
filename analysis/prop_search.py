@@ -108,7 +108,7 @@ def build(season):
             usual = collections.Counter(qb.get((x, pt), ("", 0))[0] for x in prior if (x, pt) in qb).most_common(1)
             rest = gm["home_rest" if home else "away_rest"]
             rows.append(dict(
-                season=season, pos=pos, kind=kind, line=L, po=po, pu=pu, yds=yds[kind].get((g, p), 0.0),
+                season=season, pos=pos, kind=kind, line=L, po=po, pu=pu, yds=yds[kind].get((g, p), 0.0), gid=g, pid=p, team=pt,
                 ypg=ypg, l3=l3, line_vs_ypg=L / max(ypg, 1), line_vs_l3=L / max(l3, 1), l3_vs_ypg=l3 / max(ypg, 1),
                 share=share3, opp_allow=d_allow, team_win=tr[pt][0], opp_win=tr[d][0], win_gap=tr[pt][0] - tr[d][0],
                 off_rank=pf_rank[pt], opp_def_rank=pa_rank[d], spread=spread, total=total,

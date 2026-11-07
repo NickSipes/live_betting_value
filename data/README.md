@@ -98,7 +98,7 @@ signal, 42 got a model pick, 8 got a pregame call). Dict keyed by prop key:
 
 **`docs/calls.json`** — season ledger of every settled call. `{feats: [...19 names], calls: [...]}`.
 Each call: `week, espn_id, game, player, market, type` (`live` = model pick, `pregame`), `side` (`under`
-on under picks) and `rule` (`rb_under`; `wr_mate_under` = top-20 WR whose 60+ ypg WR teammate is out, from
+on under picks), `team_expl` (the team's season 10+ yd run rate on `rb_under` picks; above 0.12 the bet is skipped and logged to `docs/rb_skips.json` instead, keyed `espn_id|player|rush`) and `rule` (`rb_under`; `wr_mate_under` = top-20 WR whose 60+ ypg WR teammate is out, from
 2026 week 9),
 `pregame_line, line` (line called), `cum` (yards at the call), `p, gc, clock, score, final,
 result, won_at, won_yds, settled, settled_t, rebuilt, x` (model inputs at the call; absent on

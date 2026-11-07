@@ -80,6 +80,15 @@ cd analysis && ../.venv/bin/python export_live.py
   mates playing: 50%). 25 bets: a hypothesis for the under, so it runs as a small forward test: from 2026 week 9
   the poller skips the WR over and makes a pregame under (`rule: wr_mate_under`) when a top-20 WR's 60+ ypg WR
   teammate is out (injury report, or no receiving line posted for him once the game's market is up). `live/test_wr_mate.py`.
+- RB unders (the live `rb_under` rule, 2024-26, 99 bets 65-34): the under cashes through yards per carry and missing
+  10+ yd runs, not fewer carries (carries fall ~0.7 vs the player's last 3 for bottom-third teams and everyone else alike;
+  ypc falls 4.07->3.51 vs 4.29->4.09). Lines sit only ~2.5 yds under last-3 pace for bottom-third RBs vs ~5.7 for the rest.
+  Backfield competition (own/RB2 carry share, RB2 ypc) and OL continuity (nflverse snap counts, usual 5 from the last 3
+  games) separate nothing. The player's own share of recent yards from 10+ runs runs backwards (low share 21-7, high 23-17).
+  The team's season 10+ yd run rate is the one cut with the mechanism and the same sign every season: bottom third at
+  <=12% 53-22, above 12% 12-12 (8-8, 4-4; no 2026 bet above it). From 2026 week 9 the poller vetoes RB unders above 12%
+  (`RB_EXPL`, `live/team_expl.json` from `export_live.py`) and logs the skipped bets to `docs/rb_skips.json`; every pick
+  records `team_expl`. 24 removed bets is still noise: the forward test is what decides it.
 - v2 with price as input is the first thing that beats the sample base rate.
   Not yet proven out-of-distribution: that's the forward test.
 

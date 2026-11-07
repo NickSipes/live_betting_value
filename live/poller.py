@@ -153,6 +153,11 @@ def qb_status(week, cache_path):
 
 QB_EXEMPT = {"NYG"}   # never treated as playing a backup (user call)
 RB_UNDER = (20.5, 41.5)   # RB rushing under when the line is above the first and at most the second
+RB_EXPL = 0.12   # no RB under for a team whose season 10+ yd run rate is above this (live/team_expl.json, export_live.py)
+try:
+    TEAM_EXPL = json.load(open(f"{HERE}/team_expl.json"))   # nflverse team code -> rate; missing file = no veto
+except Exception:
+    TEAM_EXPL = {}
 WR_MATE = 60.0            # a teammate WR at this many rec yds/game is a top WR (analysis/wr_mate_out.py)
 WR_TOP = {n for _, n in sorted(((v["rec"]["ypg"], n) for n, v in PRIORS.items() if v.get("rec", {}).get("pos") == "WR"), reverse=True)[:20]}
 
@@ -184,6 +189,10 @@ def scoring_ranks(week):
                     pts.setdefault(c["team"]["abbreviation"], []).append(int(c["score"]))
     ppg = {t: sum(v) / len(v) for t, v in pts.items()}
     return {t: 1 + sum(x > p for x in ppg.values()) for t, p in ppg.items()}
+
+def expl_veto(team):
+    """True when the team's season 10+ yd run rate rules out the RB under. team: nflverse code."""
+    return (TEAM_EXPL.get(team) or 0) > RB_EXPL
 
 def qb_backup(qbs, inj, team):
     """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
@@ -460,6 +469,10 @@ class Monitor:
         self.qb_t = 0         # last usual-QB check for WR Good Matchups and RB unders (every 3h)
         self.qbs, self.inj = {}, {}
         self.rb_t = {}        # Odds API event id -> last RB rushing-line refresh (1 credit)
+        try:   # RB unders the explosive-run veto skipped (forward test of the veto)
+            self.rb_skips = json.load(open(f"{DOCS}/rb_skips.json"))
+        except Exception:
+            self.rb_skips = {}
         self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
         self.ranks = (0, {})  # (fetched at, scoring rank by ESPN abbr), refreshed every 3h
         self.full2ab = {}     # ESPN full team name -> nflverse code
@@ -760,7 +773,7 @@ class Monitor:
 
     def rb_unders(self):
         """Upcoming unders for the page. RB (docs/rb_unders.json): every RB rushing line of 20.5-41.5 whose
-        team's usual QB starts. WR (docs/wr_unders.json): a top-20 WR whose 60+ ypg WR teammate is out
+        team's usual QB starts and whose team is not explosive (expl_veto). WR (docs/wr_unders.json): a top-20 WR whose 60+ ypg WR teammate is out
         (wr_mate_out). Lines refresh every 3h, every 5 min in a game's last hour, 2 credits a game (both
         markets). The picks themselves are still made at kickoff on the closing line (cycle)."""
         now = time.time()
@@ -804,7 +817,7 @@ class Monitor:
                         continue
                     if kind == "rush":
                         if (pr.get("rush", {}).get("pos") != "RB" or not RB_UNDER[0] < L <= RB_UNDER[1]
-                                or not self.qbs or qb_backup(self.qbs, self.inj, team)):
+                                or not self.qbs or qb_backup(self.qbs, self.inj, team) or expl_veto(pr.get("team"))):
                             continue
                         mate = None
                     else:
@@ -817,7 +830,7 @@ class Monitor:
                                       "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
                                       "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
                                       "inj": self.inj.get(short_name(name)), "off_rank": ranks.get(team), "teams": len(ranks),
-                                      "mate_out": mate or None, "ypg": pr.get(kind, {}).get("ypg")})
+                                      "mate_out": mate or None, "ypg": pr.get(kind, {}).get("ypg"), "team_expl": TEAM_EXPL.get(pr.get("team"))})
         forms = {}   # last-3 forms already built (survive restarts): one ESPN pass per player a week
         for fn in ("rb_unders", "wr_unders"):
             try:
@@ -1066,7 +1079,9 @@ class Monitor:
                 if "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
             # Pregame unders at the closing line. RB rushing (analysis/prop_search.py: 2024 +21%, 2025 +5%, 2026 +12%
-            # at real prices), only when the team's usual QB starts; no QB check yet means no bet. WR receiving:
+            # at real prices), only when the team's usual QB starts; no QB check yet means no bet. From 2026 week 9 also
+            # vetoed when the team's season 10+ yd run rate is above RB_EXPL (bottom-third teams above it went 12-12 on
+            # the under 2024-25, the rest 53-22); the skipped bets go to docs/rb_skips.json for the forward test. WR receiving:
             # a top-20 WR whose WR_MATE+ ypg teammate is out (analysis/wr_mate_out.py: the over went 7-18, 2024-26).
             for k, L in closing.items():
                 name, kind = k.rsplit("|", 1)
@@ -1078,6 +1093,13 @@ class Monitor:
                 if (kind == "rush" and RB_UNDER[0] < L <= RB_UNDER[1] and pr.get("rush", {}).get("pos") == "RB" and self.qbs
                         and not qb_backup(self.qbs, self.inj, team) and ranks.get(team, 0) > len(ranks) * 2 / 3):
                     rule = "rb_under"
+                    if expl_veto(pr.get("team")):   # forward evidence for the veto: log the bet not made, grade it later from pbp
+                        skey = f'{game["espn_id"]}|{name}|{kind}'
+                        if game["gc"] <= 300 and skey not in self.rb_skips:
+                            self.rb_skips[skey] = {"t": time.time(), "player": name, "team": pr.get("team"), "line": L, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
+                                                   "team_expl": TEAM_EXPL.get(pr.get("team")), "off_rank": ranks.get(team)}
+                            json.dump(self.rb_skips, open(f"{DOCS}/rb_skips.json", "w"), indent=1)
+                        continue
                 elif kind == "rec" and name in WR_TOP and wr_mate_out(name, self.inj, quoted):
                     rule = "wr_mate_under"
                 else:
@@ -1100,7 +1122,8 @@ class Monitor:
                               tag=hkey + "|pre", url="./#nfl/live",
                               variants={b: f'Bet {name} Under {L} {kind} yds on {n}' for b, n in push.BOOK.items()})
                     h["pre"] = c = {"type": "pregame", "side": "under", "rule": rule, "src": "closing", "clock": "pregame",
-                                    "gc": 0, "line": L, "cum": 0, "p": None, "t": time.time(), "score": "kickoff", "rebuilt": False}
+                                    "gc": 0, "line": L, "cum": 0, "p": None, "t": time.time(), "score": "kickoff", "rebuilt": False,
+                                    "team_expl": TEAM_EXPL.get(pr.get("team"))}
                 cum = players.get(name, {}).get(kind, (0, 0))[0]
                 if "result" not in c and cum > c["line"]:
                     c.update(result="loss", lost_at=game["clock"], settled_t=time.time())

@@ -14,8 +14,12 @@ LIVE = f"{ROOT}/live"
 # defense form for the live veto: yds allowed per game over the last 3 games
 # PLAYED (a bye just pushes the window back a week), per market, team level
 form = {"rush": collections.defaultdict(dict), "rec": collections.defaultdict(dict)}
+expl = collections.defaultdict(lambda: [0, 0])   # team -> [rushes, rushes of 10+ yds], season to date
 with gzip.open(f"{ROOT}/data/pbp_2026.csv.gz", "rt") as fh:
     for r in csv.DictReader(fh):
+        if r["rusher_player_id"] and r["rushing_yards"] not in ("", "NA"):
+            expl[r["posteam"]][0] += 1
+            expl[r["posteam"]][1] += float(r["rushing_yards"]) >= 10
         if r["defteam"]:
             wk = int(r["week"])
             for kind, col in (("rush", "rushing_yards"), ("rec", "receiving_yards")):
@@ -32,6 +36,11 @@ for kind in ("rush", "rec"):
 json.dump(dform, open(f"{LIVE}/def_form.json", "w"), indent=1)
 for kind in ("rush", "rec"):
     print(f"def form top-3 {kind}: {sorted(dform[kind], key=dform[kind].get)[:3]}")
+# team explosive-run rate for the RB-under veto (poller RB_EXPL): bottom-third offenses that still
+# rip 10+ yd runs at a league-average clip went 12-12 on the under, the rest 53-22 (2024-26)
+texpl = {t: round(n10 / n, 3) for t, (n, n10) in expl.items() if n}
+json.dump(texpl, open(f"{LIVE}/team_expl.json", "w"), indent=1)
+print(f"team 10+ run rate above {0.12}: {sorted(t for t, v in texpl.items() if v > 0.12)}")
 
 # upcoming week = first week in the schedule with unplayed games
 w_next = min(int(r["week"]) for r in csv.DictReader(open(f"{ROOT}/data/games.csv"))

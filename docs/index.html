@@ -339,7 +339,11 @@ const chipCls = s => s === "TRIGGER" || s === "EDGE" || s === "CALL" ? "hot" : s
 // spreads only bet in half points; also rounds fair values saved to a tenth before Oct 30
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
   (v = Math.round(v * 2) / 2) === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
-const logoImg = u => u ? `<img src="${u}" alt="" loading="lazy">` : `<span style="width:33px"></span>`;
+// dark mode: ESPN's dark-background logos, so navy and dark green ones (Rams, Jets) show; back to the standard one if missing
+const dkLogo = u => u && matchMedia("(prefers-color-scheme: dark)").matches ? u.replace("/500/", "/500-dark/") : u;
+const LOGO_FALLBACK = `onerror="this.onerror=null;this.setAttribute(this.src ? 'src' : 'href', (this.src || this.getAttribute('href')).replace('/500-dark/', '/500/'))"`;
+const logoImg = u => u ? `<img src="${dkLogo(u)}" alt="" loading="lazy" ${LOGO_FALLBACK}>` : `<span style="width:33px"></span>`;
+const svgLogo = (u, x, y, s) => `<image href="${dkLogo(u)}" x="${x}" y="${y}" width="${s}" height="${s}" ${LOGO_FALLBACK}/>`;
 const nflLogo = ab => ab ? `https://a.espncdn.com/i/teamlogos/nfl/500/${ab.toLowerCase()}.png` : null;
 const kickTxt = iso => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" }) : "";
 const mkt = m => m === "rec" ? "receiving" : "rushing";
@@ -475,7 +479,7 @@ function linePlot(series, ref, rows) {
       if (segs.length && p.x - segs.at(-1).at(-1).x === 1) segs.at(-1).push(p); else segs.push([p]);
     s += segs.map(sg => `<polyline points="${sg.map(p => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none"
         stroke="${sr.color}" stroke-width="2" ${sr.dash ? 'stroke-dasharray="5 4"' : ""}/>`).join("")
-      + pts.map(p => sr.logo ? `<image href="${sr.logo}" x="${X(p.x) - 12}" y="${Y(p.y) - 12}" width="24" height="24"/>`
+      + pts.map(p => sr.logo ? svgLogo(sr.logo, X(p.x) - 12, Y(p.y) - 12, 24)
         : `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="4.5" fill="${sr.color}"/>`).join("");
   }
   return `<div class="prev cplot" onpointerdown="plotCursor(event)" onpointermove="plotCursor(event)" onpointerleave="hideCursor()"
@@ -994,7 +998,7 @@ function svgChart(cfg) {
       for (let i = 1; i < ser.pts.length; i++) d += `H${X(ser.pts[i][0])}V${Y(ser.pts[i][1])}`;
       s += `<path d="${d}" fill="none" stroke="${ser.color}" stroke-width="2.2" stroke-linejoin="round" ${ser.dash ? 'stroke-dasharray="5,4"' : ""}/>`;
       const last = ser.pts[ser.pts.length - 1];
-      s += ser.logo ? `<image href="${ser.logo}" x="${X(last[0]) + 2}" y="${Y(last[1]) - 13.5}" width="27" height="27"/>`
+      s += ser.logo ? svgLogo(ser.logo, X(last[0]) + 2, Y(last[1]) - 13.5, 27)
         : `<text x="${X(last[0]) + 4}" y="${Y(last[1]) + 4}" fill="${ser.color}" font-size="11" font-weight="600">${ser.name}</text>`;
     }
   }

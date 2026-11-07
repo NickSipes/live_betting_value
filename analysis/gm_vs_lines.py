@@ -84,8 +84,11 @@ def season_rows(season):
                     continue
                 pt, d = tm[(w, g, p)]
                 usual = max(((q, c) for (t, q), c in qbs.items() if t == pt), key=lambda x: x[1], default=(None, 0))[0]
-                rows.append(dict(y=season, pos=pos, top=top, rank=rank[p], weak=d in worst, line=L, yds=v,
-                                 res="win" if v > L else "loss" if v < L else "push", backup=gq.get((wk, pt), ("", 0))[0] != usual))
+                # the player's earlier lined games this season: [(week, line, yards)], for form-vs-line splits
+                prior = sorted((w2, L2, v2) for (w2, g2, p2), v2 in yds[kind].items() if p2 == p and w2 < wk and g2 in props
+                               for L2 in [lines(props[g2], kind).get(" ".join(norm(ros[p][1])))] if L2 is not None)
+                rows.append(dict(y=season, wk=wk, g=g, team=pt, pid=p, name=ros[p][1], pos=pos, top=top, rank=rank[p], ypg=ypg[p], weak=d in worst, line=L, yds=v,
+                                 res="win" if v > L else "loss" if v < L else "push", backup=gq.get((wk, pt), ("", 0))[0] != usual, prior=prior))
     return rows
 
 def report(rows, seasons):

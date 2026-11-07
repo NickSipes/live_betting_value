@@ -153,6 +153,26 @@ def qb_status(week, cache_path):
 
 QB_EXEMPT = {"NYG"}   # never treated as playing a backup (user call)
 RB_UNDER = (20.5, 41.5)   # RB rushing under when the line is above the first and at most the second
+WR_MATE = 60.0            # a teammate WR at this many rec yds/game is a top WR (analysis/wr_mate_out.py)
+WR_TOP = {n for _, n in sorted(((v["rec"]["ypg"], n) for n, v in PRIORS.items() if v.get("rec", {}).get("pos") == "WR"), reverse=True)[:20]}
+
+def wr_mate_out(name, inj, quoted=None):
+    """The WR_MATE+ yds/game WR teammate of `name` who is out, or None. Out = Out/IR/Doubtful/Suspension on the
+    injury report, or no receiving line quoted for him while `quoted` (short names with a rec line in the game)
+    has 4+ names, i.e. the game's receiving market is up. Only for the team's best WR still playing: WR1 with a real WR2 out went 7-18 at the closing over,
+    2024-26 (the book raises the line ~6 yds for volume that never comes); the remaining WR2 showed nothing."""
+    me = PRIORS.get(name, {})
+    out = None
+    for n, v in sorted(PRIORS.items(), key=lambda kv: -kv[1].get("rec", {}).get("ypg", 0)):
+        r = v.get("rec", {})
+        if n == name or v.get("team") != me.get("team") or r.get("pos") != "WR":
+            continue
+        gone = inj.get(short_name(n)) in INJ_OUT or (quoted is not None and len(quoted) >= 4 and short_name(n) not in quoted)
+        if gone:
+            out = out or (n if r["ypg"] >= WR_MATE else None)
+        elif r["ypg"] > me.get("rec", {}).get("ypg", 0):
+            return None   # a better WR is still playing: `name` isn't the one left to cover
+    return out
 
 def scoring_ranks(week):
     """ESPN team abbr -> scoring rank (1 = most points per game) from regular-season games before `week`."""
@@ -804,6 +824,10 @@ class Monitor:
                 if w.get("inj") != st:
                     w["inj"] = st   # None clears a healed player
                     changed = True
+                mo = wr_mate_out(w["player"], inj, w.get("quoted")) if w["pos"] == "WR" else None
+                if w.get("mate_out") != mo:
+                    w["mate_out"] = mo   # his top WR teammate is out: no over (the under rule takes it at kickoff)
+                    changed = True
         except Exception as e:
             print("injury fetch error", repr(e))
         if time.time() - self.qb_t > 10800 or any(0 < kick_in(w) <= WL_NEAR for w in entries):
@@ -851,8 +875,9 @@ class Monitor:
                     book = (first_over(books.get(k)) or (None,))[0]
                     link, links = slips.get(k, {}).get(book), slips.get(k, {})
                     lines = {b: q[0] for b, q in books.get(k, {}).items()}
-                    if (w.get("line"), w.get("book"), w.get("link"), w.get("links"), w.get("lines")) != (L, book, link, links, lines):
-                        w.update(line=L, book=book, link=link, links=links, lines=lines)
+                    quoted = sorted({short_name(q[0]) for q in quotes if q[1] == "rec"})   # who the book has a rec line for
+                    if (w.get("line"), w.get("book"), w.get("link"), w.get("links"), w.get("lines"), w.get("quoted")) != (L, book, link, links, lines, quoted):
+                        w.update(line=L, book=book, link=link, links=links, lines=lines, quoted=quoted)
                         changed = True
             except Exception as e:
                 print("watchlist line fetch error", repr(e))
@@ -972,6 +997,7 @@ class Monitor:
                 hk = f'{game["espn_id"]}|{k}'
                 if hk in self.hist and not self.hist[hk].get("l0_closing"):
                     self.hist[hk].update(l0=line, l0_closing=True)
+            quoted = {short_name(k.rsplit("|", 1)[0]) for k in closing if k.endswith("|rec")}
             for w in watchlist():
                 k = next((k for k in closing if k.endswith("|" + w["market"]) and
                           short_name(k.rsplit("|", 1)[0]) == short_name(w["player"])), None)
@@ -979,7 +1005,8 @@ class Monitor:
                     continue   # no pregame line = no bet was available
                 name, kind = k.rsplit("|", 1)
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
-                if w.get("inj") in INJ_OUT or w.get("qb_out"):   # injured, or a WR without his usual QB: no bet
+                mate = w["pos"] == "WR" and wr_mate_out(w["player"], self.inj, quoted)
+                if w.get("inj") in INJ_OUT or w.get("qb_out") or mate:   # injured, a WR without his usual QB, or his top WR teammate out: no over
                     if name not in players and "result" not in self.hist.get(hkey, {}).get("pre", {"result": 0}):
                         del self.hist[hkey]["pre"]   # ruled out after the pick: he never played, so no card or grade
                     continue
@@ -1003,17 +1030,22 @@ class Monitor:
                 cum = players.get(name, {}).get(kind, (0, 0))[0]
                 if "result" not in c and cum > c["line"]:
                     c.update(result="win", won_at=game["clock"], won_yds=cum, settled_t=time.time())
-            # RB rushing unders at the closing line (analysis/prop_search.py: 2024 +21%, 2025 +5%, 2026 +12% at
-            # real prices), only when the team's usual QB starts; no QB check yet means no bet
+            # Pregame unders at the closing line. RB rushing (analysis/prop_search.py: 2024 +21%, 2025 +5%, 2026 +12%
+            # at real prices), only when the team's usual QB starts; no QB check yet means no bet. WR receiving:
+            # a top-20 WR whose WR_MATE+ ypg teammate is out (analysis/wr_mate_out.py: the over went 7-18, 2024-26).
             for k, L in closing.items():
                 name, kind = k.rsplit("|", 1)
                 pr = PRIORS.get(name, {})
                 team = ALIAS.get(pr.get("team"), pr.get("team"))
                 ranks = self.ranks[1]   # bottom third of scoring only; no ranks yet means no bet
-                if (kind != "rush" or not RB_UNDER[0] < L <= RB_UNDER[1] or pr.get("rush", {}).get("pos") != "RB"
-                        or team not in (game["home_abbr"], game["away_abbr"]) or not self.qbs
-                        or qb_backup(self.qbs, self.inj, team) or self.inj.get(short_name(name)) in INJ_OUT
-                        or not ranks.get(team, 0) > len(ranks) * 2 / 3):
+                if team not in (game["home_abbr"], game["away_abbr"]) or self.inj.get(short_name(name)) in INJ_OUT:
+                    continue
+                if (kind == "rush" and RB_UNDER[0] < L <= RB_UNDER[1] and pr.get("rush", {}).get("pos") == "RB" and self.qbs
+                        and not qb_backup(self.qbs, self.inj, team) and ranks.get(team, 0) > len(ranks) * 2 / 3):
+                    rule = "rb_under"
+                elif kind == "rec" and name in WR_TOP and wr_mate_out(name, self.inj, quoted):
+                    rule = "wr_mate_under"
+                else:
                     continue
                 hkey = f'{game["espn_id"]}|{name}|{kind}'
                 if hkey not in self.hist and game["gc"] > 300:
@@ -1029,10 +1061,10 @@ class Monitor:
                     continue   # a pregame bet: only made around kickoff, never mid-game (e.g. after a restart)
                 if not c:
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
-                    push.send(f'Bet {name} Under {L} rush yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
+                    push.send(f'Bet {name} Under {L} {kind} yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
                               tag=hkey + "|pre", url="./#nfl/live",
-                              variants={b: f'Bet {name} Under {L} rush yds on {n}' for b, n in push.BOOK.items()})
-                    h["pre"] = c = {"type": "pregame", "side": "under", "rule": "rb_under", "src": "closing", "clock": "pregame",
+                              variants={b: f'Bet {name} Under {L} {kind} yds on {n}' for b, n in push.BOOK.items()})
+                    h["pre"] = c = {"type": "pregame", "side": "under", "rule": rule, "src": "closing", "clock": "pregame",
                                     "gc": 0, "line": L, "cum": 0, "p": None, "t": time.time(), "score": "kickoff", "rebuilt": False}
                 cum = players.get(name, {}).get(kind, (0, 0))[0]
                 if "result" not in c and cum > c["line"]:

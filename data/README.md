@@ -97,7 +97,9 @@ signal, 42 got a model pick, 8 got a pregame call). Dict keyed by prop key:
 | `pre` | pregame call: `{type:"pregame", src:"closing", line (closing line), gc:0, result, won_at, won_yds, settled_t}`, or absent |
 
 **`docs/calls.json`** — season ledger of every settled call. `{feats: [...19 names], calls: [...]}`.
-Each call: `week, espn_id, game, player, market, type` (`live` = model pick, `pregame`),
+Each call: `week, espn_id, game, player, market, type` (`live` = model pick, `pregame`), `side` (`under`
+on under picks) and `rule` (`rb_under`; `wr_mate_under` = top-20 WR whose 60+ ypg WR teammate is out, from
+2026 week 9),
 `pregame_line, line` (line called), `cum` (yards at the call), `p, gc, clock, score, final,
 result, won_at, won_yds, settled, settled_t, rebuilt, x` (model inputs at the call; absent on
 pregame calls).
@@ -117,7 +119,10 @@ through 2026-10-25 14:40 UTC have p < 0.70 (an older version also logged NEAR); 
 **`docs/watchlist.json`** — this week's pregame matchups (top-20 WR / top-10 TE / top-15 RB
 by season yds/game vs a bottom-10 defense at the position):
 `{week, entries: [{player, pos, rank, ypg, market, team, opp, def_rank, def_ypg, game, kick, kick_iso,
-line, inj, venue, wx, form}]}`. `venue` and `wx` (kickoff forecast, or `Indoors`) come from the
+line, inj, qb_out, mate_out, quoted, venue, wx, form}]}`. `qb_out` = the backup QB a WR's team is starting
+(no over), `mate_out` = the 60+ yds/game WR teammate who is out (no over; the under rule takes it at kickoff),
+`quoted` = short names the book has a receiving line for in that game (how a missing teammate is detected
+when the injury report is silent). `venue` and `wx` (kickoff forecast, or `Indoors`) come from the
 ESPN scoreboard each cycle. `form` feeds the preview card (from ESPN box scores, once per entry):
 `me` = the player's yards in the prop's market over their last 3 games, `[[label, yds], ...]`
 (`null` = not in the box score); `vs` = for each of the defense's last 3 games, the top-2

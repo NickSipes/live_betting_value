@@ -36,6 +36,7 @@ cd analysis && ../.venv/bin/python export_live.py
 | `analysis/v2_model.py` | v2: price-aware over model (train wk<=5, test wk6+) |
 | `analysis/export_live.py` | train v2 + write live/{model_weights,priors,def_priors}.json |
 | `live/poller.py` + `live/web/` | live monitor + dashboard |
+| `analysis/cfb_top25_lines.py` | CFB Top-25 line check: margin rating + common opponents vs the posted spread (`--backtest`) |
 
 ## Findings log
 
@@ -49,6 +50,24 @@ cd analysis && ../.venv/bin/python export_live.py
   production — droughts alone are NOT value (8.8% burst rate vs 9.8% base).
 - v1 burst model: AUC 0.66; drought + top-decile = 46% burst rate, but flags
   bet blind at quoted lines went 7/13 (breakeven).
+- Beating your own prop line does not carry (`analysis/gm_beat_history.py`, 823 cohort bets 2024-26):
+  players 3/3 over their last three lines go 52% at the next closing line, mean beat 20+ goes 51%,
+  corr(last-3 beat, next beat) = +0.03. The book moves the next line only ~0.9 yds per 10 yds beaten,
+  and that is right: single-game beats are noise. Lines sit ~10 yds under season yds/game by design
+  (right-skewed finals), so a big ypg-minus-line gap is normal, not an edge (gap 20+: 56%, p=0.27).
+  Only the cold end shows anything: 0/3 over the last three goes 36% (18-32), a fade not an over.
+- CFB Top-25 lines (`analysis/cfb_top25_lines.py`, 2025-26 weeks 5+, 764 priced games): a ridge margin
+  rating (prior-season prior, HFA ~3.8) disagrees with the line a lot but does not beat it: 51% overall,
+  52% on ranked games at |edge|>=4, 13-19 at >=8 — the biggest disagreements are the rating being wrong,
+  not the market. Ranked teams covered 56% straight up (108-85, positive both seasons) with no conditioning.
+  Common opponents (>=2 shared, bet the side they favor by 4+): 72-59 in 2025, 9-12 in 2026 — not a thing yet.
+- WR1 with a real WR2 out (60+ rec yds/game teammate, no target in the game) goes 7-18 (28%, p=0.03) at the
+  closing over, 29-38 with a 45 ypg teammate (`analysis/wr_mate_out.py`, 2024-26). The book raises the line
+  ~6 yds expecting the volume; the WR1 produces the same relative to their season average as usual
+  (-8.6 vs -9.2), so the raise is the edge. Line level alone is not it (WR1s at the same line level with
+  mates playing: 50%). 25 bets: a hypothesis for the under, so it runs as a small forward test: from 2026 week 9
+  the poller skips the WR over and makes a pregame under (`rule: wr_mate_under`) when a top-20 WR's 60+ ypg WR
+  teammate is out (injury report, or no receiving line posted for him once the game's market is up). `live/test_wr_mate.py`.
 - v2 with price as input is the first thing that beats the sample base rate.
   Not yet proven out-of-distribution: that's the forward test.
 

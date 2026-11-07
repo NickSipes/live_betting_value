@@ -567,6 +567,7 @@ class CFB:
         self.hist = json.load(open(self.hist_path)) if os.path.exists(self.hist_path) else {}
         self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
         self.finals, self.finals_t = {}, 0
+        self.slips_t = 0      # last odds fetch made only for pregame pick links
         self.next_t = 0    # last fetch of next week's schedule
         self.bf_path = f"{DATA}/backfilled_{SPORT}.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
@@ -694,49 +695,9 @@ class CFB:
             merge_json(f"{ARCHIVE}/{SPORT}_w{wk}.json", recs)
             print(f"archived {len(recs)} {SPORT} games to week {wk}")
 
-    def cycle(self):
-        rows = []
-        sb = get(ESPN)
-        self.update_registry(sb)
-        self.archive_finals()
-        live = {}
-        for ev in sb.get("events", []):
-            st = ev["status"]
-            if st["type"]["state"] != "in":
-                continue
-            comp = ev["competitions"][0]
-            t = {c["homeAway"]: c for c in comp["competitors"]}
-            sit = comp.get("situation", {})
-            ids = {c["id"]: c["homeAway"] for c in comp["competitors"]}
-            live[ev["id"]] = {
-                "poss_side": ids.get(sit.get("possession")),   # 'home'/'away'/None
-                "yl": sit.get("yardLine"),                      # yards from own goal
-                "poss_text": sit.get("possessionText"),
-                "dd": sit.get("shortDownDistanceText") or sit.get("downDistanceText"),
-                "hlogo": t["home"]["team"].get("logo"), "alogo": t["away"]["team"].get("logo"),
-                "hcolor": t["home"]["team"].get("color"), "acolor": t["away"]["team"].get("color"),
-                "hid": t["home"]["id"],
-                "home": t["home"]["team"]["displayName"], "away": t["away"]["team"]["displayName"],
-                "habbr": t["home"]["team"]["abbreviation"], "aabbr": t["away"]["team"]["abbreviation"],
-                "hs": int(t["home"]["score"]), "as": int(t["away"]["score"]),
-                "gc": clock_elapsed(st["period"], st.get("displayClock")),
-                "clock": f'Q{st["period"]} {st.get("displayClock", "")}',
-                "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"]),
-            }
-        if not live:
-            return rows
-        week = (sb.get("week") or {}).get("number")
-        if self.tops[0] != week:
-            try:
-                self.tops = (week, top_third(week) if (sb.get("season") or {}).get("type") == 2 else set())
-            except Exception as e:
-                print("top-third fetch failed", repr(e))
-        need = [gid for gid, g in live.items() if g["gc"] > 300 and gid not in self.backfilled]
-        if need:
-            try:
-                self.backfill(need, live)
-            except Exception as e:
-                print("backfill error", repr(e))
+    def odds_feed(self):
+        """One odds-API call (1 credit): live quotes for the fair-line check, bet-slip links for the page's
+        buttons, and each book's link on every pregame Game Spreads pick. -> (quotes, detail, books)"""
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
         detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
         books = {}    # same key -> {book: [home points, home price, away price, updated]}, archived per poll
@@ -772,6 +733,59 @@ class CFB:
                 p["book"] = "fanduel" if "fanduel" in p["links"] else next(iter(p["links"]), None)
                 p["link"] = p["links"].get(p["book"])
                 p["books"] = next((v for k, v in books.items() if r["hname"] in k or k in r["hname"]), None)
+        return quotes, detail, books
+
+    def cycle(self):
+        rows = []
+        sb = get(ESPN)
+        self.update_registry(sb)
+        self.archive_finals()
+        live = {}
+        for ev in sb.get("events", []):
+            st = ev["status"]
+            if st["type"]["state"] != "in":
+                continue
+            comp = ev["competitions"][0]
+            t = {c["homeAway"]: c for c in comp["competitors"]}
+            sit = comp.get("situation", {})
+            ids = {c["id"]: c["homeAway"] for c in comp["competitors"]}
+            live[ev["id"]] = {
+                "poss_side": ids.get(sit.get("possession")),   # 'home'/'away'/None
+                "yl": sit.get("yardLine"),                      # yards from own goal
+                "poss_text": sit.get("possessionText"),
+                "dd": sit.get("shortDownDistanceText") or sit.get("downDistanceText"),
+                "hlogo": t["home"]["team"].get("logo"), "alogo": t["away"]["team"].get("logo"),
+                "hcolor": t["home"]["team"].get("color"), "acolor": t["away"]["team"].get("color"),
+                "hid": t["home"]["id"],
+                "home": t["home"]["team"]["displayName"], "away": t["away"]["team"]["displayName"],
+                "habbr": t["home"]["team"]["abbreviation"], "aabbr": t["away"]["team"]["abbreviation"],
+                "hs": int(t["home"]["score"]), "as": int(t["away"]["score"]),
+                "gc": clock_elapsed(st["period"], st.get("displayClock")),
+                "clock": f'Q{st["period"]} {st.get("displayClock", "")}',
+                "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"]),
+            }
+        if not live:
+            # no live games: still refresh the pregame picks' slip links every half hour (1 credit each)
+            if SPORT == "cfb" and time.time() - self.slips_t > 1800 and any(r.get("spread_pick") and r["state"] == "pre" for r in self.reg.values()):
+                self.slips_t = time.time()
+                try:
+                    self.odds_feed()
+                except Exception as e:
+                    print("pregame odds fetch failed", repr(e))
+            return rows
+        week = (sb.get("week") or {}).get("number")
+        if self.tops[0] != week:
+            try:
+                self.tops = (week, top_third(week) if (sb.get("season") or {}).get("type") == 2 else set())
+            except Exception as e:
+                print("top-third fetch failed", repr(e))
+        need = [gid for gid, g in live.items() if g["gc"] > 300 and gid not in self.backfilled]
+        if need:
+            try:
+                self.backfill(need, live)
+            except Exception as e:
+                print("backfill error", repr(e))
+        quotes, detail, books = self.odds_feed()
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})

@@ -763,7 +763,7 @@ function viewUpcoming() {
       rb.map(rbUnderCard), "No RB Unders right now.");
     const wru = (S.wru?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd()).sort(byKick);
     html += section("nfl-up-wr", "WR Unders", `${wru.length} players`,
-      "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the over went 7-18 in 2024-26. Small sample, so this is a forward test. The pick is made at kickoff on the closing line.",
+      "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the under went 18-7 in 2024-26. The pick is made at kickoff on the closing line.",
       wru.map(wrUnderCard), "No WR Unders right now.");
   }
   // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section

@@ -359,6 +359,7 @@ const star = (player, market) => onWatch(player, market) ? `<span class="star" t
 // click handlers are registered per render so names with quotes never break markup
 let H = [];
 const on = fn => `onclick="H[${H.push(fn) - 1}]()"`;
+const formCard = w => w.form ? `class="card final click" ${on(() => openPreview(w))}` : `class="card final"`;   // tap: last-3 plot
 
 // ---------- cards ----------
 function propLiveCard(o) {
@@ -419,7 +420,7 @@ const callsOf = o => [o.pre, o.call].filter(Boolean).map(c => ({
   ...c, type: c.type || "live", player: o.player, market: o.market, id: `${o.id}|${c.type || "live"}`, o }));
 function rbUnderCard(w) {
   return `
-  <div class="card final">
+  <div ${formCard(w)}>
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       ${w.inj ? `<span class="chip warm" title="${w.inj}">${w.inj.toUpperCase()}</span>` : ""}
@@ -433,7 +434,7 @@ function rbUnderCard(w) {
 }
 function wrUnderCard(w) {
   return `
-  <div class="card final">
+  <div ${formCard(w)}>
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       ${w.inj ? `<span class="chip warm" title="${w.inj}">${w.inj.toUpperCase()}</span>` : ""}
@@ -450,7 +451,7 @@ function propPreCard(w, chip = "PREGAME") {
   const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
     title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
   return `
-  <div class="card final ${w.form ? "click" : ""}" ${w.form ? on(() => openPreview(w)) : ""}>
+  <div ${formCard(w)}>
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       ${inj}
@@ -462,7 +463,6 @@ function propPreCard(w, chip = "PREGAME") {
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso) || w.kick}</span></div>
-    ${w.form ? `<div class="sub"><span style="color:var(--ink-1)">last 3 form ›</span></div>` : ""}
     ${w.line != null ? betBtn(w) : ""}
   </div>`;
 }
@@ -514,7 +514,7 @@ function plotCursor(e) {
 // Good Matchups: the player's yards in the prop's market (green) and the yards the defense
 // gave up to the top-2 opposing players in it (orange, solid = most), by week, against the prop line
 function openPreview(w) {
-  const f = w.form, last = w.player.split(" ").slice(-1)[0];
+  const f = w.form, last = w.player.split(" ").slice(-1)[0], OU = w.side === "under" ? "U" : "O";
   const wk = l => +l.match(/^w(\d+)/)[1], who = l => l.slice(l.indexOf(" ") + 1);   // 'w7 @ BAL' -> 7, '@ BAL'
   const me = { color: "var(--green)", logo: nflLogo(w.team), pts: f.me.map(([lbl, y]) => ({ x: wk(lbl), y })) };
   const wkLine = { color: "var(--blue)", pts: f.me.filter(m => m[2] != null).map(([lbl, , L]) => ({ x: wk(lbl), y: L })) };   // his closing line each week
@@ -534,11 +534,11 @@ function openPreview(w) {
     <div class="mleg"><span>${logoImg(nflLogo(w.team))}${last} yards</span>
       <span>${logoImg(nflLogo(w.opp))}${w.opp} yards given up, top 2 ${w.market === "rec" ? "receivers" : "rushers"}</span>
       ${wkLine.pts.length ? `<span><i style="background:var(--blue)"></i>his line each week</span>` : ""}
-      <span><i style="background:var(--blue);opacity:.5"></i>${w.line != null ? `this week's line O ${w.line} (dashed)` : `season ${w.ypg} ypg (dashed)`}</span></div>
+      <span><i style="background:var(--blue);opacity:.5"></i>${w.line != null ? `this week's line ${OU} ${w.line} (dashed)` : `season ${w.ypg} ypg (dashed)`}</span></div>
     <div class="nums pdet">
-      ${det("prop", `${MKT(w.market)} · ${w.line != null ? "O " + w.line : "no line yet"}`)}
-      ${det("season", `${w.ypg} ypg · ${w.pos} #${w.rank}`)}
-      ${det("defense", `${w.opp} #${w.def_rank} worst vs ${w.pos} · ${w.def_ypg} ypg`)}
+      ${det("prop", `${MKT(w.market)} · ${w.line != null ? `${OU} ${w.line}` : "no line yet"}`)}
+      ${det("season", [w.ypg != null && `${w.ypg} ypg`, w.pos && `${w.pos} #${w.rank}`].filter(Boolean).join(" · "))}
+      ${det("defense", w.def_rank && `${w.opp} #${w.def_rank} worst vs ${w.pos} · ${w.def_ypg} ypg`)}
       ${det("game", `${w.game} · ${kickTxt(w.kick_iso) || w.kick}`)}
       ${det("venue", w.venue)}
       ${det("forecast", w.wx)}

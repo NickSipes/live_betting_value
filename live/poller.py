@@ -462,6 +462,7 @@ class Monitor:
         self.rb_t = {}        # Odds API event id -> last RB rushing-line refresh (1 credit)
         self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
         self.ranks = (0, {})  # (fetched at, scoring rank by ESPN abbr), refreshed every 3h
+        self.full2ab = {}     # ESPN full team name -> nflverse code
 
     def closing_lines(self, game, oe):
         """Each player's closing pregame line: the last historical snapshot at kickoff
@@ -786,8 +787,12 @@ class Monitor:
             wk = (get(f"{ESPN}/scoreboard").get("week") or {}).get("number") or 1
             self.ranks = (now, scoring_ranks(wk))
         ranks = self.ranks[1]
+        if not self.full2ab:   # Odds API full names -> nflverse codes, for each under's opponent
+            self.full2ab = {t["team"]["displayName"]: NFLV.get(t["team"]["abbreviation"], t["team"]["abbreviation"])
+                            for t in get(f"{ESPN}/teams")["sports"][0]["leagues"][0]["teams"]}
         out = {"rush": [], "rec": []}
         for gid, g in self.rb_games.items():
+            sides = [self.full2ab.get(g["home"]), self.full2ab.get(g["away"])]
             quoted = {short_name(n) for n in g.get("rec", {})}   # who the book prices: a missing top WR is out
             for kind, key in (("rush", "lines"), ("rec", "rec")):
                 for name, books in g.get(key, {}).items():
@@ -807,12 +812,28 @@ class Monitor:
                         if not mate:
                             continue
                     out[kind].append({"player": name, "team": pr.get("team"), "market": kind, "side": "under", "line": L,
+                                      "opp": next((t for t in sides if t and t != pr.get("team")), None),
                                       "price": books[book][1], "book": book, "link": books[book][2],
                                       "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
                                       "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
                                       "inj": self.inj.get(short_name(name)), "off_rank": ranks.get(team), "teams": len(ranks),
                                       "mate_out": mate or None, "ypg": pr.get(kind, {}).get("ypg")})
+        forms = {}   # last-3 forms already built (survive restarts): one ESPN pass per player a week
+        for fn in ("rb_unders", "wr_unders"):
+            try:
+                forms.update({(e["player"], e["market"], e["kick_iso"]): e["form"]
+                              for e in json.load(open(f"{DOCS}/{fn}.json"))["entries"] if (e.get("form") or {}).get("v") == FORM_V})
+            except Exception:
+                pass
         for kind, fn in (("rush", "rb_unders"), ("rec", "wr_unders")):
+            for w in out[kind]:   # only the cards the page shows: RBs on bottom-third scoring teams, every WR
+                if w["opp"] and w["team"] and (kind == "rec" or (w["off_rank"] or 0) > w["teams"] * 2 / 3):
+                    w["form"] = forms.get((w["player"], kind, w["kick_iso"]))
+                    if not w["form"]:
+                        try:
+                            w["form"] = preview_form(w, self.pre_lines)
+                        except Exception as e:   # ponytail: retried next cycle; no backoff
+                            print("unders form error", w["player"], repr(e))
             out[kind].sort(key=lambda w: (w["kick_iso"], w["game"], w["player"]))
             tmp = f"{DOCS}/{fn}.json.tmp"
             json.dump({"ts": now, "entries": out[kind]}, open(tmp, "w"))

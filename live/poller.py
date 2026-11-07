@@ -282,16 +282,20 @@ def game_info(week):
                   f'{wx["displayValue"]}, {wx["temperature"]}°F' if wx.get("displayValue") else None}
     return out
 
-def preview_form(w):
+FORM_V = 2   # bump to rebuild cached forms; 2 added the player's closing line each week
+
+def preview_form(w, pre_lines=None):
     """Good Matchups card data: the player's yards in the prop's market over their last 3
-    games (null = not in the box score), and for each of the defense's last 3 games the
-    top-2 opposing players in that market."""
+    games (null = not in the box score) with that game's closing line (null = not tracked),
+    and for each of the defense's last 3 games the top-2 opposing players in that market."""
     kind, me_ab, who = w["market"], ALIAS.get(w["team"], w["team"]), short_name(w["player"])
-    me = [[lbl, next((y for n, y in espn_box(eid).get(me_ab, {}).get(kind, []) if short_name(n) == who), None)]
+    line = lambda eid: next((v for k, v in (pre_lines or {}).get(eid, {}).items()
+                             if k.endswith("|" + kind) and short_name(k.rsplit("|", 1)[0]) == who), None)
+    me = [[lbl, next((y for n, y in espn_box(eid).get(me_ab, {}).get(kind, []) if short_name(n) == who), None), line(eid)]
           for lbl, eid, _ in last3(w["team"])]
     vs = [[lbl, [[abbrev(n), y] for n, y in espn_box(eid).get(opp, {}).get(kind, [])[:2]]]
           for lbl, eid, opp in last3(w["opp"])]
-    return {"me": me, "vs": vs}
+    return {"me": me, "vs": vs, "v": FORM_V}
 
 def get(url, timeout=20):
     req = urllib.request.Request(url, headers={"User-Agent": "curl/8.4"})
@@ -852,12 +856,12 @@ class Monitor:
                         changed = True
             except Exception as e:
                 print("watchlist line fetch error", repr(e))
-        if any("form" not in w for w in entries) and time.time() - self.form_t > 3600:
+        if any((w.get("form") or {}).get("v") != FORM_V for w in entries) and time.time() - self.form_t > 3600:
             self.form_t = time.time()   # new week: last-3 form for the preview cards, once per entry
             try:
                 for w in entries:
-                    if "form" not in w:
-                        w["form"] = preview_form(w)
+                    if (w.get("form") or {}).get("v") != FORM_V:
+                        w["form"] = preview_form(w, self.pre_lines)
                         changed = True
             except Exception as e:
                 print("preview form error", repr(e))

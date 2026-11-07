@@ -496,21 +496,24 @@ function openPreview(w) {
   const f = w.form, last = w.player.split(" ").slice(-1)[0];
   const wk = l => +l.match(/^w(\d+)/)[1], who = l => l.slice(l.indexOf(" ") + 1);   // 'w7 @ BAL' -> 7, '@ BAL'
   const me = { color: "var(--green)", pts: f.me.map(([lbl, y]) => ({ x: wk(lbl), y })) };
+  const wkLine = { color: "var(--blue)", pts: f.me.filter(m => m[2] != null).map(([lbl, , L]) => ({ x: wk(lbl), y: L })) };   // his closing line each week
   const vs = [0, 1].map(i => ({ color: "var(--orange)", dash: i, pts: f.vs.filter(v => v[1][i]).map(v => ({ x: wk(v[0]), y: v[1][i][1] })) }));
   const rows = week => {   // one readout for both: the week, the player's game, the defense's
     const m = f.me.find(([l]) => wk(l) === week), v = f.vs.find(([l]) => wk(l) === week);
     return { sub: v ? `${w.opp} ${who(v[0])}` : `${w.opp} bye`,
       stats: [[m ? `${last} ${who(m[0])}` : last, !m ? "bye" : m[1] == null ? "did not play" : `${Math.round(m[1])} yds`],
+              ...(m && m[2] != null ? [["line that week", `O ${m[2]}`]] : []),
               ...(v ? v[1].map(([n, y]) => [n, `${Math.round(y)} yds`]) : [])] };
   };
   MC = null;
   const det = (lbl, val) => val ? `<div><span>${lbl}</span><b>${val}</b></div>` : "";
   showModal(`
     <h3>${logoImg(nflLogo(w.team))} Last 3 — ${w.player} <span class="meta" style="margin:0">| ${w.opp} Defense</span></h3>
-    ${linePlot([me, ...vs], w.line ?? w.ypg, rows)}
+    ${linePlot([me, ...vs, wkLine], w.line ?? w.ypg, rows)}
     <div class="mleg"><span><i style="background:var(--green)"></i>${last} yards</span>
       <span><i style="background:var(--orange)"></i>${w.opp} yards given up, top 2 ${w.market === "rec" ? "receivers" : "rushers"}</span>
-      <span><i style="background:var(--blue)"></i>${w.line != null ? `prop line O ${w.line}` : `season ${w.ypg} ypg`}</span></div>
+      ${wkLine.pts.length ? `<span><i style="background:var(--blue)"></i>his line each week</span>` : ""}
+      <span><i style="background:var(--blue);opacity:.5"></i>${w.line != null ? `this week's line O ${w.line} (dashed)` : `season ${w.ypg} ypg (dashed)`}</span></div>
     <div class="nums pdet">
       ${det("prop", `${MKT(w.market)} · ${w.line != null ? "O " + w.line : "no line yet"}`)}
       ${det("season", `${w.ypg} ypg · ${w.pos} #${w.rank}`)}
@@ -651,17 +654,18 @@ const regList = (sport, state) => Object.entries(S.games[sport] || {})
   .filter(([, r]) => r.state === state).sort((a, b) => a[1].date.localeCompare(b[1].date));
 const pastWeeks = sport => [...new Set(regList(sport, "post").map(([, r]) => r.week))].sort((a, b) => b - a);
 // NFL shows only the current week: the earliest one with a game not yet final
+// lists show the current week only (the earliest week with a game not yet final), in kickoff order
 const upcomingGames = sport => {
-  const pre = regList(sport, "pre");
-  if (sport !== "nfl") return pre;
-  const wk = Math.min(...Object.values(S.games.nfl).filter(r => r.state !== "post").map(r => r.week));
-  return pre.filter(([, r]) => r.week === wk);
+  const wk = curWeek(sport);
+  return regList(sport, "pre").filter(([, r]) => r.week === wk);
 };
+const byKick = (a, b) => new Date(a.kick_iso || 0) - new Date(b.kick_iso || 0);
+const weekEnd = () => Math.max(0, ...Object.values(S.games.nfl || {}).filter(r => r.week === curWeek("nfl")).map(r => Date.parse(r.date))) + 6 * 36e5;
 const now = () => Date.now();
 // the earliest week with a game not yet final, so results clear when its last game ends
 const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(r => r.state !== "post").map(r => r.week); return w.length ? Math.min(...w) : null; };
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
-const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj) && !w.qb_out);
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj) && !w.qb_out).sort(byKick);
 
 // a final's chart lives in the week's archive, which only Past loads
 async function openFinal(sport, wk, id) { await loadArchive(sport, wk); openSpread(KINDOF[sport], id); }
@@ -731,7 +735,7 @@ function viewUpcoming() {
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
     // only backs whose team is in the bottom third of scoring: the one split that held in 2024 and 2025-26
-    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && x.off_rank > (x.teams || 32) * 2 / 3);
+    const rb = (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd() && x.off_rank > (x.teams || 32) * 2 / 3).sort(byKick);
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
       "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the team's usual QB starts. Against real closing lines this won in 2024 (+21%), 2025 (+5%) and 2026 (+12%), while other RB unders lost. Shown here: only backs whose team ranks in the bottom third of scoring, the one extra filter that held in both 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",
       rb.map(rbUnderCard), "No RB Unders right now.");

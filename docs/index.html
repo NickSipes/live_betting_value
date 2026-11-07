@@ -431,6 +431,21 @@ function rbUnderCard(w) {
     ${betBtn(w)}
   </div>`;
 }
+function wrUnderCard(w) {
+  return `
+  <div class="card final">
+    <div class="trow">${logoImg(nflLogo(w.team))}
+      <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
+      ${w.inj ? `<span class="chip warm" title="${w.inj}">${w.inj.toUpperCase()}</span>` : ""}
+      <span class="chip pre" style="margin-left:auto">PREGAME</span>
+    </div>
+    <div class="mk">${MKT("rec")}<span class="chip hot" style="margin-left:6px">Bet U ${w.line}</span></div>
+    <div class="sub"><span>WR teammate out</span><span>${w.mate_out}</span></div>
+    <div class="sub"><span>Season average</span><span>${w.ypg} ypg</span></div>
+    <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso)}</span></div>
+    ${betBtn(w)}
+  </div>`;
+}
 function propPreCard(w, chip = "PREGAME") {
   const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
     title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
@@ -745,6 +760,10 @@ function viewUpcoming() {
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
       "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the team's usual QB starts. Against real closing lines this won in 2024 (+21%), 2025 (+5%) and 2026 (+12%), while other RB unders lost. Shown here: only backs whose team ranks in the bottom third of scoring, the one extra filter that held in both 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",
       rb.map(rbUnderCard), "No RB Unders right now.");
+    const wru = (S.wru?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd()).sort(byKick);
+    html += section("nfl-up-wr", "WR Unders", `${wru.length} players`,
+      "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the over went 7-18 in 2024-26. Small sample, so this is a forward test. The pick is made at kickoff on the closing line.",
+      wru.map(wrUnderCard), "No WR Unders right now.");
   }
   // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section
   const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup) : [];
@@ -842,6 +861,7 @@ async function refreshProps() {
   if (!S.watch || Date.now() - S.watchT > ((S.watch.entries || []).some(w => w.kick_iso && new Date(w.kick_iso) - now() > 0 && new Date(w.kick_iso) - now() < 3600e3) ? 30e3 : 300e3))
   {
     try { S.rbu = await (await fetch("rb_unders.json?" + Date.now())).json(); } catch (e) {}
+    try { S.wru = await (await fetch("wr_unders.json?" + Date.now())).json(); } catch (e) {}
     try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
   }
   if (S.props) { lastTs.props = S.props.ts; renderAges(); }

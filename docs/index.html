@@ -582,12 +582,14 @@ function openWatch(r) {
     </div>`);
 }
 function upcomingCard(r) {
+  const unranked = r.hrank > 25 ? r.habbr : r.aabbr;   // the live call: the unranked team takes the first 11+ lead
   return `
   <div class="card final${r.watch ? " click" : ""}" ${r.watch ? on(() => openWatch(r)) : ""}>
     <div class="trow">${logoImg(r.alogo)}<span class="ab">${r.aabbr}</span>${r.watch ? `<span class="chip warm" style="margin-left:auto">WATCHING</span>` : ""}</div>
     <div class="trow">${logoImg(r.hlogo)}<span class="ab">${r.habbr}</span></div>
     <div class="sub"><span class="kick">${kickTxt(r.date)}</span>
       <span>${r.pregame === null || r.pregame === undefined ? "no line yet" : "spread " + fmtS(r.pregame, r)}</span></div>
+    <div class="sub" style="display:block">To pick: ${unranked} takes an 11+ lead first (live)${r.spread_need ? `, or Game Spreads gets ${r.spread_need}` : ""}</div>
   </div>`;
 }
 // NCAAF Game Spreads pick: the shared-opponent rule in live/cfb_poller.py shared_pick

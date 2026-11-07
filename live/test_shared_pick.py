@@ -30,4 +30,16 @@ assert C.shared_pick({**game, "hid": "2", "aid": "1", "habbr": "T2", "aabbr": "T
 assert C.shared_pick({**game, "date": "2026-09-01T00:00Z"}, fin, tos=None) is None
 # the final grades it
 assert C.cover({"bet": p["side"], "line": p["line"]}, 20, 24) == "win"
+# what the Watchlist Games card says the rule still lacks
+ranked = {**game, "hrank": 8, "arank": 99}
+assert C.spread_need(game, fin) is None                 # unranked: nothing changes that before kickoff
+assert C.spread_need(ranked, fin) is None                # it would pick
+assert C.spread_need(ranked, fin[:2]) is None            # one shared opponent and no game left to add another
+left = [{"state": "pre", "date": "2026-11-01T17:00Z", "hid": "1", "aid": "5"}]
+assert C.spread_need(ranked, fin[:2], left) == "1 more shared opponent (has T3) met within 4 weeks"
+assert C.spread_need(ranked, [], left) == "2 more shared opponents met within 4 weeks"
+assert C.spread_need(ranked, fin[:2], [{**left[0], "state": "post"}]) is None      # that game is played
+assert C.spread_need(ranked, fin[:2], [{**left[0], "date": "2026-11-08T17:00Z"}]) is None   # or after this one
+assert C.spread_need({**ranked, "pregame": None}, fin) == "a posted line"
+assert C.spread_need({**ranked, "pregame": 20}, fin) == "a line 4+ from the shared-opponent spread (T1 +22.0); it is 2.0 away"
 print("ok")

@@ -349,6 +349,32 @@ def mean(xs):
 
 TO_PTS = 4   # points a turnover is worth in the turnover-adjusted spread (context only: the rule itself is unadjusted)
 
+def shared_opps(r, finals):
+    """Opponents both teams met within SHARED_WEEKS week numbers of each other, before this game:
+    [opp abbr, home team's margin, away team's margin, weeks apart, opp id], venue taken out of each margin."""
+    if not r.get("aid"):
+        return []
+    def vs(tid):   # {opp id: [(week, margin with the venue taken out, opp abbr)]}
+        d = {}
+        for f in finals:
+            if f["date"] >= r["date"] or tid not in (f["h"][0], f["a"][0]):
+                continue
+            me, you, home = (f["h"], f["a"], True) if f["h"][0] == tid else (f["a"], f["h"], False)
+            v = 0 if f.get("n") else HFA if home else -HFA
+            d.setdefault(you[0], []).append((f["wk"], me[3] - you[3] - v, you[1]))
+        return d
+    vh, va = vs(r["hid"]), vs(r["aid"])
+    shared = []
+    for o in vh.keys() & va.keys():
+        weeks = min(abs(x[0] - y[0]) for x in vh[o] for y in va[o])
+        if weeks <= SHARED_WEEKS:
+            shared.append([vh[o][0][2], round(mean(x[1] for x in vh[o]), 1), round(mean(x[1] for x in va[o]), 1), weeks, o])
+    return shared
+
+def shared_line(shared, r):
+    """Home spread the shared results imply."""
+    return -(mean(s[1] - s[2] for s in shared) + (0 if r.get("neutral") else HFA))
+
 def shared_pick(r, finals, tos=turnovers_of):
     """Game Spreads pick (analysis/cfb_top25_lines.py, the <=4-week rule): opponents both teams met within
     SHARED_WEEKS week numbers of each other, two or more, each margin with the venue taken out; when the spread they imply
@@ -357,28 +383,14 @@ def shared_pick(r, finals, tos=turnovers_of):
     its size carried no win rate. Turnovers in the shared games ride along as context (tos: game id -> {abbr: TOs}):
     crediting TO_PTS per turnover tested neutral, so it does not change the pick."""
     S0 = r.get("pregame")
-    if S0 is None or not r.get("aid"):
+    if S0 is None:
         return None
-    def vs(tid):   # {opp id: [(week, margin with the venue taken out, opp abbr, my turnovers minus theirs or None)]}
-        d = {}
-        for f in finals:
-            if f["date"] >= r["date"] or tid not in (f["h"][0], f["a"][0]):
-                continue
-            me, you, home = (f["h"], f["a"], True) if f["h"][0] == tid else (f["a"], f["h"], False)
-            v = 0 if f.get("n") else HFA if home else -HFA
-            d.setdefault(you[0], []).append((f["wk"], me[3] - you[3] - v, you[1], None))
-        return d
-    vh, va = vs(r["hid"]), vs(r["aid"])
-    shared, to_known = [], True
-    for o in vh.keys() & va.keys():
-        weeks = min(abs(x[0] - y[0]) for x in vh[o] for y in va[o])
-        if weeks > SHARED_WEEKS:
-            continue
-        shared.append([vh[o][0][2], round(mean(x[1] for x in vh[o]), 1), round(mean(x[1] for x in va[o]), 1), weeks])
-    if len(shared) < 2:
+    opps = shared_opps(r, finals)
+    if len(opps) < 2:
         return None
+    shared, by_abbr, to_known = [s[:4] for s in opps], {s[0]: s[4] for s in opps}, True
     venue = 0 if r.get("neutral") else HFA
-    implied = -(mean(s[1] - s[2] for s in shared) + venue)   # home spread the shared results imply
+    implied = shared_line(shared, r)
     # turnover context: each side's turnovers minus the shared opponent's in those meetings, and the spread
     # the shared results imply once each team is credited TO_PTS per turnover it committed more than its opponent
     def to_diff(tid, o):
@@ -391,7 +403,6 @@ def shared_pick(r, finals, tos=turnovers_of):
                     return None
                 ds.append(t[me[1]] - t[you[1]])
         return mean(ds) if ds else None
-    by_abbr = {vh[o][0][2]: o for o in vh}
     for s_ in shared:
         th, ta = to_diff(r["hid"], by_abbr[s_[0]]), to_diff(r["aid"], by_abbr[s_[0]])
         s_ += [th, ta]
@@ -404,6 +415,23 @@ def shared_pick(r, finals, tos=turnovers_of):
     return {"side": side, "team": r["habbr"] if side == "home" else r["aabbr"], "line": S0 if side == "home" else -S0,
             "gap": round(abs(gap), 1), "implied": round(implied, 1), "implied_to": None if implied_to is None else round(implied_to, 1),
             "shared": sorted(shared, key=lambda s: (s[3], s[0]))}
+
+def spread_need(r, finals, sched=()):
+    """What the Game Spreads rule still lacks for this game, in words for the Watchlist Games card. None when nothing can
+    get it there: the rank is fixed, and the shared-opponent count only grows while a team has a game left to play
+    before this one (sched: registry entries, the week's and next week's schedule)."""
+    if min(r.get("hrank") or 99, r.get("arank") or 99) > 25:
+        return None
+    shared = shared_opps(r, finals)
+    if len(shared) < 2:
+        left = any(g.get("state") != "post" and g["date"] < r["date"] and {g.get("hid"), g.get("aid")} & {r["hid"], r["aid"]} for g in sched)
+        have = f" (has {', '.join(s[0] for s in shared)})" if shared else "s"
+        return f"{2 - len(shared)} more shared opponent{have} met within {SHARED_WEEKS} weeks" if left else None
+    if r.get("pregame") is None:
+        return "a posted line"
+    implied = shared_line(shared, r)
+    gap = abs(r["pregame"] - implied)
+    return None if gap >= SHARED_GAP else f"a line {SHARED_GAP}+ from the shared-opponent spread ({r['habbr']} {implied:+.1f}); it is {gap:.1f} away"
 
 def watch_spot(r, finals):
     """College watch, no bet: a pregame underdog off a loss in a game with a ranked team (analysis/cfb_spots.py:
@@ -669,6 +697,8 @@ class CFB:
                         p.update(result=cover({"bet": p["side"], "line": p["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
                     if p:
                         new["spread_pick"] = p
+                    elif finals and new["state"] == "pre":   # the Watchlist card says what the rule still lacks
+                        new["spread_need"] = spread_need(new, finals, self.reg.values())
                 if SPORT == "cfb" and new["state"] == "pre" and self.finals:   # Watchlist Games: the call's setup
                     tops = tops_from(self.finals, new["week"])
                     new["setup"] = all(cfb_criteria(new["habbr"] in tops and new["aabbr"] in tops, new["hrank"], new["arank"]))

@@ -336,7 +336,7 @@ function renderAges() {
 }
 setInterval(renderAges, 5000);
 
-const chipCls = s => s === "TRIGGER" || s === "EDGE" || s === "CALL" ? "hot" : s === "NEAR" ? "warm" : "watch";
+const chipCls = s => s === "TRIGGER" || s === "EDGE" || s === "CALL" || s === "PICK" ? "hot" : s === "NEAR" ? "warm" : "watch";
 // spreads only bet in half points; also rounds fair values saved to a tenth before Oct 30
 const fmtS = (v, g) => v === null || v === undefined ? "—" :
   (v = Math.round(v * 2) / 2) === 0 ? "PK" : v < 0 ? `${g.habbr} ${v}` : `${g.aabbr} -${v}`;
@@ -728,7 +728,7 @@ function viewLive() {
   const spreadPicks = games.filter(g => g.call && !g.call.result);
   // NCAAF Game Spreads picks move here at kickoff, shown as their live game with the pregame bet
   const gsPick = g => !g.call && S.games[R.sport]?.[g.id]?.spread_pick;
-  const gsPicks = games.filter(gsPick).map(g => ({ ...g, call: { ...gsPick(g), clock: "pregame", link: null } }));
+  const gsPicks = games.filter(gsPick).map(g => ({ ...g, status: "PICK", call: { ...gsPick(g), clock: "pregame", link: null } }));
   // NFL: a game meeting 2 of the call's 3 checks (trailing team top third, 10+ lead, before minute 55) is watched
   // NCAAF: the pregame watch tag, or both teams top third with exactly one ranked (an unranked team taking an 11+ lead calls)
   const deck = games.filter(g => !g.call && !gsPick(g) && (R.sport === "cfb" ? S.games.cfb?.[g.id]?.watch || (g.crit || []).every(Boolean) && (g.crit || []).length

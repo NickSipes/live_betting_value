@@ -754,7 +754,7 @@ function viewUpcoming() {
   let html = "";
   if (R.sport === "nfl") {
     const w = watchUpcoming();
-    html += section("nfl-up-props", "Good Matchups", `week ${S.watch?.week ?? ""} · ${w.length} players`,
+    html += section("nfl-up-props", "Good Matchups", `${w.length} players`,
       "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position, sorted by kickoff.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
     // only backs whose team is in the bottom third of scoring: the one split that held in 2024 and 2025-26

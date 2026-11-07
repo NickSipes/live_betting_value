@@ -853,11 +853,12 @@ function viewPast() {
     if (lines.length) html += `<div class="leg" style="margin-top:14px"><b>${lines.join(" · ")}</b></div>`;
   }
   if (R.sport === "cfb") {
-    const picks = (S.cfbCalls || []).filter(c => c.result && c.week === wk);
+    // live calls plus settled pregame Game Spreads picks (cfb_games.json spread_pick)
+    const pre = Object.entries(S.games.cfb || {}).filter(([, r]) => r.week === wk && r.spread_pick?.result)
+      .map(([id, r]) => ({ ...r.spread_pick, id, week: wk, game: `${r.aabbr} @ ${r.habbr}`, price: null }));
+    const picks = [...(S.cfbCalls || []).filter(c => c.result && c.week === wk), ...pre];
     html += section(`cfb-past-picks-w${wk}`, `Week ${wk} Picks`, `${picks.length} ${picks.length === 1 ? "pick" : "picks"}`, "",
       picks.map(c => spreadResultCard("cfb", c)), "No picks this week.");
-    const sc = (S.cfbCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
-    if (sc.length) html += `<div class="leg" style="margin-top:14px"><b>Spread calls: ${n("win")}–${n("loss")}${n("push") ? "–" + n("push") : ""}</b></div>`;
   }
   html += section(`${R.sport}-past-games`, "Games", [`${finals.length} final`, summary].filter(Boolean).join(" · "),
     R.sport === "nfl" ? "Tap a game for its player props and spread chart." : "Games with a line chart were tracked live; the rest show the final score only.",

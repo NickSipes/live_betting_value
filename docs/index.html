@@ -686,7 +686,8 @@ const now = () => Date.now();
 // the earliest week with a game not yet final, so results clear when its last game ends
 const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(r => r.state !== "post").map(r => r.week); return w.length ? Math.min(...w) : null; };
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
-const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out).sort(byKick);
+// no posted line = no card: the book hasn't priced him, or he's inactive (Adams with no line while his teammates have one)
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out).sort(byKick);
 
 // a final's chart lives in the week's archive, which only Past loads
 async function openFinal(sport, wk, id) { await loadArchive(sport, wk); openSpread(KINDOF[sport], id); }

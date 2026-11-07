@@ -145,7 +145,12 @@ Dict keyed by ESPN id:
 **`docs/nfl_games.json`**, **`docs/cfb_games.json`** — schedule and results registry for this
 week and next. Keyed by ESPN id: `week, date` (kickoff UTC), `state` (`pre`/`in`/`post`),
 `detail, aabbr, habbr, alogo, hlogo, hid, as, hs, pregame` (home spread), `has_hist`
-(true = tracked live; a spread archive exists).
+(true = tracked live; a spread archive exists). CFB from 2026-11-07 also carries `neutral` and, on games
+the Game Spreads rule picks (`live/cfb_poller.py` `shared_pick`, games with a Top 25 team: two or more opponents
+both teams met within four week numbers of each other, venue-adjusted margins 4+ points from the line), `spread_pick`: `{side, team, line
+(on the bet side), gap, implied (home spread the shared results imply), shared: [[opp, home team's margin,
+away team's margin, days between the two meetings], ...]}`, plus `result` and `final` once the game ends.
+Re-priced every cycle until kickoff, so the stored pick is at the closing line.
 
 **`live/nfl_spread_log.csv`** (no header) — one row per EDGE/SWING flag:
 `utc_time, game, clock, score ("as-hs"), pregame, live, fair, edge, status`.

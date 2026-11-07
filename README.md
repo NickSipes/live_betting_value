@@ -36,7 +36,7 @@ cd analysis && ../.venv/bin/python export_live.py
 | `analysis/v2_model.py` | v2: price-aware over model (train wk<=5, test wk6+) |
 | `analysis/export_live.py` | train v2 + write live/{model_weights,priors,def_priors}.json |
 | `live/poller.py` + `live/web/` | live monitor + dashboard |
-| `analysis/cfb_top25_lines.py` | CFB Top-25 line check: margin rating + common opponents vs the posted spread (`--backtest`) |
+| `analysis/cfb_top25_lines.py` | CFB Top-25 line check: margin rating + common opponents vs the posted spread (`--backtest`); the <=4-week rule runs live as the NCAAF Pregame Picks "Game Spreads" section (`live/cfb_poller.py` `shared_pick`) |
 
 ## Findings log
 
@@ -61,6 +61,18 @@ cd analysis && ../.venv/bin/python export_live.py
   52% on ranked games at |edge|>=4, 13-19 at >=8 — the biggest disagreements are the rating being wrong,
   not the market. Ranked teams covered 56% straight up (108-85, positive both seasons) with no conditioning.
   Common opponents (>=2 shared, bet the side they favor by 4+): 72-59 in 2025, 9-12 in 2026 — not a thing yet.
+  Strength of the shared opponents: weighting by it or capping margins at 21 changes nothing; keeping only
+  shared opponents in the top half of the rating goes 39-30 on all games and 20-9 on ranked games in 2025 at a
+  4+ gap, 1-4 / 1-1 in 2026 — one-season result. Against-the-spread margins vs shared opponents: 50% at any gap,
+  59-67% only at 6+ (2025-driven). Shared opponent met within 4 weeks by both teams: all games 69-45 / 9-9,
+  ranked 26-14 / 5-2 at a 4+ gap — the only cut where 2026 leans the same way; unranked alone 43-31 / 4-7.
+  Turnovers in the shared games (cache from the halftime study): crediting 4 pts per turnover leaves the hit
+  rate where it was (ranked 21-10 / 4-1 on fewer bets); dropping shared games with a 2+ turnover swing or 14+
+  points off a team's norm cuts the sample to a third with no gain. Rule stays unadjusted; turnovers are context. Twelve variants tried on the same
+  2025 games now; forward test the <=4-week rule, don't bet the records.
+  Home field by conference (`--hfa`, FBS-vs-FBS, pooled 2025-26): power conferences ~4-5 (SEC 4.8, Big Ten 4.8,
+  Big 12 4.4, ACC 3.8, se ~1), Group of Five 2.5-3.7, Sun Belt 0.9 — SEC vs Big 12 is within noise; power vs
+  Sun Belt is real. Fitting it per conference (`--conf`) does not change the backtest.
 - WR1 with a real WR2 out (60+ rec yds/game teammate, no target in the game) goes 7-18 (28%, p=0.03) at the
   closing over, 29-38 with a 45 ypg teammate (`analysis/wr_mate_out.py`, 2024-26). The book raises the line
   ~6 yds expecting the volume; the WR1 produces the same relative to their season average as usual

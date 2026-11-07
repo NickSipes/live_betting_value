@@ -303,6 +303,7 @@ def reg_entry(ev, week):
             "aabbr": t["away"]["team"]["abbreviation"], "habbr": t["home"]["team"]["abbreviation"],
             "alogo": t["away"]["team"].get("logo"), "hlogo": t["home"]["team"].get("logo"),
             "hid": t["home"]["id"], "aid": t["away"]["id"], "as": score("away"), "hs": score("home"),
+            "neutral": bool(comp.get("neutralSite")), "hname": t["home"]["team"].get("displayName"),
             "pregame": parse_pregame(comp.get("odds"), t["home"]["team"]["abbreviation"])}
 
 def finals_of(sb):
@@ -313,8 +314,96 @@ def finals_of(sb):
             continue
         t = {c["homeAway"]: c for c in ev["competitions"][0]["competitors"]}
         side = lambda s: [t[s]["id"], t[s]["team"]["abbreviation"], (t[s].get("curatedRank") or {}).get("current") or 99, int(t[s].get("score") or 0)]
-        out.append({"date": ev["date"], "h": side("home"), "a": side("away")})
+        out.append({"id": ev["id"], "date": ev["date"], "h": side("home"), "a": side("away"), "n": bool(ev["competitions"][0].get("neutralSite"))})
     return out
+
+TO_PATH, TOS = f"{DATA}/cfb_turnovers.json", None
+def turnovers_of(gid):
+    """{team abbr: turnovers committed} for a finished game, from ESPN's drive results (cached for good).
+    None when the summary can't be read; the pick then shows no turnover context."""
+    global TOS
+    if TOS is None:
+        TOS = json.load(open(TO_PATH)) if os.path.exists(TO_PATH) else {}
+    if gid not in TOS:
+        try:
+            s = fetch_summary(gid)
+            abbr = {t["team"]["id"]: t["team"]["abbreviation"] for t in s.get("boxscore", {}).get("teams", [])}
+            out = {t: 0 for t in abbr.values()}
+            for d in s.get("drives", {}).get("previous", []):
+                team = abbr.get((d.get("team") or {}).get("id")) or (d.get("team") or {}).get("abbreviation")
+                res = (d.get("result") or d.get("displayResult") or "").strip().lower().split()
+                if team and res and res[0] in ("int", "interception", "fumble"):
+                    out[team] = out.get(team, 0) + 1
+            TOS[gid] = out if abbr else None
+        except Exception:
+            TOS[gid] = None
+        json.dump(TOS, open(TO_PATH, "w"))
+    return TOS[gid]
+
+HFA = 3.8                       # college home field: the 2026 weekly fit in analysis/cfb_top25_lines.py
+SHARED_GAP, SHARED_WEEKS = 4, 4  # the rule's floor on line-vs-shared disagreement, and how close (in week numbers) the two meetings must be
+
+def mean(xs):
+    xs = list(xs)
+    return sum(xs) / len(xs)
+
+TO_PTS = 4   # points a turnover is worth in the turnover-adjusted spread (context only: the rule itself is unadjusted)
+
+def shared_pick(r, finals, tos=turnovers_of):
+    """Game Spreads pick (analysis/cfb_top25_lines.py, the <=4-week rule): opponents both teams met within
+    SHARED_WEEKS week numbers of each other, two or more, each margin with the venue taken out; when the spread they imply
+    sits SHARED_GAP+ from the line, bet the side the line undervalues. 2025 69-45 ATS all games, 26-14 with a
+    ranked team; 2026 9-9 / 5-2 when frozen (2026-11-07); the page shows ranked games only. The gap only screens:
+    its size carried no win rate. Turnovers in the shared games ride along as context (tos: game id -> {abbr: TOs}):
+    crediting TO_PTS per turnover tested neutral, so it does not change the pick."""
+    S0 = r.get("pregame")
+    if S0 is None or not r.get("aid"):
+        return None
+    def vs(tid):   # {opp id: [(week, margin with the venue taken out, opp abbr, my turnovers minus theirs or None)]}
+        d = {}
+        for f in finals:
+            if f["date"] >= r["date"] or tid not in (f["h"][0], f["a"][0]):
+                continue
+            me, you, home = (f["h"], f["a"], True) if f["h"][0] == tid else (f["a"], f["h"], False)
+            v = 0 if f.get("n") else HFA if home else -HFA
+            d.setdefault(you[0], []).append((f["wk"], me[3] - you[3] - v, you[1], None))
+        return d
+    vh, va = vs(r["hid"]), vs(r["aid"])
+    shared, to_known = [], True
+    for o in vh.keys() & va.keys():
+        weeks = min(abs(x[0] - y[0]) for x in vh[o] for y in va[o])
+        if weeks > SHARED_WEEKS:
+            continue
+        shared.append([vh[o][0][2], round(mean(x[1] for x in vh[o]), 1), round(mean(x[1] for x in va[o]), 1), weeks])
+    if len(shared) < 2:
+        return None
+    venue = 0 if r.get("neutral") else HFA
+    implied = -(mean(s[1] - s[2] for s in shared) + venue)   # home spread the shared results imply
+    # turnover context: each side's turnovers minus the shared opponent's in those meetings, and the spread
+    # the shared results imply once each team is credited TO_PTS per turnover it committed more than its opponent
+    def to_diff(tid, o):
+        ds = []
+        for f in finals:
+            if f["date"] < r["date"] and tid in (f["h"][0], f["a"][0]) and o in (f["h"][0], f["a"][0]):
+                t = tos and f.get("id") and tos(f["id"])
+                me, you = (f["h"], f["a"]) if f["h"][0] == tid else (f["a"], f["h"])
+                if not t or me[1] not in t or you[1] not in t:
+                    return None
+                ds.append(t[me[1]] - t[you[1]])
+        return mean(ds) if ds else None
+    by_abbr = {vh[o][0][2]: o for o in vh}
+    for s_ in shared:
+        th, ta = to_diff(r["hid"], by_abbr[s_[0]]), to_diff(r["aid"], by_abbr[s_[0]])
+        s_ += [th, ta]
+        to_known = to_known and th is not None and ta is not None
+    implied_to = -(mean(s_[1] + TO_PTS * s_[4] - s_[2] - TO_PTS * s_[5] for s_ in shared) + venue) if to_known else None
+    gap = S0 - implied                                                                  # positive: the line gives the home side too much
+    if abs(gap) < SHARED_GAP:
+        return None
+    side = "home" if gap > 0 else "away"
+    return {"side": side, "team": r["habbr"] if side == "home" else r["aabbr"], "line": S0 if side == "home" else -S0,
+            "gap": round(abs(gap), 1), "implied": round(implied, 1), "implied_to": None if implied_to is None else round(implied_to, 1),
+            "shared": sorted(shared, key=lambda s: (s[3], s[0]))}
 
 def watch_spot(r, finals):
     """College watch, no bet: a pregame underdog off a loss in a game with a ranked team (analysis/cfb_spots.py:
@@ -542,6 +631,8 @@ class CFB:
                 for wk in range(1, week + 1):
                     if wk == week or wk not in self.finals:
                         self.finals[wk] = finals_of(get(f"{ESPN}{sep}week={wk}&seasontype=2"))
+                        for f in self.finals[wk]:
+                            f["wk"] = wk
             except Exception as e:
                 print("finals fetch failed", repr(e))
         finals = [f for fs in self.finals.values() for f in fs]
@@ -567,6 +658,14 @@ class CFB:
                     w.update(result=cover({"bet": w["side"], "line": w["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
                 if w:
                     new["watch"] = w
+                if SPORT == "cfb":   # Game Spreads: re-priced each cycle until kickoff, frozen there, graded at the final
+                    p = old.get("spread_pick")
+                    if finals and new["state"] == "pre":   # ranked games only: unranked went 43-31 then 4-7
+                        p = shared_pick(new, finals) if min(new["hrank"], new["arank"]) <= 25 else None
+                    if p and new["state"] == "post" and new["hs"] is not None and "result" not in p:
+                        p.update(result=cover({"bet": p["side"], "line": p["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
+                    if p:
+                        new["spread_pick"] = p
                 if SPORT == "cfb" and new["state"] == "pre" and self.finals:   # Watchlist Games: the call's setup
                     tops = tops_from(self.finals, new["week"])
                     new["setup"] = all(cfb_criteria(new["habbr"] in tops and new["aabbr"] in tops, new["hrank"], new["arank"]))
@@ -647,13 +746,14 @@ class CFB:
                      - datetime.timedelta(minutes=6)).strftime("%Y-%m-%dT%H:%M:%SZ")
         for e in get(f"{ODDS}?apiKey={KEY}&bookmakers=draftkings,fanduel&markets=spreads&oddsFormat=american&includeLinks=true"):
             for b in e.get("bookmakers", []):
-                if b.get("last_update", "") < fresh_cut:
-                    continue   # suspended market = stale line, not an edge
+                stale = b.get("last_update", "") < fresh_cut   # suspended market = stale line, not an edge (the slip link still works)
                 for m in b.get("markets", []):
                     for o in m.get("outcomes", []):
                         if o["name"] == e["home_team"] and o.get("point") is not None:
                             other = next((x for x in m["outcomes"] if x["name"] != e["home_team"]), {})
                             slips.setdefault(e["home_team"], {})[b["key"]] = {"home": o.get("link"), "away": other.get("link"), "event": b.get("link")}
+                            if stale:
+                                continue
                             if o.get("link"):
                                 links[b["key"]] = {"url": o["link"], "bet": f'{e["home_team"]} {float(o["point"]):+g}', "t": time.time()}
                             books.setdefault(e["home_team"], {})[b["key"]] = [
@@ -664,6 +764,14 @@ class CFB:
                                                           "updated": iso_ts(m.get("last_update") or b["last_update"])}
         if links:   # ponytail: only refreshed while games are live; the page refuses a stale link
             json.dump(links, open(f"{DOCS}/test_links.json", "w"))
+        for r in self.reg.values():   # Game Spreads picks: each book's pregame slip link for the page's Bet button
+            p = r.get("spread_pick")
+            if p and r["state"] == "pre" and r.get("hname"):
+                sl = next((v for k, v in slips.items() if r["hname"] in k or k in r["hname"]), {})
+                p["links"] = {b: v[p["side"]] for b, v in sl.items() if v.get(p["side"])}
+                p["book"] = "fanduel" if "fanduel" in p["links"] else next(iter(p["links"]), None)
+                p["link"] = p["links"].get(p["book"])
+                p["books"] = next((v for k, v in books.items() if r["hname"] in k or k in r["hname"]), None)
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})

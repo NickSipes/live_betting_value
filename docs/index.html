@@ -429,6 +429,7 @@ function rbUnderCard(w) {
     </div>
     <div class="mk">${MKT("rush")}<span class="chip hot" style="margin-left:6px">Bet U ${w.line}</span></div>
     <div class="sub"><span>Team scoring rank</span><span>#${w.off_rank} of ${w.teams}</span></div>
+    ${w.team_expl != null ? `<div class="sub"><span>Team 10+ yd run rate</span><span>${(w.team_expl * 100).toFixed(1)}%</span></div>` : ""}
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso)}</span></div>
     ${betBtn(w)}
   </div>`;
@@ -587,6 +588,19 @@ function upcomingCard(r) {
     <div class="trow">${logoImg(r.hlogo)}<span class="ab">${r.habbr}</span></div>
     <div class="sub"><span class="kick">${kickTxt(r.date)}</span>
       <span>${r.pregame === null || r.pregame === undefined ? "no line yet" : "spread " + fmtS(r.pregame, r)}</span></div>
+  </div>`;
+}
+// NCAAF Game Spreads pick: the shared-opponent rule in live/cfb_poller.py shared_pick
+function spreadPickCard(r) {
+  const p = r.spread_pick, num = v => (v > 0 ? "+" : "") + v, rk = (n, t) => (n && n <= 25 ? `#${n} ` : "") + t;
+  return `
+  <div class="card final">
+    <div class="trow">${logoImg(r.alogo)}<span class="ab" style="width:auto">${rk(r.arank, r.aabbr)}</span><span class="chip pre" style="margin-left:auto">PREGAME</span></div>
+    <div class="trow">${logoImg(r.hlogo)}<span class="ab" style="width:auto">${rk(r.hrank, r.habbr)}</span></div>
+    <div class="mk">Spread<span class="chip hot" style="margin-left:6px">Bet ${p.team} ${num(p.line)}</span></div>
+    <div class="sub"><span>Shared Opponents: ${p.shared.map(s => s[0]).join(", ")}</span></div>
+    <div class="sub"><span class="kick">${kickTxt(r.date)}</span><span>line ${fmtS(r.pregame, r)}</span></div>
+    ${betBtn({ ...p, bet: p.side })}
   </div>`;
 }
 // NFL final cards open the game page (props + spread); CFB has no props, so they open the spread chart
@@ -767,15 +781,21 @@ function viewUpcoming() {
       "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the under went 18-7 in 2024-26. The pick is made at kickoff on the closing line.",
       wru.map(wrUnderCard), "No WR Unders right now.");
   }
-  // NCAAF: games meeting the call's setup (both teams top third, exactly one ranked) sit in their own section
-  const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup) : [];
+  // NCAAF: Game Spreads picks, then games meeting the call's setup (both teams top third, exactly one ranked)
+  const setup = R.sport === "cfb" ? pre.filter(([, r]) => r.setup && !r.spread_pick) : [];
+  if (R.sport === "cfb") {
+    const sp = pre.filter(([, r]) => r.spread_pick);
+    html += section("cfb-up-spreads", "Game Spreads", `${sp.length} picks`,
+      "Games with a Top 25 team where both teams played the same opponent within four weeks of each other, two or more of them. Home field spread (3.8 points) is taken out of each result and the two teams' margins against shared opponents is compared. When the shared opponent spread sits 4+ points from the posted line, the game is featured here. Against closing lines: 26-14 (65%) in 2025 and 5-2 so far in 2026. The pick is made at kickoff on the closing line.",
+      sp.map(([, r]) => spreadPickCard(r)), "No Game Spreads picks this week.");
+  }
   if (R.sport === "cfb")
     html += section("cfb-up-watch", "Watchlist Games", `${setup.length} games`,
       "Both teams top third by record and exactly one ranked: a call fires if the unranked team leads by 11+.",
       setup.map(([, r]) => upcomingCard(r)), "No upcoming Watchlist Games.");
   const weeks = [...new Set(pre.map(([, r]) => r.week))].sort((a, b) => a - b);
   for (const wk of weeks) {
-    const g = pre.filter(([, r]) => r.week === wk && !r.setup);
+    const g = pre.filter(([, r]) => r.week === wk && !r.setup && !r.spread_pick);
     html += section(`${R.sport}-up-games-w${wk}`, `Week ${wk} games`, `${g.length} scheduled`, "",
       g.map(([, r]) => upcomingCard(r)), "");
   }
@@ -1382,7 +1402,7 @@ function openHowTo() {
       "<b>MODEL PICK:</b> live overs on receiving or rushing yards when the model gives at least 60%, between minutes 10 and 51. The line must be 15+ yards and at least 3 yards above the player's total so far.",
       "<b>Never called:</b> while the player's team is down more than 3, or against a top-3 defense for that stat over its last 3 games played.",
       "<b>PREGAME:</b> Good Matchups are a top-20 WR, top-10 TE or top-15 RB facing a bottom-10 defense at their position. Bet the over at the closing line, unless the player is out, doubtful, suspended or on injured reserve, or he's a WR whose usual QB isn't starting or whose 60+ yds/game WR teammate is out.",
-      "<b>RB UNDER:</b> any running back with a rushing line between 20.5 and 41.5 yards, when his team's usual QB starts and it ranks in the bottom third of scoring. Bet the under at the closing line.",
+      "<b>RB UNDER:</b> any running back with a rushing line between 20.5 and 41.5 yards, when his team's usual QB starts, it ranks in the bottom third of scoring, and its season rate of 10+ yard runs is 12% or less. Bet the under at the closing line.",
       "<b>WR UNDER:</b> a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: the over went 7-18 in 2024-26. Bet the under at the closing line."])}
     ${part("Rules for NCAAF spreads", [edge,
       "<b>CALL:</b> both teams are in the top third by record, a team first leads by 11+ before minute 55, the leader is unranked and the trailing team is ranked. Bet the leader once the score has held for one check, a fresh quote is in, and the books are within 2 points.",

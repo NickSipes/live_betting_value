@@ -663,6 +663,8 @@ class CFB:
                     p = old.get("spread_pick")
                     if finals and new["state"] == "pre":   # ranked games only: unranked went 43-31 then 4-7
                         p = shared_pick(new, finals) if min(new["hrank"], new["arank"]) <= 25 else None
+                        if p and old.get("spread_pick"):   # the books' links come from the odds feed, not every cycle
+                            p.update({k: v for k, v in old["spread_pick"].items() if k in ("link", "links", "book", "books")})
                     if p and new["state"] == "post" and new["hs"] is not None and "result" not in p:
                         p.update(result=cover({"bet": p["side"], "line": p["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
                     if p:

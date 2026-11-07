@@ -26,6 +26,7 @@ SIGNAL = 0.50              # first time a prop is worth showing (Past scorecard 
 NEAR, TRIG = 0.55, 0.60    # card status + notifications (calibrated P; -110 breakeven is 0.524)
 WL_GAP, WL_NEAR_GAP = 3595, 55   # seconds between pregame line checks, then in a game's last WL_NEAR seconds
 WL_NEAR = 3600
+PRE_PUSH = 1200   # pregame picks alert 20 min before kickoff (the pick is still graded at the closing line)
 CALL = TRIG                # a "call": if the player then clears that line, it's a win
 SCORE_WINDOW = (600, 3060)  # game-clock seconds the v2 model was trained on (10:00-51:00 elapsed);
                             # outside it the inputs (pace, team rates) are unstable and P isn't trustworthy
@@ -469,6 +470,8 @@ class Monitor:
         self.qb_t = 0         # last usual-QB check for WR Good Matchups and RB unders (every 3h)
         self.qbs, self.inj = {}, {}
         self.rb_t = {}        # Odds API event id -> last RB rushing-line refresh (1 credit)
+        self.early_path = f"{DATA}/early_pushes.json"   # "b.lance|rec" -> when its pregame alert went out
+        self.early = json.load(open(self.early_path)) if os.path.exists(self.early_path) else {}
         try:   # RB unders the explosive-run veto skipped (forward test of the veto)
             self.rb_skips = json.load(open(f"{DOCS}/rb_skips.json"))
         except Exception:
@@ -852,6 +855,38 @@ class Monitor:
             json.dump({"ts": now, "entries": out[kind]}, open(tmp, "w"))
             os.replace(tmp, f"{DOCS}/{fn}.json")
 
+    def alerted(self, name, kind):
+        """The pregame alert for this prop already went out (this week)."""
+        return time.time() - self.early.get(f"{short_name(name)}|{kind}", 0) < 6 * 3600
+
+    def early_pushes(self):
+        """Pregame picks alert PRE_PUSH before kickoff at the current line: Good Matchups as the page lists
+        them, RB/WR unders by the kickoff rules. The pick itself is still made at kickoff (cycle), whose push
+        only fires for a pick this missed (added late, or a restart)."""
+        picks = [(w, "Over") for w in watchlist() if w.get("line") is not None and w.get("inj") not in INJ_OUT
+                 and not w.get("qb_out") and not w.get("mate_out")]
+        for fn in ("rb_unders", "wr_unders"):
+            try:
+                picks += [(w, "Under") for w in json.load(open(f"{DOCS}/{fn}.json"))["entries"] if w["market"] == "rec"
+                          or ((w.get("off_rank") or 0) > w["teams"] * 2 / 3 and not expl_veto(w["team"]))]
+            except Exception:
+                pass
+        sent = False
+        for w, side in picks:
+            key, mins = f'{short_name(w["player"])}|{w["market"]}', kick_in(w) / 60
+            if not 0 < mins <= PRE_PUSH / 60 or self.alerted(w["player"], w["market"]):
+                continue
+            self.early[key], sent = time.time(), True
+            lines, kind = w.get("lines") or {}, "rec" if w["market"] == "rec" else "rush"
+            book = w.get("book") if w.get("book") in push.BOOK else "fanduel"
+            push.send(f'Bet {w["player"]} {side} {w["line"]} {kind} yds on {push.BOOK[book]}',
+                      f'Pregame pick, kickoff in {round(mins)} min · {w["game"]}', tag=key + "|pre", url="./#nfl/upcoming",
+                      variants={b: f'Bet {w["player"]} {side} {lines.get(b, w["line"])} {kind} yds on {n}' for b, n in push.BOOK.items()})
+            print("pregame alert", w["player"], side, w["line"])
+        if sent:
+            self.early = {k: t for k, t in self.early.items() if time.time() - t < 8 * 86400}
+            json.dump(self.early, open(self.early_path, "w"))
+
     def watchlist_extras(self):
         """Annotate Good Matchups with the injury report (every cycle, free), the
         current pregame prop line (hourly, every minute in a game's last hour:
@@ -1065,7 +1100,7 @@ class Monitor:
                     h["meta"] = {"player": name, "market": kind, "logo": game.get(side) if side else None,
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
-                if not c:   # this prop just joined the week's picks
+                if not c and not self.alerted(name, kind):   # this prop just joined the week's picks
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
                     push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {push.BOOK[book]}',
                               f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
@@ -1118,9 +1153,10 @@ class Monitor:
                     continue   # a pregame bet: only made around kickoff, never mid-game (e.g. after a restart)
                 if not c:
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
-                    push.send(f'Bet {name} Under {L} {kind} yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
-                              tag=hkey + "|pre", url="./#nfl/live",
-                              variants={b: f'Bet {name} Under {L} {kind} yds on {n}' for b, n in push.BOOK.items()})
+                    if not self.alerted(name, kind):   # the 20-minute alert missed it
+                        push.send(f'Bet {name} Under {L} {kind} yds on {push.BOOK[book]}', f'Pregame pick, game is live · {game["away_abbr"]} @ {game["home_abbr"]}',
+                                  tag=hkey + "|pre", url="./#nfl/live",
+                                  variants={b: f'Bet {name} Under {L} {kind} yds on {n}' for b, n in push.BOOK.items()})
                     h["pre"] = c = {"type": "pregame", "side": "under", "rule": rule, "src": "closing", "clock": "pregame",
                                     "gc": 0, "line": L, "cum": 0, "p": None, "t": time.time(), "score": "kickoff", "rebuilt": False,
                                     "team_expl": TEAM_EXPL.get(pr.get("team"))}
@@ -1188,6 +1224,10 @@ class Monitor:
             end = time.time() + self.poll
             while time.time() < end:   # live polling stays at --poll; a game's last hour ticks every minute
                 time.sleep(max(0, min(60, end - time.time())))
+                try:
+                    self.early_pushes()
+                except Exception as e:
+                    print("pregame alert error", repr(e))
                 if any(0 < kick_in(w) <= WL_NEAR for w in watchlist()):
                     try:
                         self.watchlist_extras()

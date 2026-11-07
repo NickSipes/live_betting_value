@@ -699,7 +699,7 @@ class CFB:
 
     def odds_feed(self):
         """One odds-API call (1 credit): live quotes for the fair-line check, bet-slip links for the page's
-        buttons, and each book's link on every pregame Game Spreads pick. -> (quotes, detail, books)"""
+        buttons, and each book's link on every pregame Game Spreads pick. -> (quotes, detail, books, slips)"""
         quotes = {}   # odds home_team name -> home spread (FD pref, fresh quotes only)
         detail = {}   # same key -> {home, away: price, updated: unix time}, for the lead call
         books = {}    # same key -> {book: [home points, home price, away price, updated]}, archived per poll
@@ -735,7 +735,7 @@ class CFB:
                 p["book"] = "fanduel" if "fanduel" in p["links"] else next(iter(p["links"]), None)
                 p["link"] = p["links"].get(p["book"])
                 p["books"] = next((v for k, v in books.items() if r["hname"] in k or k in r["hname"]), None)
-        return quotes, detail, books
+        return quotes, detail, books, slips
 
     def cycle(self):
         rows = []
@@ -787,7 +787,7 @@ class CFB:
                 self.backfill(need, live)
             except Exception as e:
                 print("backfill error", repr(e))
-        quotes, detail, books = self.odds_feed()
+        quotes, detail, books, slips = self.odds_feed()
         for gid, g in live.items():
             L = next((v for k, v in quotes.items() if g["home"] in k or k in g["home"]), None)
             h = self.hist.setdefault(gid, {"snaps": [], "pregame": g["pregame"]})

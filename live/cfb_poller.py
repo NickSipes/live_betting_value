@@ -245,7 +245,7 @@ def live_need(top, hrank, arank, habbr, aabbr, margin, gc, lead11, tops=None):
     if lead11 and lead11.get("done"):
         return f"Call off: {off.get(lead11.get('why'), lead11.get('why'))}"
     if lead11:
-        return "Call pending: the lead holds for a poll and a fresh quote lands"
+        return "Call pending"
     if gc >= LEAD_LATEST:
         return f"Call off: past {LATEST_TXT}"
     if SPORT == "cfb":

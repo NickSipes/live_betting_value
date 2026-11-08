@@ -609,10 +609,10 @@ function spreadPickCard(r) {
   </div>`;
 }
 // NFL final cards open the game page (props + spread); CFB has no props, so they open the spread chart
-function finalCard(sport, id, r, props) {
+function finalCard(sport, id, r, props, calls = []) {
   const aw = r.as > r.hs, hw = r.hs > r.as, nfl = sport === "nfl", click = nfl || r.has_hist;
   const pg = r.pregame ?? S.arch[`${sport}_w${r.week}`]?.[id]?.pregame;
-  const calls = (props || []).map(([, p]) => p.call || p.pre).filter(Boolean), w = calls.filter(c => c.result === "win").length;
+  const w = calls.filter(c => c.result === "win").length, n = props.length + calls.length;
   const open = nfl ? () => go(sport, "past", r.week, id) : () => openSpread(KINDOF[sport], id);
   return `
   <div class="card final ${click ? "click" : ""}" ${click ? on(open) : ""}>
@@ -622,7 +622,7 @@ function finalCard(sport, id, r, props) {
       <span class="sc ${aw ? "lose" : ""}">${r.hs ?? ""}</span></div>
     <div class="sub"><span>${r.detail || "Final"} · ${new Date(r.date).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
       <span>pregame ${fmtS(pg, r)}</span></div>
-    ${nfl ? `<div class="sub"><span>${props.length ? `${props.length} props${calls.length ? ` · calls ${w}–${calls.length - w}` : ""}` : "no props flagged"}</span>
+    ${nfl ? `<div class="sub"><span>${n ? `${n} props${calls.length ? ` · calls ${w}–${calls.length - w}` : ""}` : "no props flagged"}</span>
       <span style="color:var(--ink-1)">props ›</span></div>`
       : click ? `<div class="sub"><span style="color:var(--ink-1)">line chart ›</span></div>` : ""}
   </div>`;
@@ -640,9 +640,9 @@ function spreadLinkCard(sport, id, r) {
 // settled picks stay on Live until the week ends; a tap goes to the game on Past
 const RESULT = { win: "WIN ✓", loss: "LOSS ✗", push: "PUSH" };
 const resCls = r => r === "win" ? "hot" : r === "loss" ? "loss" : "watch";
-function propResultCard(c) {
+function propResultCard(c, tap) {
   return `
-  <div class="card ${resCls(c.result)} click" ${on(() => go("nfl", "past", c.week, c.espn_id))}>
+  <div class="card ${resCls(c.result)} click" ${on(tap || (() => go("nfl", "past", c.week, c.espn_id)))}>
     <div class="trow">${c.logo ? logoImg(c.logo) : ""}<span class="ab" style="width:auto;font-size:14px">${c.player}${star(c.player, c.market)}</span>
       <span class="chip ${resCls(c.result)}" style="margin-left:auto">${RESULT[c.result]}</span></div>
     <div class="mk">${MKT(c.market)}<b>${ou(c)} ${c.line}</b></div>
@@ -759,7 +759,7 @@ function viewLive() {
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
        ...kicked.map(w => propPreCard({ ...w, link: null })),
        ...kickedU.map(w => (w.market === "rec" ? wrUnderCard : rbUnderCard)({ ...w, link: null })),
-       ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(propResultCard)], "No picks yet this week.")
+       ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(c => propResultCard(c))], "No picks yet this week.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
     const opps = all.filter(o => o.p >= P_MIN && !o.noline && !o.call && !o.pre).sort((a, b) =>
@@ -821,34 +821,35 @@ function viewPast() {
   if (!(k in S.arch) || S.arch[k] === null) { loadArchive(R.sport, wk); return `<div class="empty">Loading week ${wk}…</div>`; }
   const finals = regList(R.sport, "post").filter(([, r]) => r.week === wk).reverse()
     .sort((a, b) => (b[1].has_hist ? 1 : 0) - (a[1].has_hist ? 1 : 0));   // charted games first
-  let html = "", byGame = {}, summary = "";
+  let html = "", byGame = {}, summary = "", picksOf = () => [];
   if (R.sport === "nfl") {
-    // props flagged ≥50% (or called pregame), per game: calls first, then pregame, then 50–70% leans
-    const rank = r => r.call ? 0 : r.pre ? 1 : 2;
-    const props = Object.entries(S.parch[wk] || {}).filter(([, r]) => r.signal || r.call || r.pre)
-      .sort((a, b) => rank(a[1]) - rank(b[1]) || a[1].player.localeCompare(b[1].player));
-    for (const p of props) (byGame[p[0].split("|")[0]] ||= []).push(p);
-    const calls = props.filter(([, r]) => r.call), wins = calls.filter(([, r]) => won(r.call, r.final)).length;
-    const pres = props.filter(([, r]) => !r.call && r.pre), pwins = pres.filter(([, r]) => won(r.pre, r.final)).length;
-    const leans = props.filter(([, r]) => !r.call && !r.pre && r.signal);
-    summary = [calls.length ? `model picks ${wins}–${calls.length - wins}` : "",
-               pres.length ? `pregame ${pwins}–${pres.length - pwins}` : "", leans.length ? `${leans.length} watched` : ""]
+    // picks come from calls.json (every live and pregame call, with its own line and side); the prop archive
+    // adds the WATCHED props (rated 50–70%, never called) and the line-vs-production chart
+    const led = S.calls?.calls || [], live = c => (c.type || "live") === "live";
+    const weekProps = led.filter(c => c.week === wk).sort((a, b) => (live(a) ? 0 : 1) - (live(b) ? 0 : 1) || (a.result === "win" ? 0 : 1) - (b.result === "win" ? 0 : 1));
+    const arch = Object.entries(S.parch[wk] || {}), gid = k => k.split("|")[0];
+    const archOf = c => arch.find(([k, r]) => gid(k) === c.espn_id && r.player === c.player && r.market === c.market);
+    const called = new Set(weekProps.map(c => `${c.espn_id}|${c.player}|${c.market}`));
+    const watched = arch.filter(([k, r]) => r.signal && !called.has(`${gid(k)}|${r.player}|${r.market}`)).sort((a, b) => a[1].player.localeCompare(b[1].player));
+    for (const p of watched) (byGame[gid(p[0])] ||= []).push(p);
+    picksOf = id => weekProps.filter(c => c.espn_id === id);
+    const wl = l => `${l.filter(c => c.result === "win").length}–${l.filter(c => c.result !== "win").length}`;
+    const lv = weekProps.filter(live), pg = weekProps.filter(c => !live(c));
+    summary = [lv.length ? `model picks ${wl(lv)}` : "", pg.length ? `pregame ${wl(pg)}` : "", watched.length ? `${watched.length} watched` : ""]
       .filter(Boolean).join(" · ");
+    const pickCard = c => { const a = archOf(c); return propResultCard({ ...c, logo: a?.[1].logo }, a && (() => openProp(a[0], a[1]))); };
     const game = R.game && finals.find(([id]) => id === R.game);
     if (game) {
-      const [id, r] = game, mine = byGame[id] || [];
+      const [id, r] = game, mine = byGame[id] || [], picks = picksOf(id);
       return `<div class="leg" style="margin-top:14px"><a href="#nfl/past/${wk}" style="color:var(--ink-1)">‹ Week ${wk} games</a></div>`
-        + section(`nfl-past-game`, `${r.aabbr} ${r.as} @ ${r.habbr} ${r.hs}`, `${mine.length} props`,
-          "WIN/LOSS: a model pick (live) or pregame call on the over, and whether the player cleared the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
-          [spreadLinkCard("nfl", id, r), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
+        + section(`nfl-past-game`, `${r.aabbr} ${r.as} @ ${r.habbr} ${r.hs}`, `${picks.length + mine.length} props`,
+          "WIN/LOSS: a model pick (live) or pregame call, and whether the player cleared the line from that moment. WATCHED: the model rated the over 50–70% but never committed to a call. Tap a card for line vs production.",
+          [spreadLinkCard("nfl", id, r), ...picks.map(pickCard), ...mine.map(([key, rec]) => pastPropCard(wk, key, rec))], "");
     }
-    const led = S.calls?.calls || [];
-    const logoOf = c => Object.values(S.parch[wk] || {}).find(r => r.player === c.player && r.market === c.market)?.logo;
     const spreads = (S.spreadCalls || []).filter(c => c.result && c.week === wk);
-    const weekProps = led.filter(c => c.week === wk).sort((a, b) => ((a.type || "live") === "live" ? 0 : 1) - ((b.type || "live") === "live" ? 0 : 1) || (a.result === "win" ? 0 : 1) - (b.result === "win" ? 0 : 1));
     const nPicks = spreads.length + weekProps.length;
     html += section(`nfl-past-picks-w${wk}`, `Week ${wk} Picks`, `${nPicks} ${nPicks === 1 ? "pick" : "picks"}`, "",
-      [...spreads.map(c => spreadResultCard("nfl", c)), ...weekProps.map(c => propResultCard({ ...c, logo: logoOf(c) }))], "No picks this week.");
+      [...spreads.map(c => spreadResultCard("nfl", c)), ...weekProps.map(c => propResultCard({ ...c, logo: archOf(c)?.[1].logo }))], "No picks this week.");
     const rec = t => { const r = led.filter(c => (c.type || "live") === t), w = r.filter(c => c.result === "win").length;
                        return r.length ? `${t === "live" ? "Model picks" : "Pregame calls"}: ${w}–${r.length - w}` : ""; };
     const sc = (S.spreadCalls || []).filter(c => c.result), n = k => sc.filter(c => c.result === k).length;
@@ -865,7 +866,7 @@ function viewPast() {
   }
   html += section(`${R.sport}-past-games`, "Games", [`${finals.length} final`, summary].filter(Boolean).join(" · "),
     R.sport === "nfl" ? "Tap a game for its player props and spread chart." : "Games with a line chart were tracked live; the rest show the final score only.",
-    finals.map(([id, r]) => finalCard(R.sport, id, r, byGame[id] || [])), "No finished games this week.");
+    finals.map(([id, r]) => finalCard(R.sport, id, r, byGame[id] || [], picksOf(id))), "No finished games this week.");
   return html;
 }
 

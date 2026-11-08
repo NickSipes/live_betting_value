@@ -420,6 +420,16 @@ def gc_label(gc):
     rem = round(max(0, q * 900 - gc))
     return f"Q{q} {rem // 60}:{rem % 60:02d}"
 
+# team rates shrunk toward league norms by SHRINK_N pseudo-plays: one 16-yd carry at 3:49 Q1 made
+# yards/carry 16.0 (+1.4 logits) and three Bengals calls (2026 wk10). Same formula in analysis/v2_model.py.
+SHRINK_N, SHARE0, YPA0, YPC0 = 10, 0.6, 5.5, 4.0
+
+def team_rates(plays, pass_att, pass_yds, rush_yds):
+    """(pass share, yds/pass att, yds/carry), each pulled toward the league norm with SHRINK_N pseudo-plays."""
+    return ((pass_att + SHRINK_N * SHARE0) / (plays + SHRINK_N),
+            (pass_yds + SHRINK_N * YPA0) / (pass_att + SHRINK_N),
+            (rush_yds + SHRINK_N * YPC0) / (plays - pass_att + SHRINK_N))
+
 def feature_vec(pr, kind, dv, gc, cum, nev, drought, e10, y10, diff, ts_, L, l0):
     """The model's 19 inputs; shared by live scoring and the P rebuild."""
     gc = max(gc, 60)
@@ -428,9 +438,7 @@ def feature_vec(pr, kind, dv, gc, cum, nev, drought, e10, y10, diff, ts_, L, l0)
     needed = L - cum
     return [ef, pr["ypg"], pr["ype"], dv, nev, cum, drought,
             e10, y10, diff, diff * ef,
-            ts_["pass_att"] / plays if plays else 0.5,
-            ts_["pass_yds"] / ts_["pass_att"] if ts_["pass_att"] else 0,
-            ts_["rush_yds"] / ts_["rush_att"] if ts_["rush_att"] else 0,
+            *team_rates(plays, ts_["pass_att"], ts_["pass_yds"], ts_["rush_yds"]),
             plays / (gc / 60), 1.0 if kind == "rush" else 0.0,
             needed, needed / (pr["ypg"] * (1 - ef) + 1), L / l0]
 

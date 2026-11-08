@@ -110,6 +110,16 @@ cd analysis && ../.venv/bin/python export_live.py
   records `team_expl`. 24 removed bets is still noise: the forward test is what decides it.
 - v2 with price as input is the first thing that beats the sample base rate.
   Not yet proven out-of-distribution: that's the forward test.
+- Team rate inputs are shrunk (2026-11-08): the model's pass share, yards per pass attempt and yards per carry
+  come from the live box score, and at 3:49 of Q1 in CIN @ ATL one 16-yard carry made the Bengals' yards per
+  carry 16.0 against a training mean of 3.8 (sd 1.6): +1.4 logits, calls on Chase, Gesicki and Higgins at
+  0.70-0.75 that fell to 0.41 one carry later. Both `analysis/v2_model.py` and the poller now pull the three
+  rates toward league norms with 10 pseudo-plays (`team_rates`); the same calls rescore 0.47-0.49. On the shipped
+  rec weights this moves weeks-6+ AUC .533 -> .522 (noise); a pooled refit on the shrunk features was worse (.48),
+  so the weights stay. The rec calibration is refit on every held-out week 6+ quote (6,163 quotes, 267
+  player-games, `analysis/fit_calib.py` now reads `data/week7/oos_preds.json` for both markets) instead of the
+  week-7 archive alone: raw P>=0.6 first flags go 104-98, raw >=0.8 16-4; calibrated 0.60 now needs raw 0.79
+  and tops out at 0.76. The old table had a 0.38 -> 0.69 step between raw 0.78 and 0.82 fit on one week.
 - Game Spreads rule on 2021-2024 (`analysis/cfb_shared_seasons.py`, 2026-11-08; scores, ranks and kickoffs from ESPN's weekly
   scoreboards, lines from the-odds-api historical snapshots taken before each game day's kickoffs, FanDuel else DraftKings,
   159 snapshots / 1,590 credits; 2025 re-run through the same code gives 27-13, matching the earlier backtest): **no edge.**

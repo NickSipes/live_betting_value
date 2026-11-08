@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
-"""Fit per-market isotonic calibrations of the live model's P.
+"""Fit per-market isotonic calibrations of the live model's P from held-out predictions
+(data/week7/oos_preds.json, written by analysis/retrain_markets.py).
 
-rec:  on archived week snapshots (the archive P values came from the deployed
-      rec scorer, so they match what the poller will produce). Label: yards
-      ever passed that snapshot's line afterwards (the live-win rule).
-rush: on the rush model's leave-one-game-out predictions, weeks 2+
-      (data/week7/oos_preds.json from analysis/retrain_markets.py; the archive
-      snapshots were scored by the old pooled model, which no longer scores rush).
-      Label there is final > line — slightly stricter than the live-win rule.
+rec:  the pooled recipe (trained on props_series weeks 2-5) scored on weeks 6+,
+      props_series and live-archive quotes alike. Label: final > line.
+rush: leave-one-game-out predictions of the deployed rush fit, weeks 2+.
 
-Each prop/player-game gets total weight 1 (1/n per snapshot) so long games
-don't dominate. Writes live/calib.json: {"rec": {p, cal}, "rush": {p, cal}};
-the poller interpolates linearly. Delete the file to run uncalibrated.
+Each player-game gets total weight 1 (1/n per snapshot) so long games don't
+dominate. Writes live/calib.json: {"rec": {p, cal}, "rush": {p, cal}}; the
+poller interpolates linearly. Delete the file to run uncalibrated.
 
-Usage: python3 analysis/fit_calib.py [weeks...]   (default: 7)
+Usage: python3 analysis/fit_calib.py
 """
-import json, os, sys, bisect
+import json, os, bisect
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-SKIP_EVENTS = {"401873009"}   # DAL @ PHI: its archive P switches to calibrated values mid-game
 
 def pav(pairs, min_top=0.0):
     """Weighted pool-adjacent-violators. pairs: sorted (p, label, weight).
@@ -36,25 +32,8 @@ def pav(pairs, min_top=0.0):
         out[-1] = [a[0], out[-1][1] + a[1], out[-1][2] + a[2]]
     return [(b[0], b[1] / b[2]) for b in out]
 
-def rec_samples(weeks):
-    for wk in weeks:
-        path = f"{ROOT}/data/fly/docs/archive/props_w{wk}.json"
-        for key, prop in json.load(open(path)).items():
-            final = prop.get("final")
-            if prop["market"] != "rec" or final is None or key.split("|")[0] in SKIP_EVENTS:
-                continue
-            rows, seen = [], set()
-            for gc, yds, ev, line, p in prop["snaps"]:
-                if p is None or line is None or gc in seen:
-                    continue
-                seen.add(gc)
-                later = max([s[1] for s in prop["snaps"] if s[0] >= gc] or [0])
-                rows.append((p, 1.0 if max(later, final) > line else 0.0))
-            for p, y in rows:
-                yield p, y, 1.0 / len(rows)
-
-def rush_samples():
-    d = json.load(open(f"{ROOT}/data/week7/oos_preds.json"))["rush"]
+def samples(kind):
+    d = json.load(open(f"{ROOT}/data/week7/oos_preds.json"))[kind]
     n = defaultdict(int)
     for m in d["meta"]:
         n[(m[1], m[2])] += 1
@@ -76,11 +55,11 @@ def fit(samples, label, min_top=0.0):
         print(f"  raw {raw:.2f} -> calibrated {c:.2f}")
     return out
 
-def main(weeks):
-    out = {"weeks": weeks, "rec": fit(rec_samples(weeks), "rec"),
-           "rush": fit(rush_samples(), "rush (leave-one-game-out)", min_top=3.0)}
+def main():
+    out = {"rec": fit(samples("rec"), "rec (held-out weeks 6+)", min_top=3.0),
+           "rush": fit(samples("rush"), "rush (leave-one-game-out)", min_top=3.0)}
     json.dump(out, open(f"{ROOT}/live/calib.json", "w"), indent=1)
     print("wrote live/calib.json")
 
 if __name__ == "__main__":
-    main([int(w) for w in sys.argv[1:]] or [7])
+    main()

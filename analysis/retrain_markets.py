@@ -76,13 +76,26 @@ for kind in ("rec", "rush"):
         print(f"  flag first P>={thr:.2f}: {wins:.0f}-{n-wins:.0f}" + (f" ({wins/n:.0%})" if n else ""))
     MODELS[kind] = dict(test_p=pv.tolist(), test_y=yv.tolist(), test_meta=mv, test_x=Xv)
 
-# deployment: rush refit on everything; rec stays the deployed pooled v2 model
-# (retrained rec tested WORSE than random on w7 — AUC .396 — so there is nothing
-# better to ship for rec yet; the pooled weights keep rec numerically unchanged)
+# deployment: rush refit on everything; rec stays the deployed pooled v2 model (props_series
+# weeks 2-5, both markets). The per-market rec refit above tests worse than random on w7, and
+# refitting the pooled recipe on today's data gave AUC .48 vs .52 for these weights on weeks 6+
+# (2026-11-08), so there is nothing better to ship. Weeks 6+ are held out for it: scored here
+# for the calibration. Team rates are shrunk now (v2_model.team_rates); on these weights that
+# moves weeks-6+ AUC .533 -> .522, noise.
 Xall, yall, mall = v2_rows(set(range(2, 99)))
-out = {"feats": V2_FEATS,
-       "rec": {k: v for k, v in json.load(open(f"{ROOT}/live/model_weights_pooled_v2.json")).items()
-               if k in ("mu", "sd", "w", "b")}}
+pooled = {k: v for k, v in json.load(open(f"{ROOT}/live/model_weights_pooled_v2.json")).items()
+          if k in ("mu", "sd", "w", "b")}
+X6, y6, m6 = market_rows(*v2_rows(set(range(6, 99))), "rec")
+p6 = 1 / (1 + np.exp(-((X6 - np.array(pooled["mu"])) / np.array(pooled["sd"]) @ np.array(pooled["w"]) + pooled["b"])))
+firsts = {}
+for i in sorted(range(len(m6)), key=lambda i: m6[i][4]):
+    if p6[i] >= 0.60:
+        firsts.setdefault((m6[i][1], m6[i][2]), i)
+wins = sum(y6[i] for i in firsts.values())
+print(f"\nrec pooled v2 on held-out weeks 6+: {len(y6)} quotes, {len({(m[1], m[2]) for m in m6})} player-games, "
+      f"over-rate {y6.mean():.1%}, AUC {auc(y6, p6):.3f}, flag first raw P>=0.60: {wins:.0f}-{len(firsts)-wins:.0f}")
+MODELS["rec"].update(test_p=p6.tolist(), test_y=y6.tolist(), test_meta=m6, test_x=X6)
+out = {"feats": V2_FEATS, "rec": pooled}
 Xk, yk, mk = market_rows(Xall, yall, mall, "rush")
 mu, sd = Xk.mean(0), Xk.std(0) + 1e-9
 w, b = fit_logistic((Xk - mu) / sd, yk, l2=3e-3)
@@ -105,7 +118,7 @@ for f, c in sorted(zip(V2_FEATS, w), key=lambda x: -abs(x[1]))[:6]:
 json.dump(out, open(f"{ROOT}/live/model_weights.json", "w"), indent=1)
 print("wrote live/model_weights.json (rec: pooled v2, rush: per-market)")
 
-# rec: out-of-sample w7 preds; rush: leave-one-game-out preds for analysis/fit_calib.py
+# rec: pooled model on held-out weeks 6+; rush: leave-one-game-out preds for analysis/fit_calib.py
 # and for gating in backtests: score_diff is x[9], ev_sofar x[4]
 json.dump({k: {"p": MODELS[k]["test_p"], "y": MODELS[k]["test_y"],
                "meta": MODELS[k]["test_meta"],

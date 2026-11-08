@@ -68,6 +68,15 @@ finals = {k: sum(e[5] for e in v if e[6]) for k, v in pgames.items()}
 
 V2_FEATS = FEATS + ["needed_rem", "price_ratio", "discount"]
 
+# team rates shrunk toward league norms by SHRINK_N pseudo-plays (same formula as live/poller.py team_rates):
+# raw yards/carry on one early carry was 16.0 against a training sd of 1.6 and fired false calls
+SHRINK_N, SHARE0, YPA0, YPC0 = 10, 0.6, 5.5, 4.0
+
+def team_rates(plays, pass_att, pass_yds, rush_yds):
+    return ((pass_att + SHRINK_N * SHARE0) / (plays + SHRINK_N),
+            (pass_yds + SHRINK_N * YPA0) / (pass_att + SHRINK_N),
+            (rush_yds + SHRINK_N * YPC0) / (plays - pass_att + SHRINK_N))
+
 def v2_rows(weeks):
     X, y, meta = [], [], []
     for key, q in quotes.items():
@@ -116,8 +125,7 @@ def v2_rows(weeks):
                 continue   # stale quote / line already beaten: a fake free win
             baseline_rem = ypg * rem_frac
             X.append([ef, ypg, ype, dv, nev, cum, (gc - last_prog) / 60,
-                      e10, y10, diff, diff * ef, ts_[1] / ts_[0] if ts_[0] else 0.5,
-                      ts_[2] / ts_[1] if ts_[1] else 0, ts_[3] / (ts_[0] - ts_[1]) if ts_[0] > ts_[1] else 0,
+                      e10, y10, diff, diff * ef, *team_rates(*ts_),
                       ts_[0] / (gc / 60), 1.0 if kind == "rush" else 0.0,
                       needed, needed / (baseline_rem + 1), L / l0[key]])
             y.append(1.0 if fin > L else 0.0)

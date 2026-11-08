@@ -153,7 +153,61 @@ def table(bets):
     for th in (4, 8, 14):
         row(f"gap >= {th}", lambda b, th=th: b[0] == 1 and b[1] >= th)
 
+def spots_games(season):
+    """cfb_spots-shaped games for one season: every game with a line, each team's previous game by kickoff time."""
+    games, meta, sp = board(season), T.cfb_meta(season), lines(board(season))
+    ranks = {g["id"]: (g["hr"], g["ar"]) for g in games}
+    by_team = collections.defaultdict(list)
+    for g in sorted(games, key=lambda g: g["t"]):
+        by_team[g["h"]].append((g["t"], g["hs"] - g["as"], g["id"], g["wk"]))
+        by_team[g["a"]].append((g["t"], g["as"] - g["hs"], g["id"], g["wk"]))
+    def last(team, t):
+        prev = [x for x in by_team[team] if x[0] < t]
+        return prev[-1][1:] if prev else None
+    out = [{"id": g["id"], "wk": g["wk"], "h": g["h"], "a": g["a"], "m": g["hs"] - g["as"], "sp": sp[g["id"]], "neutral": g["neutral"],
+            "conf": meta.get(g["id"], [False])[0], "rk": ranks[g["id"]], "hl": last(g["h"], g["t"]), "al": last(g["a"], g["t"])}
+           for g in games if g["id"] in sp and g["id"] in meta and g["wk"] >= 2]
+    return [(g, ranks) for g in out]
+
+def spots_table():
+    """The cfb_spots situational list (the watch tag is 'off a ranked-game loss, dog') and the rating-vs-line check, by season."""
+    per = {s: spots_games(s) for s in SEASONS}
+    print("\n" + " " * 36 + "".join(f"{s:>12}" for s in SEASONS) + f"{'all':>14}")
+    def row(nm, f):
+        tot = [0, 0]; cells = []
+        for s in SEASONS:
+            w, l = f(per[s]); tot[0] += w; tot[1] += l
+            cells.append(f"{w}-{l}")
+        n = sum(tot)
+        print(f"  {nm:<34}" + "".join(f"{c:>12}" for c in cells) + f"{tot[0]}-{tot[1]} {100 * tot[0] / max(1, n):3.0f}% z{T.z(*tot):+.1f}")
+    print("pregame spots, against the spread (need 52.4%)")
+    for nm, keys in T.SPOTS:
+        row(nm, lambda gr, keys=keys: T.ats(gr, keys))
+    print("rating vs line: bet the side the ridge rating likes by the edge or more (ranked games)")
+    def rating(gr, th):
+        season = int(gr[0][0]["id"] in {} or 0) if False else None
+        return None
+    for th in (4, 6, 8):
+        def f(gr, th=th):
+            gs = [g for g, _ in gr]
+            season = next(s for s in SEASONS if per[s] is gr)
+            tup, hist, pri = tuples(board(season)), tuples(board(season - 1)), prior(season)
+            w = l = 0
+            for wk in sorted({g["wk"] for g in gs if g["wk"] >= 5}):
+                rt, hfa = T.fit([x[1:] for x in tup if x[0] < wk], pri, T.FCS, None)
+                for g in gs:
+                    if g["wk"] != wk or min(g["rk"]) > 25:
+                        continue
+                    e = g["sp"] - T.look(tup, hist, wk, g["h"], g["a"], g["neutral"], rt, hfa, {}, {}, {})["model"]
+                    c = np.sign(g["m"] + g["sp"])
+                    if abs(e) >= th and c:
+                        w += (c > 0) == (e > 0); l += (c > 0) != (e > 0)
+            return w, l
+        row(f"rating edge >= {th}", f)
+
 if __name__ == "__main__":
+    if "--spots" in ARGS:
+        spots_table(); sys.exit()
     need = {s: sum(1 for t in stamps(board(s)) if not os.path.exists(f"{RAW}/CFB_{T.iso(t).replace(':', '')}.json")) for s in PULL_SEASONS}
     print(f"snapshots still to pull: {need} = {10 * sum(need.values())} credits; cap {CAP}, pull {'on' if PULL else 'off'}")
     bets = [b for s in SEASONS for b in season_bets(s)]

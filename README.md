@@ -110,8 +110,16 @@ cd analysis && ../.venv/bin/python export_live.py
   records `team_expl`. 24 removed bets is still noise: the forward test is what decides it.
 - v2 with price as input is the first thing that beats the sample base rate.
   Not yet proven out-of-distribution: that's the forward test.
+- Game Spreads rule on 2021-2024 (`analysis/cfb_shared_seasons.py`, 2026-11-08; scores, ranks and kickoffs from ESPN's weekly
+  scoreboards, lines from the-odds-api historical snapshots taken before each game day's kickoffs, FanDuel else DraftKings,
+  159 snapshots / 1,590 credits; 2025 re-run through the same code gives 27-13, matching the earlier backtest): **no edge.**
+  Ranked games, 2+ shared opponents met <=4 weeks apart, line 4+ from the implied spread: 24-22, 25-30, 27-24, 15-25 for
+  2021-24, 118-114 (51%) pooled with 2025; 6+ gap 92-93, 8+ gap 70-74, 3+ shared opponents 66-65. Both teams ranked
+  30-23 (57%) is 2025 plus noise (2-6 in 2024); home-side bets 65-49 vs away 53-65 is not a pattern worth a rule. One shared
+  opponent 78-86. 2025's 26-14 was the best of twelve variants tried on one season; the 2026 forward test is 7-6 through
+  week 10 (2-4 on 2026-11-07). The rule is a describer, not a pick.
 
-## Costs (the-odds-api, 20K/mo plan)
+## Costs (the-odds-api, 100K/mo plan)
 
 Historical: 10 credits per market/region per snapshot request; a full game
 ~450/market. Live: 1 credit per 2 books per market -> 2/game/poll; a full

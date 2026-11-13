@@ -9,10 +9,10 @@ sent = []
 P.push.send = lambda title, body, **kw: sent.append(title)
 kick = lambda mins: (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(minutes=mins)).isoformat()
 gm = lambda name, mins, **kw: {"player": name, "market": "rec", "line": 60.5, "book": "fanduel", "lines": {"fanduel": 60.5, "draftkings": 61.5},
-                               "game": "TEN @ CIN", "kick_iso": kick(mins), "top3": True, **kw}
+                               "game": "TEN @ CIN", "kick_iso": kick(mins), "pick": True, **kw}
 json.dump({"entries": [gm("Tee Higgins", 15), gm("Ja'Marr Chase", 45), gm("Puka Nacua", 10, inj="Out"),
-                       gm("Davante Adams", 10, line=None), gm("Old Game", -5), gm("Not Picked", 15, top3=False)]},
-          open(f"{D}/watchlist.json", "w"))   # Not Picked: outside the week's top 3, no alert
+                       gm("Davante Adams", 10, line=None), gm("Old Game", -5), gm("Not Picked", 15, pick=False)]},
+          open(f"{D}/watchlist.json", "w"))   # Not Picked: outside the week's 4 picks, no alert
 rb = lambda name, rank, team="CIN": {**gm(name, 18), "market": "rush", "line": 30.5, "off_rank": rank, "teams": 32, "team": team}
 json.dump({"entries": [rb("Chase Brown", 30), rb("Top Offense RB", 3)]}, open(f"{D}/rb_unders.json", "w"))
 json.dump({"entries": [gm("Courtland Sutton", 19)]}, open(f"{D}/wr_unders.json", "w"))   # a stale file from before the drop

@@ -207,12 +207,12 @@ RB_UNDER_LAYERS = [
     ("explosive", f"team's season 10+ yd run rate is above {RB_EXPL:.0%}", lambda p, ctx: expl_veto(p["team"])),
 ]
 
-# Good Matchups: 3 picks a week (from 2026 week 10). Every eligible matchup gets a point each for home, favored, offense
-# not bottom third in scoring, record not bottom third (win pct > .4) and last-3 form >= 0.8x season ypg; the top 3 by
-# points, then worst defense, are bet, the rest go to the ledger caught by "top3". 2024-26 at closing prices: top 3 a
-# week this way 60-45 (+15/+5/+1%), worst-defense-first 45-60, random 3 -8% (5-95% -20 to +7%). Seven rankings were
-# tried, so it's a lead under forward test, not a proven edge.
-GM_PICKS = 3
+# Good Matchups: 4 picks a week (from 2026 week 10). Every eligible matchup gets a point each for home, favored, offense
+# not bottom third in scoring, record not bottom third (win pct > .4) and last-3 form >= 0.8x season ypg; the top 4 by
+# points, then worst defense, are bet. The rest are not picks: off the page, not in calls.json, only in the layer ledger
+# (caught by "not_picked") for later testing. 2024-26 at closing prices, top 4 a week this way 82-58 (+18/+7/+4%; top 3
+# 60-45), worst-defense-first 65-75, random -8%. Seven rankings were tried: a lead under forward test, not a proven edge.
+GM_PICKS = 4
 
 def gm_score(w, ranks):
     """Cuts points for a Good Matchups entry (0-5). ranks: ESPN abbr -> scoring rank (1 = best)."""
@@ -227,22 +227,22 @@ def gm_eligible(w):
     return w.get("line") is not None and w.get("inj") not in INJ_OUT and not w.get("qb_out") and not w.get("mate_out")
 
 def gm_top(entries, ranks, now_kick=lambda w: kick_in(w)):
-    """Mark the week's GM_PICKS picks in place (w["top3"]); a pick whose game kicked off is locked, the open slots go to
+    """Mark the week's GM_PICKS picks in place (w["pick"]); a pick whose game kicked off is locked, the open slots go to
     games still to come. Returns True when a mark changed."""
-    locked = [w for w in entries if w.get("top3") and now_kick(w) <= 0]
+    locked = [w for w in entries if w.get("pick") and now_kick(w) <= 0]
     open_ = sorted((w for w in entries if now_kick(w) > 0 and gm_eligible(w)),
                    key=lambda w: (-gm_score(w, ranks), -(w.get("def_ypg") or 0)))
     pick = {id(w) for w in locked + open_[:max(0, GM_PICKS - len(locked))]}
     changed = False
     for w in entries:
-        if now_kick(w) > 0 or not w.get("top3"):   # kicked-off marks stay as they were
+        if now_kick(w) > 0 or not w.get("pick"):   # kicked-off marks stay as they were
             top = id(w) in pick
-            if w.get("top3", False) != top or w.get("score") != gm_score(w, ranks):
-                w["top3"], w["score"] = top, gm_score(w, ranks)
+            if w.get("pick", False) != top or w.get("score") != gm_score(w, ranks):
+                w["pick"], w["score"] = top, gm_score(w, ranks)
                 changed = True
     return changed
 
-GM_LAYERS = [("top3", f"not one of the week's {GM_PICKS} best Good Matchups by cuts points", lambda p, ctx: not p.get("top3"))]
+GM_LAYERS = [("not_picked", f"not one of the week's {GM_PICKS} best Good Matchups by cuts points", lambda p, ctx: not p.get("pick"))]
 
 def qb_backup(qbs, inj, team):
     """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
@@ -919,7 +919,7 @@ class Monitor:
         """Pregame picks alert PRE_PUSH before kickoff at the current line: the week's GM_PICKS Good Matchups,
         RB unders by the kickoff rule. The pick itself is still made at kickoff (cycle), whose push
         only fires for a pick this missed (added late, or a restart)."""
-        picks = [(w, "Over") for w in watchlist() if w.get("top3") and gm_eligible(w)]
+        picks = [(w, "Over") for w in watchlist() if w.get("pick") and gm_eligible(w)]
         try:
             picks += [(w, "Under") for w in json.load(open(f"{DOCS}/rb_unders.json"))["entries"]
                       if (w.get("off_rank") or 0) > w["teams"] * 2 / 3 and not expl_veto(w["team"])]

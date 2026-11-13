@@ -444,16 +444,16 @@ function propPreCard(w) {
     <div class="trow">${logoImg(nflLogo(w.team))}
       <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
       ${inj}
-      <span class="chip ${w.top3 ? "pre" : ""}" style="margin-left:auto">${w.top3 ? "PICK" : "NOT PICKED"}</span>
+      <span class="chip pre" style="margin-left:auto">PREGAME</span>
     </div>
-    <div class="mk">${MKT(w.market)}${w.line == null ? "<b>no line yet</b>" : w.top3 ? `<span class="chip hot" style="margin-left:6px">Bet O ${w.line}</span>` : `<span style="margin-left:6px">O ${w.line}</span>`}</div>
+    <div class="mk">${MKT(w.market)}${w.line != null ? `<span class="chip hot" style="margin-left:6px">Bet O ${w.line}</span>` : "<b>no line yet</b>"}</div>
     ${w.score != null ? `<div class="sub"><span>Pick points</span><span>${w.score} / 5</span></div>` : ""}
     <div class="sub"><span>${w.pos} #${w.rank} at position</span><span>${w.ypg} ypg</span></div>
     <div class="trow" style="margin-top:8px">${logoImg(nflLogo(w.opp))}
       <span style="font-size:12.5px; color:var(--ink-2)">vs ${w.opp} — #${w.def_rank} worst vs ${w.pos} (${w.def_ypg} ypg)</span>
     </div>
     <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso) || w.kick}</span></div>
-    ${w.line != null && w.top3 ? betBtn(w) : ""}
+    ${w.line != null ? betBtn(w) : ""}
   </div>`;
 }
 // ---------- preview plot ----------
@@ -694,8 +694,7 @@ const now = () => Date.now();
 const curWeek = sport => { const w = Object.values(S.games[sport] || {}).filter(r => r.state !== "post").map(r => r.week); return w.length ? Math.min(...w) : null; };
 const INJ_OUT = ["Out", "Injured Reserve", "Doubtful", "Suspension"];   // same list as the poller: no bet, no card
 // no posted line = no card: the book hasn't priced him, or he's inactive (Adams with no line while his teammates have one)
-const watchUpcoming = () => (S.watch?.entries || []).filter(w => (!w.kick_iso || new Date(w.kick_iso) > now()) && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out)
-  .sort((a, b) => (b.top3 ? 1 : 0) - (a.top3 ? 1 : 0) || byKick(a, b));   // the week's 3 picks first
+const watchUpcoming = () => (S.watch?.entries || []).filter(w => w.pick && (!w.kick_iso || new Date(w.kick_iso) > now()) && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out).sort(byKick);   // only the week's 4 picks
 
 // a final's chart lives in the week's archive, which only Past loads
 async function openFinal(sport, wk, id) { await loadArchive(sport, wk); openSpread(KINDOF[sport], id); }
@@ -738,7 +737,7 @@ function viewLive() {
     const ledger = (S.calls?.calls || []).filter(c => c.week === wk && !onBoard.has(`${c.player}|${c.market}|${c.type || "live"}`));
     // a Good Matchup leaves Upcoming at kickoff; the poller adds its pick once it sees the game live, so hold the card here until then
     const seen = c => `${c.player.split(" ").at(-1)}|${c.market}`, taken = new Set([...mine, ...ledger].map(seen));
-    const kicked = (S.watch?.entries || []).filter(w => w.top3 && w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out && !taken.has(seen(w)));
+    const kicked = (S.watch?.entries || []).filter(w => w.pick && w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out && !taken.has(seen(w)));
     // RB unders too, for 30 min: the poller only makes those picks in the first 5 minutes of game clock
     const kickedU = (S.rbu?.entries || []).filter(rbShown).filter(w =>
       w.kick_iso && new Date(w.kick_iso) <= now() && now() - new Date(w.kick_iso) < 18e5 && !taken.has(seen(w)));
@@ -778,8 +777,8 @@ function viewUpcoming() {
   const { w, rb, sp, setup } = pregamePicks(R.sport);
   let html = "";
   if (R.sport === "nfl") {
-    html += section("nfl-up-props", "Good Matchups", `${w.length} players`,
-      "Top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position. Three a week are bet: one point each for home, favored, an offense outside the bottom third in scoring, a record above .400 and last-3 form at 0.8x the season average or better; most points win, then the worst defense. On 2024-26 closing lines those 3 a week went 60-45 (+9%), every matchup 424-443 (-7%). A forward test: the rest are graded in the ledger.",
+    html += section("nfl-up-props", "Good Matchups", `${w.length} picks`,
+      "Four picks a week from the top-20 WR / top-10 TE / top-15 RB facing a bottom-10 defense at their position: one point each for home, favored, an offense outside the bottom third in scoring, a record above .400 and last-3 form at 0.8x the season average or better; most points win, then the worst defense. On 2024-26 closing lines those 4 a week went 82-58 (+11%); every matchup 424-443 (-7%). A forward test.",
       w.map(x => propPreCard(x)), "No upcoming Good Matchups.");
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
       "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the usual QB starts and the team ranks in the bottom third of scoring. Against real closing lines this won in 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",

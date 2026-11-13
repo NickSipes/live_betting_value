@@ -253,10 +253,12 @@ Locally, the same pollers still run unchanged (defaults write to `docs/` and `li
   < 22 lose every season, but cutting them leaves the rest around -2% (home 214-202). The one survivor, home & implied
   team total 22.5-25.2 (75-42; 2025-26 36-26 +10%), is a spike: home 20-22.5 -15%, 25.2-27 -26%, 27+ +3%, widening to
   21-26 drops 2025 to -15%, and half its edge is RB receiving 26-4. Paper-track it if anything; it is not a rule yet.
-- Good Matchups, 3 picks a week (2026-11-12, live from week 10, `live/poller.py` `GM_PICKS`, `gm_score`, `gm_top`):
+- Good Matchups, 4 picks a week (2026-11-12, live from week 10, `live/poller.py` `GM_PICKS`, `gm_score`, `gm_top`):
   every eligible matchup gets a point for home, favored, offense outside the bottom third in scoring, record > .400
-  and last-3 form >= 0.8x ypg; the top 3 (ties: worst defense) are bet, alerted and shown as PICK; the rest stay on the
-  page as NOT PICKED. A pick locks at its kickoff; open slots go to later games. Backtest of 7 rankings, top 3 a week
-  2024-26: this one 60-45 (+15/+5/+1%), ypg x defense 57-48 (+3%), best player 49-56, worst defense first (the old
-  page order) 45-60 (-19%); random 3 -8% (5-95% -20 to +7%). Every candidate goes in `docs/layers_nfl_good_matchups.json`
-  (layer `top3` = not picked), graded at the final, so the rule gets a forward record against the matchups it skipped.
+  and last-3 form >= 0.8x ypg; the top 4 (ties: worst defense) are bet, alerted and shown. The rest are not picks: off
+  the page and out of calls.json. A pick locks at its kickoff; open slots go to later games. Backtest of 7 rankings,
+  top 3 a week 2024-26: this one 60-45 (+15/+5/+1%), ypg x defense 57-48 (+3%), best player 49-56, worst defense first
+  (the old page order) 45-60 (-19%); random 3 -8% (5-95% -20 to +7%). Top 4 this way: 82-58 (+18/+7/+4%, +11%). Every
+  candidate goes in `docs/layers_nfl_good_matchups.json` (layer `not_picked`), graded at the final, so the rule gets a
+  forward record against the matchups it skipped. Week 10: Likely (Thursday) was made a pick by the old code at
+  kickoff, so he was marked as the week's first pick on the server and 3 slots stayed open.

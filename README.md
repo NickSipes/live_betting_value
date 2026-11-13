@@ -241,3 +241,22 @@ Locally, the same pollers still run unchanged (defaults write to `docs/` and `li
   Dropped 2026-11-12: the poller no longer makes the WR teammate-out under or publishes `docs/wr_unders.json`, and the
   page's WR Unders section is gone. The Good Matchups over is still skipped when that teammate is out (over 23-34).
   The RB under feed now pulls only the rushing market (1 credit a game instead of 2).
+- Good Matchups rescue attempts (2026-11-12): **no rule found.** Flipped to the under: -4% overall (RB rushing +3%,
+  receiving -8%). Positive every season only in thin slices found by looking: the over at plus money (no-vig < 48%)
+  under 30-6 (+11/+38/+65%), but across *all* props that price signal is flat (under 76-56 at over < 48%, -3%; the
+  under costs ~-129), so the 30-6 is a carve-out of noise; RB rushing with recent form < 0.8x ypg under 51-20 (+25/+24%,
+  one 2026 bet). Control: the same top-N players *not* facing a bottom-10 defense win the receiving under +4% every
+  season (547-448), the Good Matchups receiving under -8%: the matchup is priced in, no direction left to bet.
+- Good Matchups filter search (2026-11-12): 72 conditions + pairs (1,666 filters with 40+ bets) found on 2024, tested on
+  2025-26. Best 2024 z 3.77 vs 3.79 at the 90th percentile of shuffled margins (luck); 4 of the top 25 made money on
+  2025-26. Named factors: away -8/-10/-22%, underdog, bottom-third offense, bottom-third record and implied team total
+  < 22 lose every season, but cutting them leaves the rest around -2% (home 214-202). The one survivor, home & implied
+  team total 22.5-25.2 (75-42; 2025-26 36-26 +10%), is a spike: home 20-22.5 -15%, 25.2-27 -26%, 27+ +3%, widening to
+  21-26 drops 2025 to -15%, and half its edge is RB receiving 26-4. Paper-track it if anything; it is not a rule yet.
+- Good Matchups, 3 picks a week (2026-11-12, live from week 10, `live/poller.py` `GM_PICKS`, `gm_score`, `gm_top`):
+  every eligible matchup gets a point for home, favored, offense outside the bottom third in scoring, record > .400
+  and last-3 form >= 0.8x ypg; the top 3 (ties: worst defense) are bet, alerted and shown as PICK; the rest stay on the
+  page as NOT PICKED. A pick locks at its kickoff; open slots go to later games. Backtest of 7 rankings, top 3 a week
+  2024-26: this one 60-45 (+15/+5/+1%), ypg x defense 57-48 (+3%), best player 49-56, worst defense first (the old
+  page order) 45-60 (-19%); random 3 -8% (5-95% -20 to +7%). Every candidate goes in `docs/layers_nfl_good_matchups.json`
+  (layer `top3` = not picked), graded at the final, so the rule gets a forward record against the matchups it skipped.

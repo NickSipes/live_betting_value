@@ -207,6 +207,43 @@ RB_UNDER_LAYERS = [
     ("explosive", f"team's season 10+ yd run rate is above {RB_EXPL:.0%}", lambda p, ctx: expl_veto(p["team"])),
 ]
 
+# Good Matchups: 3 picks a week (from 2026 week 10). Every eligible matchup gets a point each for home, favored, offense
+# not bottom third in scoring, record not bottom third (win pct > .4) and last-3 form >= 0.8x season ypg; the top 3 by
+# points, then worst defense, are bet, the rest go to the ledger caught by "top3". 2024-26 at closing prices: top 3 a
+# week this way 60-45 (+15/+5/+1%), worst-defense-first 45-60, random 3 -8% (5-95% -20 to +7%). Seven rankings were
+# tried, so it's a lead under forward test, not a proven edge.
+GM_PICKS = 3
+
+def gm_score(w, ranks):
+    """Cuts points for a Good Matchups entry (0-5). ranks: ESPN abbr -> scoring rank (1 = best)."""
+    home = w["team"] == w["game"].split(" @ ")[1]
+    sp, pct = w.get("spread_home"), w.get("pct_home" if home else "pct_away")   # from game_info
+    me = [x[1] for x in (w.get("form") or {}).get("me", []) if x[1] is not None]
+    rk = ranks.get(ALIAS.get(w["team"], w["team"]))
+    return int(home + (sp is not None and (sp < 0 if home else sp > 0)) + (rk is not None and rk <= len(ranks) * 2 / 3)
+               + (pct is None or pct > 0.4) + (bool(me) and sum(me) / len(me) >= 0.8 * w["ypg"]))
+
+def gm_eligible(w):
+    return w.get("line") is not None and w.get("inj") not in INJ_OUT and not w.get("qb_out") and not w.get("mate_out")
+
+def gm_top(entries, ranks, now_kick=lambda w: kick_in(w)):
+    """Mark the week's GM_PICKS picks in place (w["top3"]); a pick whose game kicked off is locked, the open slots go to
+    games still to come. Returns True when a mark changed."""
+    locked = [w for w in entries if w.get("top3") and now_kick(w) <= 0]
+    open_ = sorted((w for w in entries if now_kick(w) > 0 and gm_eligible(w)),
+                   key=lambda w: (-gm_score(w, ranks), -(w.get("def_ypg") or 0)))
+    pick = {id(w) for w in locked + open_[:max(0, GM_PICKS - len(locked))]}
+    changed = False
+    for w in entries:
+        if now_kick(w) > 0 or not w.get("top3"):   # kicked-off marks stay as they were
+            top = id(w) in pick
+            if w.get("top3", False) != top or w.get("score") != gm_score(w, ranks):
+                w["top3"], w["score"] = top, gm_score(w, ranks)
+                changed = True
+    return changed
+
+GM_LAYERS = [("top3", f"not one of the week's {GM_PICKS} best Good Matchups by cuts points", lambda p, ctx: not p.get("top3"))]
+
 def qb_backup(qbs, inj, team):
     """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
     if team in QB_EXEMPT or team not in qbs:
@@ -312,16 +349,23 @@ def last3(team):
     return out
 
 def game_info(week):
-    """ESPN scoreboard extras per game label ('TEN @ CIN'): venue and the kickoff forecast."""
+    """ESPN scoreboard extras per game label ('TEN @ CIN'): venue, the kickoff forecast, the home spread (ESPN's
+    book; negative = home favored) and each team's win pct (ties count half) for the Good Matchups points."""
     out = {}
     for ev in get(f"{ESPN}/scoreboard?week={week}").get("events", []):
         c = ev["competitions"][0]
         t = {x["homeAway"]: NFLV.get(x["team"]["abbreviation"], x["team"]["abbreviation"]) for x in c["competitors"]}
         v, wx, addr = c.get("venue") or {}, ev.get("weather") or {}, (c.get("venue") or {}).get("address") or {}
+        pct = {}
+        for x in c["competitors"]:
+            wlt = [int(n) for n in ((x.get("records") or [{}])[0].get("summary") or "").split("-") if n.isdigit()]
+            if len(wlt) >= 2 and sum(wlt):
+                pct[x["homeAway"]] = round((wlt[0] + (wlt[2] / 2 if len(wlt) > 2 else 0)) / sum(wlt), 3)
         out[f'{t["away"]} @ {t["home"]}'] = {
             "venue": ", ".join(filter(None, [v.get("fullName"), addr.get("city"), addr.get("state")])) or None,
             "wx": "Indoors" if v.get("indoor") else
-                  f'{wx["displayValue"]}, {wx["temperature"]}°F' if wx.get("displayValue") else None}
+                  f'{wx["displayValue"]}, {wx["temperature"]}°F' if wx.get("displayValue") else None,
+            "spread_home": ((c.get("odds") or [{}])[0]).get("spread"), "pct_home": pct.get("home"), "pct_away": pct.get("away")}
     return out
 
 FORM_V = 2   # bump to rebuild cached forms; 2 added the player's closing line each week
@@ -497,6 +541,7 @@ class Monitor:
         except Exception:
             self.rb_skips = {}
         self.rb_ledger = layers.Ledger("nfl_rb_unders", RB_UNDER_LAYERS, DOCS)
+        self.gm_ledger = layers.Ledger("nfl_good_matchups", GM_LAYERS, DOCS)   # every Good Matchup at kickoff, graded at the final
         self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
         self.ranks = (0, {})  # (fetched at, scoring rank by ESPN abbr), refreshed every 3h
         self.full2ab = {}     # ESPN full team name -> nflverse code
@@ -762,6 +807,9 @@ class Monitor:
             self.hist.pop(hkey)
             last = h["snaps"][-1] if h["snaps"] else (0, 0, 0, None)
             final = box[eid].get(name, {}).get(kind, (last[1], 0))[0]   # box score beats a stale snapshot
+            gp = self.gm_ledger.d["picks"].get(hkey)
+            if gp:
+                self.gm_ledger.grade(hkey, "win" if final > gp["line"] else "loss" if final < gp["line"] else "push", final=final)
             for key in ("call", "pre"):
                 c = h.get(key)
                 if not c:
@@ -868,11 +916,10 @@ class Monitor:
         return time.time() - self.early.get(f"{short_name(name)}|{kind}", 0) < 6 * 3600
 
     def early_pushes(self):
-        """Pregame picks alert PRE_PUSH before kickoff at the current line: Good Matchups as the page lists
-        them, RB unders by the kickoff rule. The pick itself is still made at kickoff (cycle), whose push
+        """Pregame picks alert PRE_PUSH before kickoff at the current line: the week's GM_PICKS Good Matchups,
+        RB unders by the kickoff rule. The pick itself is still made at kickoff (cycle), whose push
         only fires for a pick this missed (added late, or a restart)."""
-        picks = [(w, "Over") for w in watchlist() if w.get("line") is not None and w.get("inj") not in INJ_OUT
-                 and not w.get("qb_out") and not w.get("mate_out")]
+        picks = [(w, "Over") for w in watchlist() if w.get("top3") and gm_eligible(w)]
         try:
             picks += [(w, "Under") for w in json.load(open(f"{DOCS}/rb_unders.json"))["entries"]
                       if (w.get("off_rank") or 0) > w["teams"] * 2 / 3 and not expl_veto(w["team"])]
@@ -980,6 +1027,7 @@ class Monitor:
                         changed = True
             except Exception as e:
                 print("preview form error", repr(e))
+        changed |= gm_top(entries, self.ranks[1])   # the week's GM_PICKS picks, after injuries/QBs/lines/form are fresh
         if changed:
             json.dump(wl, open(f"{DOCS}/watchlist.json", "w"), indent=1)
             print("watchlist extras updated (injuries/venue/lines/form)")
@@ -1107,6 +1155,12 @@ class Monitor:
                     h["meta"] = {"player": name, "market": kind, "logo": game.get(side) if side else None,
                                  "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}
                 c = h.get("pre")
+                caught = layers.vetoes(GM_LAYERS, w)
+                if not c and game["gc"] <= 300:   # the ledger keeps every candidate at the closing line, picked or not
+                    self.gm_ledger.put(hkey, {"player": name, "market": kind, "line": closing[k], "side": "over",
+                                              "score": w.get("score"), "game": h["meta"]["game"]}, caught)
+                if caught and not c:
+                    continue   # not one of the week's picks: graded in the ledger only
                 if not c and not self.alerted(name, kind):   # this prop just joined the week's picks
                     book = "fanduel" if "fanduel" in self.books.get((name, kind), {"fanduel": 0}) else "draftkings"
                     push.send(f'Bet {name} Over {closing[k]} {"rec" if kind == "rec" else "rush"} yds on {push.BOOK[book]}',

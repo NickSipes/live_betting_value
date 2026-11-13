@@ -226,16 +226,24 @@ def gm_score(w, ranks):
 def gm_eligible(w):
     return w.get("line") is not None and w.get("inj") not in INJ_OUT and not w.get("qb_out") and not w.get("mate_out")
 
-def gm_top(entries, ranks, now_kick=lambda w: kick_in(w)):
+def gm_top(entries, ranks, now_kick=lambda w: kick_in(w), bet=()):
     """Mark the week's GM_PICKS picks in place (w["pick"]); a pick whose game kicked off is locked, the open slots go to
-    games still to come. Returns True when a mark changed."""
+    games still to come. bet: (short name, market) of Good Matchups already bet at kickoff (the poller's pregame calls):
+    those are picks whatever their mark says, so a restart or a rule change can't add a fifth. A game's points and mark
+    freeze at kickoff (ESPN drops the spread once it's live). No ranks yet (just restarted) = no ranking at all, or every
+    team would lose its offense point for a cycle. Returns True when a mark changed."""
+    if not ranks:
+        return False
+    changed = False
+    for w in entries:
+        if now_kick(w) <= 0 and not w.get("pick") and (short_name(w["player"]), w["market"]) in bet:
+            w["pick"] = changed = True
     locked = [w for w in entries if w.get("pick") and now_kick(w) <= 0]
     open_ = sorted((w for w in entries if now_kick(w) > 0 and gm_eligible(w)),
                    key=lambda w: (-gm_score(w, ranks), -(w.get("def_ypg") or 0)))
-    pick = {id(w) for w in locked + open_[:max(0, GM_PICKS - len(locked))]}
-    changed = False
+    pick = {id(w) for w in open_[:max(0, GM_PICKS - len(locked))]}
     for w in entries:
-        if now_kick(w) > 0 or not w.get("pick"):   # kicked-off marks stay as they were
+        if now_kick(w) > 0:   # kicked off: frozen
             top = id(w) in pick
             if w.get("pick", False) != top or w.get("score") != gm_score(w, ranks):
                 w["pick"], w["score"] = top, gm_score(w, ranks)
@@ -1027,7 +1035,19 @@ class Monitor:
                         changed = True
             except Exception as e:
                 print("preview form error", repr(e))
-        changed |= gm_top(entries, self.ranks[1])   # the week's GM_PICKS picks, after injuries/QBs/lines/form are fresh
+        if time.time() - self.ranks[0] > 10800:
+            try:
+                self.ranks = (time.time(), scoring_ranks(wl.get("week") or 1))
+            except Exception as e:
+                print("scoring ranks error", repr(e))
+        bet = {(short_name(k.split("|")[1]), k.split("|")[2]) for k, h in self.hist.items()
+               if h.get("pre") and h["pre"].get("side") != "under"}   # Good Matchups the poller has bet this week
+        try:
+            bet |= {(short_name(c["player"]), c["market"]) for c in json.load(open(f"{DOCS}/calls.json"))["calls"]
+                    if c.get("week") == wl.get("week") and c.get("type") == "pregame" and c.get("side") != "under"}
+        except Exception:
+            pass
+        changed |= gm_top(entries, self.ranks[1], bet=bet)   # the week's GM_PICKS picks, after injuries/QBs/lines/form are fresh
         if changed:
             json.dump(wl, open(f"{DOCS}/watchlist.json", "w"), indent=1)
             print("watchlist extras updated (injuries/venue/lines/form)")

@@ -9,7 +9,7 @@ assert P.GM_PICKS == 4
 RANKS = {f"T{i}": i for i in range(1, 31)} | {"CIN": 3, "TEN": 30}   # 30 teams: bottom third is rank 21+
 
 def e(name, team="CIN", game="TEN @ CIN", sp=-3.5, ph=0.6, pa=0.3, form=(80, 70, 90), ypg=80, dv=100, kick=60, **kw):
-    return {"player": name, "team": team, "game": game, "spread_home": sp, "pct_home": ph, "pct_away": pa, "ypg": ypg,
+    return {"player": name, "market": "rec", "team": team, "game": game, "spread_home": sp, "pct_home": ph, "pct_away": pa, "ypg": ypg,
             "form": {"me": [["w", y, None] for y in form]}, "def_ypg": dv, "line": 60.5, "k": kick, **kw}
 
 # points: home, favored, offense not bottom third, record > .400, last-3 >= 0.8x ypg
@@ -38,4 +38,19 @@ P.gm_top(wk, RANKS, kick)
 assert picked() == ["A", "D", "E", "Hurt"] and not wk[5]["pick"], picked()
 
 assert layers.vetoes(P.GM_LAYERS, wk[0]) == [] and layers.vetoes(P.GM_LAYERS, wk[5]) == ["not_picked"]
+
+# a restart: no ranks yet means no ranking (every team would lose its offense point), marks stay as they were
+assert not P.gm_top(wk, {}, kick) and picked() == ["A", "D", "E", "Hurt"]
+# a kicked-off game's points are frozen: ESPN dropping the spread mid-game changes nothing
+before = wk[0]["score"]; wk[0]["spread_home"] = None
+P.gm_top(wk, RANKS, kick)
+assert wk[0]["score"] == before and wk[0]["pick"]
+
+# a matchup the poller already bet at kickoff counts as a pick even if unmarked (the old code bet it, or a restart)
+wk2 = [e("Likely", kick=-10), e("S1"), e("S2", dv=150), e("S3", sp=None), e("S4", team="TEN")]
+P.gm_top(wk2, RANKS, kick, bet={(P.short_name("Likely"), "rush")})   # a bet in another market isn't this one
+assert [w["player"] for w in wk2 if w.get("pick")] == ["S1", "S2", "S3", "S4"]
+wk2 = [e("Likely", kick=-10), e("S1"), e("S2", dv=150), e("S3", sp=None), e("S4", team="TEN")]
+P.gm_top(wk2, RANKS, kick, bet={(P.short_name("Likely"), "rec")})
+assert [w["player"] for w in wk2 if w.get("pick")] == ["Likely", "S1", "S2", "S3"], [w["player"] for w in wk2 if w.get("pick")]
 print("ok")

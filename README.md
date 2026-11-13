@@ -260,5 +260,7 @@ Locally, the same pollers still run unchanged (defaults write to `docs/` and `li
   top 3 a week 2024-26: this one 60-45 (+15/+5/+1%), ypg x defense 57-48 (+3%), best player 49-56, worst defense first
   (the old page order) 45-60 (-19%); random 3 -8% (5-95% -20 to +7%). Top 4 this way: 82-58 (+18/+7/+4%, +11%). Every
   candidate goes in `docs/layers_nfl_good_matchups.json` (layer `not_picked`), graded at the final, so the rule gets a
-  forward record against the matchups it skipped. Week 10: Likely (Thursday) was made a pick by the old code at
-  kickoff, so he was marked as the week's first pick on the server and 3 slots stayed open.
+  forward record against the matchups it skipped. A Good Matchup the poller already bet at kickoff (a pregame call,
+  live or in this week's calls.json) counts as a pick even unmarked, so a restart or rule change can't make a fifth; this
+  is how Likely (week 10, bet by the old code before the deploy) is pick #1. Points and marks freeze at kickoff (ESPN
+  drops the spread once a game is live), and nothing is ranked until the scoring ranks load after a restart.

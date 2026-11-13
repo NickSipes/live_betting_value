@@ -37,6 +37,7 @@ cd analysis && ../.venv/bin/python export_live.py
 | `analysis/export_live.py` | train v2 + write live/{model_weights,priors,def_priors}.json |
 | `live/poller.py` + `live/web/` | live monitor + dashboard |
 | `analysis/cfb_top25_lines.py` | CFB Top-25 line check: margin rating + common opponents vs the posted spread (`--backtest`); the <=4-week rule runs live as the NCAAF Pregame Picks "Game Spreads" section (`live/cfb_poller.py` `shared_pick`) |
+| `analysis/ol_out.py` | Good Matchups over backtest at closing prices, and RB rushing props when OL regulars are out (snap counts), 2024-26 |
 
 ## Findings log
 
@@ -146,3 +147,50 @@ Sunday at 5-min polling ~1.2K. Used so far: ~14K.
 One always-on machine runs the dashboard and all three pollers (`live/start.sh`);
 state lives on the `lbv_data` volume at `/data`. Deploy changes with `fly deploy`.
 Locally, the same pollers still run unchanged (defaults write to `docs/` and `live/`).
+- Good Matchups over + OL starters out (`analysis/ol_out.py`, 2024-26 closing lines at real prices, 2026-11-12; needs
+  nflverse `data/snap_counts_{season}.csv.gz`): **the Good Matchups over has no edge.** Top-N season ypg vs a bottom-10
+  defense, over at the closing line: 424-443 (48.9%, roi -6.9%); 2024 -1%, 2025 -11%, 2026 -13%. RB rushing is the drain
+  (125-162, -16.5%); receiving is vig-level (299-281, -2.1%). The live ledger agrees (10-12 through 2026 week 9). The
+  book already prices the matchup: lines sit at 0.86x season ypg on these. Stale season averages make it worse, not
+  better: recent form down (last 3 < 0.8x ypg) 78-104 (-17.4%), and RB rush overs with an OL regular out 32-50 (-25.9%).
+  OL regular out (85%+ snaps in 75%+ of earlier games, now under 50%) and RB rushing unders: 0 out 51%, 1 out 53%
+  (roi +0.6%), 2+ out 46-31 (59.7%, +13.4%, z 1.7) but 2025 went 21-20 — a lead, not a rule. Lines barely move for it
+  (line minus ypg -1.9 vs -2.5). No OL quality data (nflverse contracts stop at 2022), so an All-Pro out counts the
+  same as a backup out. Colts after Quenton Nelson (wk 8-9): Taylor 21 carries 3.3 ypc, 29% stuffed (18% before), but
+  the other RBs ran 6.5 ypc on 19 — two games, unreadable.
+  Winners vs losers inside the Good Matchups over (same 2024-26 bets; 26 conditions, so ~1 hits |t|>2 by luck): no
+  slice is positive in all three seasons. Negative every season: the over at plus money (no-vig < 48%) 6-30 (-61%),
+  last 3 < 0.8x ypg (-17%), away (-11%; home -2%), RB rushing (-17%). Filtering to recent form 0.8x+ and a bottom-half
+  scoring defense leaves 211-198 (-2%): the filters only shrink the loss to the vig. Finals vs line: median -0.5, mean
+  +4.5 (winners beat by a median 19.5, losers miss by 14.5); the line sits at the median, so the over needs a real edge.
+- Other losses through 2026 week 9 (2026-11-12, ledger `data/fly/docs/calls.json`, autopsy `analysis/week_calls.py`):
+  live calls 29-22 (57%, z ~1.0 vs a coin), 5-6 since the week 8 calibration refit. 12 of 22 losses got zero yards after
+  the call, and week 8-9 losers had their team up 8-21 with a 38% pass share after. On the 6,163 held-out quotes, though,
+  up 8+ hits *better* (58% at raw p>=0.6 vs 47% within 7), so no 8+ veto (14+ is vetoed: see below). Raw p 0.51-0.68 calibrates
+  to 0.47; only raw 0.79+ reaches 0.6. Rush calibration tops out at 0.47, so rush never triggers. RB unders 2-2: both
+  losses were one long run (McGowan 36 of 45 on 6 carries, Hampton 32 of 60). The explosive-rate veto went 1-1 (Hall 61
+  over 38.5 saved, Allen 33 under 34.5 missed). WR-mate unders 0-2: the WR1 soaked up the targets (Lamb 16 targets for 195
+  with Pickens out, Cooper 11 for 58), the opposite of the 7-18 backtest. Two bets; keep the forward test running.
+- Leads and live receiving calls (2026-11-12): **the book prices the lead; the model doesn't.** Play-by-play 2020-26
+  (WR/TE/RB with 40+ prior ypg): rest-of-game receiving as a share of normal (ypg x time left) is 0.74x up 8-13 at
+  half, 0.61x up 14+, 0.43x up 14+ at end Q3, 0.23x mid Q4; trailing teams run 1.03-1.54x. On held-out live quotes the
+  book's second-half line needs 0.54x normal up 8-13 and 0.48x up 14+ (0.84x within 7, 1.03x down 8+), and receivers
+  beat those shadings 41-51% at half / mid Q3 in every bucket, so the market is roughly fair on game script. The model
+  isn't: `price_ratio` divides by an unadjusted ypg x time-left baseline, so a lead-shaded line reads as a discount
+  (weight -0.29), and the lead terms net to ~0 (-0.003 logit/pt at half, +0.005 late). Week 9 live calls with the team up
+  8+: 1-4 (price_ratio 0.29-0.54); ledger total up 8+: 4-5. Held-out raw p>=0.6: up 8-13 hit 65%, up 14+ 44% (23
+  player-games). Fix to test: lead- and clock-adjusted baseline in `price_ratio`, retrain, compare held-out.
+- Retrain with a lead-adjusted baseline (`analysis/lead_factor.py`, 2026-11-12): **no ship; the receiving model has no
+  held-out signal to fix.** Factor table from 2020-25 pbp (rest-of-game yards vs ypg x time left by lead x clock,
+  relative to all states at that clock; rec up 15+ at 85% elapsed 0.25x, down 9-14 1.55x; rush the mirror image).
+  Swapped into `price_ratio` and refit on the deployed recipe (pooled wk 2-5, 999 quotes): rec held-out wk 6-9 (9,325
+  quotes, 360 player-games) AUC .473 current vs .472 adjusted (bootstrap gain -.011 to +.008), flags at P>=0.6 54% vs
+  52%. Walk-forward on rec (train all earlier weeks, test wk 6/7/8/9): full 19 features .485 / .482, compact 7
+  (elapsed, ypg, score terms, needed, price_ratio, discount) .509 / .500; flags at P>=0.6 99-98, 94-98, 90-94, 93-96.
+  The book prices game state and remaining volume well enough that these inputs don't beat it. The earlier "64% at
+  P>=0.6 on wk 6-7" was 7-game noise. The live 29-22 is within luck (z ~1).
+- Lead veto on live receiving calls (2026-11-12, `live/poller.py` `LEAD_VETO`, from week 10): no rec over call while the
+  player's team leads by 14+. Replay of the deployed model + calibration + gates on held-out wk 6-9 quotes: 21 calls,
+  15-6; up 14+ 2-3, everything else 13-3 (up 8-13 3-0, so the cut is 14, not 8). Backed by the pbp mechanism (up 14+
+  is the worst bucket for beating the book's shaded line at every checkpoint) and held-out quotes (up 14+ 44%). Small
+  sample: vetoed calls are kept as `blocked` (`why: "leading"`) in history.json for grading. Rushing is not vetoed.

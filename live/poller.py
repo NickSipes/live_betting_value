@@ -94,10 +94,16 @@ def bet_open(call, bk):
     q = (bk or {}).get(call.get("book"))
     return q[0] <= call["line"] + 1 if q else call.get("open", True)
 
+# No receiving over while the player's team leads by LEAD_VETO+ (from 2026 week 10). pbp 2020-26: rest-of-game receiving
+# at up 14+ is 0.61x normal at half, 0.43x end Q3; receivers beat the book's lead-shaded line 27-45%, the worst bucket at
+# every checkpoint. Replayed wk 6-9 calls: up 14+ 2-3, all else 13-3; held-out quotes up 14+ hit 44%. Up 8-13 showed
+# nothing (3-0 replayed, 65% held-out), so it stays callable. Rushing is the mirror image (leaders run more): no veto.
+LEAD_VETO = 14
+
 def call_gate(x, dkey):
-    """No call while down > 3, and never an over against a top-3 defense (going into
-    the week). A touch-count rule was dropped: on week 7 it only blocked winners."""
-    return dkey.rsplit("|", 1)[0] not in TOP3_DEF and x[9] >= -3
+    """No call while down > 3 or (receiving) up LEAD_VETO+, and never an over against a top-3 defense
+    (going into the week). A touch-count rule was dropped: on week 7 it only blocked winners."""
+    return dkey.rsplit("|", 1)[0] not in TOP3_DEF and x[9] >= -3 and (x[15] or x[9] < LEAD_VETO)
 
 TOP_N_WL = {"WR": 20, "TE": 10, "RB": 15}   # watchlist: top-N player vs bottom-10 defense
 NFLV = {v: k for k, v in ALIAS.items()}     # ESPN -> nflverse team codes (priors/DEF keys)
@@ -1041,7 +1047,7 @@ class Monitor:
                         "p": round(p, 3), "rebuilt": False, "x": [round(v, 4) for v in x], "t": time.time(),
                         "score": f'{game["away_abbr"]} {game["as"]} – {game["home_abbr"]} {game["hs"]}'}
                 if p >= CALL and "call" not in h and not call_gate(x, dkey) and "blocked" not in h:
-                    h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing"}
+                    h["blocked"] = {**snap, "why": "top3_def" if dkey.rsplit("|", 1)[0] in TOP3_DEF else "trailing" if x[9] < -3 else "leading"}
                 if p >= CALL and "call" not in h and call_gate(x, dkey):
                     book, line, price = first_over(bk) or ("fanduel", L, None)
                     h["call"] = {**snap, "line": line, "book": book, "price": price, "link": self.slips.get((name, kind), {}).get(book),

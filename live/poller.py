@@ -166,7 +166,6 @@ try:
 except Exception:
     TEAM_EXPL = {}
 WR_MATE = 60.0            # a teammate WR at this many rec yds/game is a top WR (analysis/wr_mate_out.py)
-WR_TOP = {n for _, n in sorted(((v["rec"]["ypg"], n) for n, v in PRIORS.items() if v.get("rec", {}).get("pos") == "WR"), reverse=True)[:20]}
 
 def wr_mate_out(name, inj, quoted=None):
     """The WR_MATE+ yds/game WR teammate of `name` who is out, or None. Out = Out/IR/Doubtful/Suspension on the
@@ -789,10 +788,9 @@ class Monitor:
             print(f"archived {len(recs)} player props to week {wk}")
 
     def rb_unders(self):
-        """Upcoming unders for the page. RB (docs/rb_unders.json): every RB rushing line of 20.5-41.5 whose
-        team's usual QB starts and whose team is not explosive (expl_veto). WR (docs/wr_unders.json): a top-20 WR whose 60+ ypg WR teammate is out
-        (wr_mate_out). Lines refresh every 3h, every 5 min in a game's last hour, 2 credits a game (both
-        markets). The picks themselves are still made at kickoff on the closing line (cycle)."""
+        """Upcoming RB unders for the page (docs/rb_unders.json): every RB rushing line of 20.5-41.5 whose
+        team's usual QB starts and whose team is not explosive (expl_veto). Lines refresh every 3h, every 5 min
+        in a game's last hour, 1 credit a game. The picks themselves are still made at kickoff on the closing line (cycle)."""
         now = time.time()
         evs = get(f"{ODDS}/events?apiKey={KEY}")   # free
         for e in evs:
@@ -802,15 +800,14 @@ class Monitor:
                 continue
             self.rb_t[e["id"]] = now
             d = get(f"{ODDS}/events/{e['id']}/odds?apiKey={KEY}&bookmakers=fanduel,draftkings"
-                    f"&markets={MARKETS['rush']},{MARKETS['rec']}&oddsFormat=american&includeLinks=true")
-            lines = {"rush": {}, "rec": {}}
+                    f"&markets={MARKETS['rush']}&oddsFormat=american&includeLinks=true")
+            lines = {}
             for b in d.get("bookmakers", []):
                 for m in b.get("markets", []):
-                    kind = "rec" if m["key"] == MARKETS["rec"] else "rush"
                     for o in m.get("outcomes", []):
                         if o["name"] == "Under" and o.get("point") is not None:
-                            lines[kind].setdefault(o["description"], {})[b["key"]] = [float(o["point"]), o.get("price"), o.get("link")]
-            self.rb_games[e["id"]] = {"kick": e["commence_time"], "home": e["home_team"], "away": e["away_team"], "lines": lines["rush"], "rec": lines["rec"]}
+                            lines.setdefault(o["description"], {})[b["key"]] = [float(o["point"]), o.get("price"), o.get("link")]
+            self.rb_games[e["id"]] = {"kick": e["commence_time"], "home": e["home_team"], "away": e["away_team"], "lines": lines}
         self.rb_games = {k: g for k, g in self.rb_games.items()
                          if datetime.datetime.fromisoformat(g["kick"].replace("Z", "+00:00")).timestamp() > now - 6 * 3600}
         if now - self.ranks[0] > 10800:
@@ -820,54 +817,43 @@ class Monitor:
         if not self.full2ab:   # Odds API full names -> nflverse codes, for each under's opponent
             self.full2ab = {t["team"]["displayName"]: NFLV.get(t["team"]["abbreviation"], t["team"]["abbreviation"])
                             for t in get(f"{ESPN}/teams")["sports"][0]["leagues"][0]["teams"]}
-        out = {"rush": [], "rec": []}
+        out = []
         for gid, g in self.rb_games.items():
             sides = [self.full2ab.get(g["home"]), self.full2ab.get(g["away"])]
-            quoted = {short_name(n) for n in g.get("rec", {})}   # who the book prices: a missing top WR is out
-            for kind, key in (("rush", "lines"), ("rec", "rec")):
-                for name, books in g.get(key, {}).items():
-                    pr = PRIORS.get(name, {})
-                    book = "fanduel" if "fanduel" in books else "draftkings"
-                    L = books[book][0]
-                    team = ALIAS.get(pr.get("team"), pr.get("team"))
-                    if self.inj.get(short_name(name)) in INJ_OUT:
-                        continue
-                    if kind == "rush":
-                        if (pr.get("rush", {}).get("pos") != "RB" or not RB_UNDER[0] < L <= RB_UNDER[1]
-                                or not self.qbs or qb_backup(self.qbs, self.inj, team) or expl_veto(pr.get("team"))):
-                            continue
-                        mate = None
-                    else:
-                        mate = name in WR_TOP and wr_mate_out(name, self.inj, quoted)
-                        if not mate:
-                            continue
-                    out[kind].append({"player": name, "team": pr.get("team"), "market": kind, "side": "under", "line": L,
-                                      "opp": next((t for t in sides if t and t != pr.get("team")), None),
-                                      "price": books[book][1], "book": book, "link": books[book][2],
-                                      "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
-                                      "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
-                                      "inj": self.inj.get(short_name(name)), "off_rank": ranks.get(team), "teams": len(ranks),
-                                      "mate_out": mate or None, "ypg": pr.get(kind, {}).get("ypg"), "team_expl": TEAM_EXPL.get(pr.get("team"))})
+            for name, books in g.get("lines", {}).items():
+                pr = PRIORS.get(name, {})
+                book = "fanduel" if "fanduel" in books else "draftkings"
+                L = books[book][0]
+                team = ALIAS.get(pr.get("team"), pr.get("team"))
+                if (self.inj.get(short_name(name)) in INJ_OUT or pr.get("rush", {}).get("pos") != "RB"
+                        or not RB_UNDER[0] < L <= RB_UNDER[1] or not self.qbs or qb_backup(self.qbs, self.inj, team)
+                        or expl_veto(pr.get("team"))):
+                    continue
+                out.append({"player": name, "team": pr.get("team"), "market": "rush", "side": "under", "line": L,
+                            "opp": next((t for t in sides if t and t != pr.get("team")), None),
+                            "price": books[book][1], "book": book, "link": books[book][2],
+                            "links": {b: v[2] for b, v in books.items()}, "lines": {b: v[0] for b, v in books.items()},
+                            "kick_iso": g["kick"], "game": f'{g["away"].split()[-1]} @ {g["home"].split()[-1]}',
+                            "inj": self.inj.get(short_name(name)), "off_rank": ranks.get(team), "teams": len(ranks),
+                            "ypg": pr.get("rush", {}).get("ypg"), "team_expl": TEAM_EXPL.get(pr.get("team"))})
         forms = {}   # last-3 forms already built (survive restarts): one ESPN pass per player a week
-        for fn in ("rb_unders", "wr_unders"):
-            try:
-                forms.update({(e["player"], e["market"], e["kick_iso"]): e["form"]
-                              for e in json.load(open(f"{DOCS}/{fn}.json"))["entries"] if (e.get("form") or {}).get("v") == FORM_V})
-            except Exception:
-                pass
-        for kind, fn in (("rush", "rb_unders"), ("rec", "wr_unders")):
-            for w in out[kind]:   # only the cards the page shows: RBs on bottom-third scoring teams, every WR
-                if w["opp"] and w["team"] and (kind == "rec" or (w["off_rank"] or 0) > w["teams"] * 2 / 3):
-                    w["form"] = forms.get((w["player"], kind, w["kick_iso"]))
-                    if not w["form"]:
-                        try:
-                            w["form"] = preview_form(w, self.pre_lines)
-                        except Exception as e:   # ponytail: retried next cycle; no backoff
-                            print("unders form error", w["player"], repr(e))
-            out[kind].sort(key=lambda w: (w["kick_iso"], w["game"], w["player"]))
-            tmp = f"{DOCS}/{fn}.json.tmp"
-            json.dump({"ts": now, "entries": out[kind]}, open(tmp, "w"))
-            os.replace(tmp, f"{DOCS}/{fn}.json")
+        try:
+            forms.update({(e["player"], e["market"], e["kick_iso"]): e["form"]
+                          for e in json.load(open(f"{DOCS}/rb_unders.json"))["entries"] if (e.get("form") or {}).get("v") == FORM_V})
+        except Exception:
+            pass
+        for w in out:   # only the cards the page shows: RBs on bottom-third scoring teams
+            if w["opp"] and w["team"] and (w["off_rank"] or 0) > w["teams"] * 2 / 3:
+                w["form"] = forms.get((w["player"], "rush", w["kick_iso"]))
+                if not w["form"]:
+                    try:
+                        w["form"] = preview_form(w, self.pre_lines)
+                    except Exception as e:   # ponytail: retried next cycle; no backoff
+                        print("unders form error", w["player"], repr(e))
+        out.sort(key=lambda w: (w["kick_iso"], w["game"], w["player"]))
+        tmp = f"{DOCS}/rb_unders.json.tmp"
+        json.dump({"ts": now, "entries": out}, open(tmp, "w"))
+        os.replace(tmp, f"{DOCS}/rb_unders.json")
 
     def alerted(self, name, kind):
         """The pregame alert for this prop already went out (this week)."""
@@ -875,16 +861,15 @@ class Monitor:
 
     def early_pushes(self):
         """Pregame picks alert PRE_PUSH before kickoff at the current line: Good Matchups as the page lists
-        them, RB/WR unders by the kickoff rules. The pick itself is still made at kickoff (cycle), whose push
+        them, RB unders by the kickoff rule. The pick itself is still made at kickoff (cycle), whose push
         only fires for a pick this missed (added late, or a restart)."""
         picks = [(w, "Over") for w in watchlist() if w.get("line") is not None and w.get("inj") not in INJ_OUT
                  and not w.get("qb_out") and not w.get("mate_out")]
-        for fn in ("rb_unders", "wr_unders"):
-            try:
-                picks += [(w, "Under") for w in json.load(open(f"{DOCS}/{fn}.json"))["entries"] if w["market"] == "rec"
-                          or ((w.get("off_rank") or 0) > w["teams"] * 2 / 3 and not expl_veto(w["team"]))]
-            except Exception:
-                pass
+        try:
+            picks += [(w, "Under") for w in json.load(open(f"{DOCS}/rb_unders.json"))["entries"]
+                      if (w.get("off_rank") or 0) > w["teams"] * 2 / 3 and not expl_veto(w["team"])]
+        except Exception:
+            pass
         sent = False
         for w, side in picks:
             key, mins = f'{short_name(w["player"])}|{w["market"]}', kick_in(w) / 60
@@ -923,7 +908,7 @@ class Monitor:
                     changed = True
                 mo = wr_mate_out(w["player"], inj, w.get("quoted")) if w["pos"] == "WR" else None
                 if w.get("mate_out") != mo:
-                    w["mate_out"] = mo   # his top WR teammate is out: no over (the under rule takes it at kickoff)
+                    w["mate_out"] = mo   # his top WR teammate is out: no over (that over went 23-34, 2024-26)
                     changed = True
         except Exception as e:
             print("injury fetch error", repr(e))
@@ -1130,8 +1115,8 @@ class Monitor:
             # Pregame unders at the closing line. RB rushing (analysis/prop_search.py: 2024 +21%, 2025 +5%, 2026 +12%
             # at real prices), only when the team's usual QB starts; no QB check yet means no bet. From 2026 week 9 also
             # vetoed when the team's season 10+ yd run rate is above RB_EXPL (bottom-third teams above it went 12-12 on
-            # the under 2024-25, the rest 53-22); the skipped bets go to docs/rb_skips.json for the forward test. WR receiving:
-            # a top-20 WR whose WR_MATE+ ypg teammate is out (analysis/wr_mate_out.py: the over went 7-18, 2024-26).
+            # the under 2024-25, the rest 53-22); the skipped bets go to docs/rb_skips.json for the forward test. The WR teammate-out under
+            # was dropped 2026-11-12: those WRs' unders win as often with the teammate playing (132-97), so "out" wasn't it.
             for k, L in closing.items():
                 name, kind = k.rsplit("|", 1)
                 pr = PRIORS.get(name, {})
@@ -1149,8 +1134,6 @@ class Monitor:
                                                    "team_expl": TEAM_EXPL.get(pr.get("team")), "off_rank": ranks.get(team)}
                             json.dump(self.rb_skips, open(f"{DOCS}/rb_skips.json", "w"), indent=1)
                         continue
-                elif kind == "rec" and name in WR_TOP and wr_mate_out(name, self.inj, quoted):
-                    rule = "wr_mate_under"
                 else:
                     continue
                 hkey = f'{game["espn_id"]}|{name}|{kind}'

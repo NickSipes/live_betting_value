@@ -436,21 +436,6 @@ function rbUnderCard(w) {
     ${betBtn(w)}
   </div>`;
 }
-function wrUnderCard(w) {
-  return `
-  <div ${formCard(w)}>
-    <div class="trow">${logoImg(nflLogo(w.team))}
-      <span class="ab" style="width:auto;font-size:14px">${w.player}</span>
-      ${w.inj ? `<span class="chip warm" title="${w.inj}">${w.inj.toUpperCase()}</span>` : ""}
-      <span class="chip pre" style="margin-left:auto">PREGAME</span>
-    </div>
-    <div class="mk">${MKT("rec")}<span class="chip hot" style="margin-left:6px">Bet U ${w.line}</span></div>
-    <div class="sub"><span>WR teammate out</span><span>${w.mate_out}</span></div>
-    <div class="sub"><span>Season average</span><span>${w.ypg} ypg</span></div>
-    <div class="sub"><span>${w.game}</span><span class="kick">${kickTxt(w.kick_iso)}</span></div>
-    ${betBtn(w)}
-  </div>`;
-}
 function propPreCard(w, chip = "PREGAME") {
   const inj = w.inj ? `<span class="chip ${/out|reserve|doubt|susp/i.test(w.inj) ? "hot" : "warm"}"
     title="${w.inj}">${w.inj === "Injured Reserve" ? "IR" : w.inj.toUpperCase()}</span>` : "";
@@ -752,13 +737,13 @@ function viewLive() {
     // a Good Matchup leaves Upcoming at kickoff; the poller adds its pick once it sees the game live, so hold the card here until then
     const seen = c => `${c.player.split(" ").at(-1)}|${c.market}`, taken = new Set([...mine, ...ledger].map(seen));
     const kicked = (S.watch?.entries || []).filter(w => w.kick_iso && new Date(w.kick_iso) <= now() && w.line != null && !INJ_OUT.includes(w.inj) && !w.qb_out && !w.mate_out && !taken.has(seen(w)));
-    // RB/WR unders too, for 30 min: the poller only makes those picks in the first 5 minutes of game clock
-    const kickedU = [...(S.rbu?.entries || []).filter(rbShown), ...(S.wru?.entries || [])].filter(w =>
+    // RB unders too, for 30 min: the poller only makes those picks in the first 5 minutes of game clock
+    const kickedU = (S.rbu?.entries || []).filter(rbShown).filter(w =>
       w.kick_iso && new Date(w.kick_iso) <= now() && now() - new Date(w.kick_iso) < 18e5 && !taken.has(seen(w)));
     html += section("nfl-active-calls", title, `${active.length + spreadPicks.length + kicked.length + kickedU.length} active`, "Bets that the model has taken",
       [...spreadPicks.map(g => spreadLiveCard(kind, g)), ...active.map(c => callCard(c, freshCalls.has(c.id))),
        ...kicked.map(w => propPreCard({ ...w, link: null })),
-       ...kickedU.map(w => (w.market === "rec" ? wrUnderCard : rbUnderCard)({ ...w, link: null })),
+       ...kickedU.map(w => rbUnderCard({ ...w, link: null })),
        ...wonLive.map(c => callCard(c, false)), ...settled, ...ledger.map(c => propResultCard(c))], "No picks yet this week.")
       .replace('class="sect"', `class="sect ${Date.now() < flashUntil ? "flash" : ""}"`);
     // called props (model pick or pregame) sit in the week's picks, so they leave Watchlist Picks
@@ -783,13 +768,12 @@ const rbShown = x => x.off_rank > (x.teams || 32) * 2 / 3;
 function pregamePicks(sport) {
   if (sport === "nfl") return {
     w: watchUpcoming(),
-    rb: (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd() && rbShown(x)).sort(byKick),
-    wru: (S.wru?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd()).sort(byKick) };
+    rb: (S.rbu?.entries || []).filter(x => new Date(x.kick_iso) > now() && new Date(x.kick_iso) <= weekEnd() && rbShown(x)).sort(byKick) };
   const pre = upcomingGames(sport);   // NCAAF: Game Spreads picks, then games meeting the call's setup (both teams top third, exactly one ranked)
   return { sp: pre.filter(([, r]) => r.spread_pick), setup: pre.filter(([, r]) => r.setup && !r.spread_pick) };
 }
 function viewUpcoming() {
-  const { w, rb, wru, sp, setup } = pregamePicks(R.sport);
+  const { w, rb, sp, setup } = pregamePicks(R.sport);
   let html = "";
   if (R.sport === "nfl") {
     html += section("nfl-up-props", "Good Matchups", `${w.length} players`,
@@ -798,9 +782,6 @@ function viewUpcoming() {
     html += section("nfl-up-rb", "RB Unders", `${rb.length} players`,
       "Unders on RB rushing props with a line of 20.5 to 41.5 yards when the usual QB starts and the team ranks in the bottom third of scoring. Against real closing lines this won in 2024 (+33%) and 2025-26 (+23%). The pick is made at kickoff on the closing line.",
       rb.map(rbUnderCard), "No RB Unders right now.");
-    html += section("nfl-up-wr", "WR Unders", `${wru.length} players`,
-      "Unders on a top-20 WR left as his team's best receiver because a WR teammate averaging 60+ yards a game is out (injury report, or no line posted for him). Books raise his line for the extra targets, which don't come: against real closing lines the under went 18-7 in 2024-26. The pick is made at kickoff on the closing line.",
-      wru.map(wrUnderCard), "No WR Unders right now.");
   }
   if (R.sport === "cfb") {
     html += section("cfb-up-spreads", "Game Spreads", `${sp.length} picks`,
@@ -894,7 +875,6 @@ async function refreshProps() {
   if (!S.watch || Date.now() - S.watchT > ((S.watch.entries || []).some(w => w.kick_iso && new Date(w.kick_iso) - now() > 0 && new Date(w.kick_iso) - now() < 3600e3) ? 30e3 : 300e3))
   {
     try { S.rbu = await (await fetch("rb_unders.json?" + Date.now())).json(); } catch (e) {}
-    try { S.wru = await (await fetch("wr_unders.json?" + Date.now())).json(); } catch (e) {}
     try { S.watch = await (await fetch("watchlist.json?" + Date.now())).json(); S.watchT = Date.now(); } catch (e) {}
   }
   if (S.props) { lastTs.props = S.props.ts; renderAges(); }

@@ -14,15 +14,15 @@ json.dump({"entries": [gm("Tee Higgins", 15), gm("Ja'Marr Chase", 45), gm("Puka 
                        gm("Davante Adams", 10, line=None), gm("Old Game", -5)]}, open(f"{D}/watchlist.json", "w"))
 rb = lambda name, rank, team="CIN": {**gm(name, 18), "market": "rush", "line": 30.5, "off_rank": rank, "teams": 32, "team": team}
 json.dump({"entries": [rb("Chase Brown", 30), rb("Top Offense RB", 3)]}, open(f"{D}/rb_unders.json", "w"))
-json.dump({"entries": [gm("Courtland Sutton", 19)]}, open(f"{D}/wr_unders.json", "w"))
+json.dump({"entries": [gm("Courtland Sutton", 19)]}, open(f"{D}/wr_unders.json", "w"))   # a stale file from before the drop
 P.TEAM_EXPL = {}
 
 m = P.Monitor(60)
 m.early_pushes()
-assert sent == ["Bet Tee Higgins Over 60.5 rec yds on FanDuel", "Bet Chase Brown Under 30.5 rush yds on FanDuel",
-                "Bet Courtland Sutton Under 60.5 rec yds on FanDuel"], sent   # 45 min out, injured, no line, kicked off, top offense: no alert
+assert sent == ["Bet Tee Higgins Over 60.5 rec yds on FanDuel", "Bet Chase Brown Under 30.5 rush yds on FanDuel"], sent
+# 45 min out, injured, no line, kicked off, top offense: no alert; the WR teammate-out under was dropped 2026-11-12
 m.early_pushes()
-assert len(sent) == 3                                                        # once per pick
+assert len(sent) == 2                                                        # once per pick
 assert P.Monitor(60).alerted("Tee Higgins", "rec")                           # survives a restart, so kickoff doesn't push again
 assert not m.alerted("Ja'Marr Chase", "rec")                                 # not alerted yet: kickoff still pushes
 m.early[P.short_name("Tee Higgins") + "|rec"] = time.time() - 7 * 86400

@@ -194,3 +194,22 @@ Locally, the same pollers still run unchanged (defaults write to `docs/` and `li
   15-6; up 14+ 2-3, everything else 13-3 (up 8-13 3-0, so the cut is 14, not 8). Backed by the pbp mechanism (up 14+
   is the worst bucket for beating the book's shaded line at every checkpoint) and held-out quotes (up 14+ 44%). Small
   sample: vetoed calls are kept as `blocked` (`why: "leading"`) in history.json for grading. Rushing is not vetoed.
+- NFL live lead call, forward through 2026 week 9 (2026-11-12, `data/fly/docs/archive/nfl_w{7,8,9}.json`): one call,
+  BUF @ MIN, MIN +13.5 (+210) at Q4 6:17 down 20-6, lost 23-6 (0-1). The 23 leads the filters stopped, graded at the
+  first FanDuel quote after the lead on the trailing side: 8-15 (side_rule 4-9, not_top 3-4, late 1-1, seen 0-1), so
+  the blocks saved ~6.9 units. Leaders covered 16 of 24 incl. the call (z ~1.6); the 2024-25 backtest's top-vs-top
+  subset went the other way (27-15 trailing), so this is noise until the rule has its own forward sample.
+- Pregame unders re-checked (2026-11-12, all closing props 2024-26 at real prices via `prop_search.build`):
+  **RB under holds; WR-mate under doesn't need the mate.** RB rushing under, layer by layer: every RB -1%; line
+  20.5-41.5 +15/+7/+9% by season; + usual QB 200-136 (+21/+6/+12%); + bottom-third offense 58-28 (+25/+32/+26%);
+  + 10+ run rate <=12% 47-18. Neighbors move smoothly (20.5-30.5 +17%, 30.5-41.5 +9%, 10.5-20.5 -4%, 41.5+ -10%/-7%;
+  offense thirds +3 / +13 / +28%; veto cut 0.10-0.14 all +17 to +37%). The layers were added on these same games, so
+  the honest number is the core's 2025 (+6%, the season after it was found): expect single digits, not +28%.
+  WR-mate under: `wr_mate_out.py` calls a teammate "out" if he drew no target (hindsight). With a pregame definition
+  (60+ ypg WR teammate inactive, from snap counts) top-20 WR unders go 34-23 (+3/+16/+35%), but the same WRs with
+  that teammate *playing* go 132-97 (+9%, positive every season) and with no such teammate 202-209 (-7%). The mate
+  being out adds ~4 points over noise, and the 57 bets come from 18 team-seasons (MIA 2025 x11, HOU 2024 x9, NYG 2025
+  x9). The teammate-played under (+9%, z ~2.3) is a new lead found looking, not a rule.
+  Dropped 2026-11-12: the poller no longer makes the WR teammate-out under or publishes `docs/wr_unders.json`, and the
+  page's WR Unders section is gone. The Good Matchups over is still skipped when that teammate is out (over 23-34).
+  The RB under feed now pulls only the rushing market (1 credit a game instead of 2).

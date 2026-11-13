@@ -129,7 +129,9 @@ def season_bets(season):
             cover = np.sign(g["hs"] - g["as"] + sp[g["id"]])        # +: home covered
             if gap == 0 or cover == 0:
                 continue
-            out.append((k["n_recent"], abs(gap), (cover > 0) == (gap > 0), max(g["hr"], g["ar"]) <= 25, gap > 0, season))
+            out.append((k["n_recent"], abs(gap), (cover > 0) == (gap > 0), max(g["hr"], g["ar"]) <= 25, gap > 0, season,
+                        {"line": sp[g["id"]], "recent": k["common_recent"], "common": k["common"], "model": k["model"],
+                         "opp_rank": g["ar"] if gap > 0 else g["hr"]}))
     return out
 
 def table(bets):
@@ -152,6 +154,47 @@ def table(bets):
     print("one shared opponent only")
     for th in (4, 8, 14):
         row(f"gap >= {th}", lambda b, th=th: b[0] == 1 and b[1] >= th)
+
+def veto_table(bets):
+    """Would a veto have caught the bad disagreements (Ole Miss +3.5 vs Georgia, 2026-11-07: implied Ole Miss -29.6,
+    lost by 35)? The rule's bets (2+ shared, gap 4+) split by each candidate: record of the bets it would drop | keep."""
+    rule = [b for b in bets if b[0] >= 2 and b[1] >= 4]
+    rec = lambda v: f"{sum(b[2] for b in v)}-{len(v) - sum(b[2] for b in v)}"
+    pct = lambda v: f" ({100 * sum(b[2] for b in v) / len(v):.0f}%)" if v else ""
+    print(f"\nveto candidates, dropped | kept{'':<22}" + "".join(f"{s:>14}" for s in SEASONS) + f"{'all dropped':>18}{'all kept':>16}")
+    def row(title, f):
+        cells = []
+        for s in SEASONS:
+            v = [b for b in rule if b[5] == s]
+            cells.append(f"{rec([b for b in v if f(b)])} | {rec([b for b in v if not f(b)])}")
+        d, k = [b for b in rule if f(b)], [b for b in rule if not f(b)]
+        print(f"  {title:<44}" + "".join(f"{c:>14}" for c in cells) + f"{rec(d) + pct(d):>18}{rec(k) + pct(k):>16}")
+    X = lambda b: b[6]
+    for th in (14, 20, 25):
+        row(f"gap over {th}", lambda b, th=th: b[1] > th)
+    for th in (10, 14, 20):
+        row(f"implied {th}+ from the rating's spread", lambda b, th=th: abs(X(b)["recent"] - X(b)["model"]) >= th)
+    row("rating leans the other way", lambda b: (X(b)["line"] - X(b)["model"] > 0) != b[4])
+    for th in (7, 14):
+        row(f"4-week filter moved implied {th}+", lambda b, th=th: abs(X(b)["recent"] - X(b)["common"]) >= th)
+    row("all shared opponents lean the other way", lambda b: (X(b)["line"] - X(b)["common"] > 0) != b[4])
+    row("line's underdog made a 3+ favorite", lambda b: X(b)["line"] * X(b)["recent"] < 0 and abs(X(b)["recent"]) >= 3 and ((X(b)["line"] > 0) == b[4]))
+    row("bet on the line's underdog", lambda b: (X(b)["line"] > 0) == b[4])
+    row("bet against a top-5 team", lambda b: X(b)["opp_rank"] <= 5)
+    row("bet against a top-10 team", lambda b: X(b)["opp_rank"] <= 10)
+    row("gap over 14 and implied 14+ from rating", lambda b: b[1] > 14 and abs(X(b)["recent"] - X(b)["model"]) >= 14)
+    # Swiss cheese: stack the layers. Each was picked for looking bad on all five seasons, so the honest reading is
+    # the split: layers chosen on 2021-23 (top-5, gap over 20, implied 14+ from rating, away bets) graded on 2024-25
+    L = {"top5": lambda b: X(b)["opp_rank"] <= 5, "gap20": lambda b: b[1] > 20,
+         "rating14": lambda b: abs(X(b)["recent"] - X(b)["model"]) >= 14, "away": lambda b: not b[4]}
+    row("stack: top-5 or gap over 20", lambda b: L["top5"](b) or L["gap20"](b))
+    row("stack: top-5, gap 20, implied 14+ rating", lambda b: L["top5"](b) or L["gap20"](b) or L["rating14"](b))
+    row("stack: all three plus away bets", lambda b: any(f(b) for f in L.values()))
+    print("\n  layers judged on 2021-23, then graded on 2024-25 (dropped | kept):")
+    for name, f in list(L.items()) + [("all four stacked", lambda b: any(g(b) for g in L.values()))]:
+        tr, te = [b for b in rule if b[5] <= 2023], [b for b in rule if b[5] >= 2024]
+        d = lambda v: [b for b in v if f(b)]; k = lambda v: [b for b in v if not f(b)]
+        print(f"    {name:<20} 2021-23 {rec(d(tr)):>7}{pct(d(tr)):>6} | {rec(k(tr)):>7}{pct(k(tr)):>6}     2024-25 {rec(d(te)):>7}{pct(d(te)):>6} | {rec(k(te)):>7}{pct(k(te)):>6}")
 
 def spots_games(season):
     """cfb_spots-shaped games for one season: every game with a line, each team's previous game by kickoff time."""
@@ -212,4 +255,5 @@ if __name__ == "__main__":
     print(f"snapshots still to pull: {need} = {10 * sum(need.values())} credits; cap {CAP}, pull {'on' if PULL else 'off'}")
     bets = [b for s in SEASONS for b in season_bets(s)]
     table(bets)
+    veto_table(bets)
     print(f"\ncredits spent this run: {spent}")

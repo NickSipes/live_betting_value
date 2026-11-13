@@ -150,7 +150,14 @@ the Game Spreads rule picks (`live/cfb_poller.py` `shared_pick`, games with a To
 both teams met within four week numbers of each other, venue-adjusted margins 4+ points from the line), `spread_pick`: `{side, team, line
 (on the bet side), gap, implied (home spread the shared results imply), shared: [[opp, home team's margin,
 away team's margin, days between the two meetings], ...]}`, plus `result` and `final` once the game ends.
-Re-priced every cycle until kickoff, so the stored pick is at the closing line.
+Re-priced every cycle until kickoff, so the stored pick is at the closing line. From 2026-11-12 every pick also carries
+`opp_rank`, `model` (home spread from the season rating) and `layers` (keys of the veto layers that caught it). A game holds
+`spread_pick` when no layer caught it (the page shows it) or `spread_skip`, same fields, when one did.
+
+**`docs/layers_<system>.json`** — the pregame layer ledgers (`live/layers.py`): `{system, layers: [[key, why], ...],
+picks: {pick id: {..., layers: [keys that caught it], t, result, final}}, record: {kept: [wins, losses], <layer key>:
+[wins, losses]}}`. `cfb_game_spreads` is keyed by ESPN id and holds every candidate from week 11 of 2026; `nfl_rb_unders`
+is keyed like props and holds only the caught picks, ungraded.
 
 **`live/nfl_spread_log.csv`** (no header) — one row per EDGE/SWING flag:
 `utc_time, game, clock, score ("as-hs"), pregame, live, fair, edge, status`.

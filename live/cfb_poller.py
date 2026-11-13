@@ -13,8 +13,8 @@ Writes docs/{cfb_state,nfl_spreads_state}.json (live), docs/{sport}_games.json
 line history into docs/archive/{sport}_w{week}.json when it goes final.
 Appends flags to live/{sport}_spread_log.csv.
 """
-import json, math, os, sys, time, csv, re, datetime, subprocess, urllib.request
-import push
+import json, math, os, sys, time, csv, re, datetime, subprocess, urllib.request, collections
+import push, layers
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -374,6 +374,52 @@ def mean(xs):
     xs = list(xs)
     return sum(xs) / len(xs)
 
+# The season rating the rating14 layer measures against: analysis/cfb_top25_lines.py's ridge margin rating, in the
+# standard library. Home field is fixed at HFA instead of fitted (the fit lands within a few tenths of it).
+LAM, CAP, FCS, SHRINK = 2.0, 28, -20.0, 0.5
+def ridge_ratings(finals, prior, default=FCS):
+    """{team id: rating}: least squares on capped margins with the venue taken out, each team pulled toward
+    prior.get(team, default) with the weight of LAM games. Solved one team at a time until it settles."""
+    games = collections.defaultdict(list)   # team -> [(opponent, margin from its side)]
+    for f in finals:
+        m = max(-CAP, min(CAP, f["h"][3] - f["a"][3])) - (0 if f.get("n") else HFA)
+        games[f["h"][0]].append((f["a"][0], m))
+        games[f["a"][0]].append((f["h"][0], -m))
+    r = {t: prior.get(t, default) for t in games}
+    for _ in range(300):
+        move = 0
+        for t, gs in games.items():
+            new = (sum(m + r[o] for o, m in gs) + LAM * prior.get(t, default)) / (len(gs) + LAM)
+            move, r[t] = max(move, abs(new - r[t])), new
+        if move < 1e-4:
+            break
+    return r
+
+def prior_ratings(year):
+    """{team id: half its final rating last season}, teams with 6+ games (the rest sit at FCS). Cached for good."""
+    p = f"{DATA}/cfb_prior_{year}.json"
+    if os.path.exists(p):
+        return json.load(open(p))
+    sep = "&" if "?" in ESPN else "?"
+    fin = [f for wk in range(1, 17) for f in finals_of(get(f"{ESPN}{sep}week={wk}&seasontype=2&dates={year - 1}"))]
+    rt, n = ridge_ratings(fin, {}, 0.0), collections.Counter(t for f in fin for t in (f["h"][0], f["a"][0]))
+    out = {t: SHRINK * v for t, v in rt.items() if n[t] >= 6}
+    json.dump(out, open(p, "w"))
+    return out
+
+# Game Spreads layers (live/layers.py): shared_pick proposes, any layer that catches a pick keeps it off the page.
+# Each was the losing side of the rule on 2021-25 (analysis/cfb_shared_seasons.py veto_table; record of what it drops
+# alone). Stacked, the picks that got through went 50-27 and the dropped ones 68-87, but the four were chosen from
+# fifteen with those seasons in view: the ledger (docs/layers_cfb_game_spreads.json) is the forward test of each.
+TOP_RANK, GAP_MAX, RATING_MAX = 5, 20, 14
+SPREAD_LAYERS = [
+    ("top5", "bet against a top-5 team", lambda p, ctx: p["opp_rank"] <= TOP_RANK),                           # 9-15
+    ("gap20", "shared results more than 20 points from the line", lambda p, ctx: p["gap"] > GAP_MAX),          # 6-9
+    ("rating14", "shared results 14+ points from the season rating",                                           # 26-33
+     lambda p, ctx: p.get("model") is not None and abs(p["implied"] - p["model"]) >= RATING_MAX),
+    ("away", "road side", lambda p, ctx: p["side"] == "away"),                                                 # 53-65
+]
+
 TO_PTS = 4   # points a turnover is worth in the turnover-adjusted spread (context only: the rule itself is unadjusted)
 
 def shared_opps(r, finals):
@@ -623,6 +669,8 @@ class CFB:
         self.reg = json.load(open(REGISTRY)) if os.path.exists(REGISTRY) else {}
         self.finals, self.finals_t = {}, 0
         self.slips_t = 0      # last odds fetch made only for pregame pick links
+        self.ledger = layers.Ledger("cfb_game_spreads", SPREAD_LAYERS, DOCS) if SPORT == "cfb" else None
+        self.prior, self.rt = None, (None, {})   # last season's ratings (fetched once); (finals counted, this season's ratings)
         self.next_t = 0    # last fetch of next week's schedule
         self.bf_path = f"{DATA}/backfilled_{SPORT}.json"
         self.backfilled = set(json.load(open(self.bf_path))) if os.path.exists(self.bf_path) else set()
@@ -676,6 +724,19 @@ class CFB:
                 h["pregame"] = pre[-1]   # last pre-kick quote = the closing line
         print(f"backfilled {len(series)} {SPORT} games")
 
+    def model_spread(self, r, finals, year):
+        """The home spread the season rating gives this game; None when the rating can't be built."""
+        if self.prior is None:
+            try:
+                self.prior = prior_ratings(year)
+            except Exception as e:   # ponytail: no prior this run; the rating still fits, only looser early in a season
+                print("prior ratings fetch failed", repr(e))
+                self.prior = {}
+        if self.rt[0] != len(finals):
+            self.rt = (len(finals), ridge_ratings(finals, self.prior))
+        rt = self.rt[1]
+        return round(-(rt.get(r["hid"], FCS) - rt.get(r["aid"], FCS) + (0 if r.get("neutral") else HFA)), 1)
+
     def update_registry(self, sb):
         """Merge this week's (and, every 30 min, next week's) schedule."""
         week = (sb.get("week") or {}).get("number")
@@ -714,16 +775,27 @@ class CFB:
                     w.update(result=cover({"bet": w["side"], "line": w["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
                 if w:
                     new["watch"] = w
-                if SPORT == "cfb":   # Game Spreads: re-priced each cycle until kickoff, frozen there, graded at the final
-                    p = old.get("spread_pick")
+                if SPORT == "cfb":   # Game Spreads: a candidate each cycle until kickoff, frozen there, graded at the final.
+                    # spread_pick got through every layer and shows on the page; spread_skip was caught (p["layers"] says by what)
+                    p = old.get("spread_pick") or old.get("spread_skip")
                     if finals and new["state"] == "pre":   # ranked games only: unranked went 43-31 then 4-7
                         p = shared_pick(new, finals) if min(new["hrank"], new["arank"]) <= 25 else None
-                        if p and old.get("spread_pick"):   # the books' links come from the odds feed, not every cycle
-                            p.update({k: v for k, v in old["spread_pick"].items() if k in ("link", "links", "book", "books")})
+                        if p:
+                            p.update(opp_rank=new["arank"] if p["side"] == "home" else new["hrank"],
+                                     model=self.model_spread(new, finals, (sb.get("season") or {}).get("year") or datetime.date.today().year))
+                            p["layers"] = layers.vetoes(SPREAD_LAYERS, p)
+                            if old.get("spread_pick"):   # the books' links come from the odds feed, not every cycle
+                                p.update({k: v for k, v in old["spread_pick"].items() if k in ("link", "links", "book", "books")})
+                            self.ledger.put(ev["id"], {"game": f'{new["aabbr"]} @ {new["habbr"]}', "week": new["week"], "date": new["date"],
+                                                       "team": p["team"], "line": p["line"], "gap": p["gap"], "implied": p["implied"],
+                                                       "model": p["model"], "opp_rank": p["opp_rank"]}, p["layers"])
+                        else:
+                            self.ledger.forget(ev["id"])
                     if p and new["state"] == "post" and new["hs"] is not None and "result" not in p:
                         p.update(result=cover({"bet": p["side"], "line": p["line"]}, new["hs"], new["as"]), final=f'{new["as"]}-{new["hs"]}')
+                        self.ledger.grade(ev["id"], p["result"], final=p["final"])
                     if p:
-                        new["spread_pick"] = p
+                        new["spread_skip" if p.get("layers") else "spread_pick"] = p
                     elif finals and new["state"] == "pre":   # the Watchlist card says what the rule still lacks
                         new["spread_need"] = spread_need(new, finals, self.reg.values())
                 if SPORT == "cfb" and new["state"] == "pre" and self.finals:   # Watchlist Games: the call's setup

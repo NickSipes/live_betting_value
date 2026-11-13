@@ -43,3 +43,37 @@ assert C.spread_need(ranked, fin[:2], [{**left[0], "date": "2026-11-08T17:00Z"}]
 assert C.spread_need({**ranked, "pregame": None}, fin) == "a posted line"
 assert C.spread_need({**ranked, "pregame": 20}, fin) == "a line 4+ from the shared-opponent spread (T1 +22.0); it is 2.0 away"
 print("ok")
+
+# ---- layers on a pick (live/layers.py): any one catches it
+import layers
+base = {"side": "home", "gap": 8.0, "implied": -10.0, "model": -6.0, "opp_rank": 12}
+V = lambda **kw: layers.vetoes(C.SPREAD_LAYERS, {**base, **kw})
+assert V() == []
+assert V(opp_rank=5) == ["top5"] and V(opp_rank=6) == []
+assert V(gap=20.5) == ["gap20"] and V(gap=20) == []
+assert V(model=4.0) == ["rating14"] and V(model=3.9) == [] and V(model=None) == []     # no rating: nothing to judge by
+assert V(side="away") == ["away"]
+assert V(side="away", opp_rank=2, gap=33.1, implied=-29.6, model=-2.4) == ["top5", "gap20", "rating14", "away"]
+
+# ---- the stdlib rating is the ridge least-squares solution (checked against the normal equations)
+import numpy as np, random
+random.seed(1)
+teams = [str(i) for i in range(12)]
+true = {t: random.gauss(0, 10) for t in teams}
+fins = []
+for _ in range(60):
+    h, a = random.sample(teams, 2)
+    m = round(true[h] - true[a] + C.HFA + random.gauss(0, 8))
+    fins.append({"h": [h, h, 99, max(m, 0)], "a": [a, a, 99, max(-m, 0)], "n": random.random() < .1})
+prior = {t: true[t] / 2 for t in teams[:8]}
+got = C.ridge_ratings(fins, prior)
+A, y = np.zeros((len(teams), len(teams))), np.zeros(len(teams))
+for f in fins:
+    i, j = teams.index(f["h"][0]), teams.index(f["a"][0])
+    mm = max(-C.CAP, min(C.CAP, f["h"][3] - f["a"][3])) - (0 if f["n"] else C.HFA)
+    A[i, i] += 1; A[j, j] += 1; A[i, j] -= 1; A[j, i] -= 1; y[i] += mm; y[j] -= mm
+for i, t in enumerate(teams):
+    A[i, i] += C.LAM; y[i] += C.LAM * prior.get(t, C.FCS)
+want = np.linalg.solve(A, y)
+assert max(abs(got[t] - want[i]) for i, t in enumerate(teams)) < .01, [(got[t], want[i]) for i, t in enumerate(teams)]
+print("layers ok")

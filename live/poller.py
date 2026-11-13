@@ -12,7 +12,7 @@ Costs 2 credits per live game per poll (2 markets, DK+FD).
 import json, os, sys, time, csv, math, bisect, datetime, subprocess, threading, re, zoneinfo
 import urllib.request, functools
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-import push
+import push, layers
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 KEY = os.environ.get("ODDS_API_KEY") or \
@@ -199,6 +199,13 @@ def scoring_ranks(week):
 def expl_veto(team):
     """True when the team's season 10+ yd run rate rules out the RB under. team: nflverse code."""
     return (TEAM_EXPL.get(team) or 0) > RB_EXPL
+
+# RB Unders layers (live/layers.py). The model proposes an RB rushing under in the line band on a bottom-third scoring
+# team with its usual QB; a layer that catches it keeps it from being bet and the ledger keeps what each one dropped
+# (docs/layers_nfl_rb_unders.json; docs/rb_skips.json stays as the graded log for analysis). Add a veto as a row here.
+RB_UNDER_LAYERS = [
+    ("explosive", f"team's season 10+ yd run rate is above {RB_EXPL:.0%}", lambda p, ctx: expl_veto(p["team"])),
+]
 
 def qb_backup(qbs, inj, team):
     """The QB a team is playing instead of its usual starter, or None. team: ESPN abbr. qbs: qb_status()."""
@@ -489,6 +496,7 @@ class Monitor:
             self.rb_skips = json.load(open(f"{DOCS}/rb_skips.json"))
         except Exception:
             self.rb_skips = {}
+        self.rb_ledger = layers.Ledger("nfl_rb_unders", RB_UNDER_LAYERS, DOCS)
         self.rb_games = {}    # event id -> {kick, home, away, lines: {name: {book: [line, under price, under link]}}}
         self.ranks = (0, {})  # (fetched at, scoring rank by ESPN abbr), refreshed every 3h
         self.full2ab = {}     # ESPN full team name -> nflverse code
@@ -1127,9 +1135,12 @@ class Monitor:
                 if (kind == "rush" and RB_UNDER[0] < L <= RB_UNDER[1] and pr.get("rush", {}).get("pos") == "RB" and self.qbs
                         and not qb_backup(self.qbs, self.inj, team) and ranks.get(team, 0) > len(ranks) * 2 / 3):
                     rule = "rb_under"
-                    if expl_veto(pr.get("team")):   # forward evidence for the veto: log the bet not made, grade it later from pbp
+                    caught = layers.vetoes(RB_UNDER_LAYERS, {"team": pr.get("team")})
+                    if caught:   # forward evidence for the layer: log the bet not made, grade it later from pbp
                         skey = f'{game["espn_id"]}|{name}|{kind}'
                         if game["gc"] <= 300 and skey not in self.rb_skips:
+                            self.rb_ledger.put(skey, {"player": name, "team": pr.get("team"), "line": L, "side": "under",
+                                                      "game": f'{game["away_abbr"]} @ {game["home_abbr"]}'}, caught)
                             self.rb_skips[skey] = {"t": time.time(), "player": name, "team": pr.get("team"), "line": L, "game": f'{game["away_abbr"]} @ {game["home_abbr"]}',
                                                    "team_expl": TEAM_EXPL.get(pr.get("team")), "off_rank": ranks.get(team)}
                             json.dump(self.rb_skips, open(f"{DOCS}/rb_skips.json", "w"), indent=1)

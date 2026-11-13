@@ -36,6 +36,7 @@ cd analysis && ../.venv/bin/python export_live.py
 | `analysis/v2_model.py` | v2: price-aware over model (train wk<=5, test wk6+) |
 | `analysis/export_live.py` | train v2 + write live/{model_weights,priors,def_priors}.json |
 | `live/poller.py` + `live/web/` | live monitor + dashboard |
+| `live/layers.py` | Swiss cheese layers for pregame picks: each system's named vetoes, and a ledger per system (`docs/layers_<system>.json`) that grades what every layer drops |
 | `analysis/cfb_top25_lines.py` | CFB Top-25 line check: margin rating + common opponents vs the posted spread (`--backtest`); the <=4-week rule runs live as the NCAAF Pregame Picks "Game Spreads" section (`live/cfb_poller.py` `shared_pick`) |
 | `analysis/ol_out.py` | Good Matchups over backtest at closing prices, and RB rushing props when OL regulars are out (snap counts), 2024-26 |
 
@@ -129,6 +130,33 @@ cd analysis && ../.venv/bin/python export_live.py
   30-23 (57%) is 2025 plus noise (2-6 in 2024); home-side bets 65-49 vs away 53-65 is not a pattern worth a rule. One shared
   opponent 78-86. 2025's 26-14 was the best of twelve variants tried on one season; the 2026 forward test is 7-6 through
   week 10 (2-4 on 2026-11-07). The rule is a describer, not a pick.
+  Vetoes for the worst disagreements (2026-11-12, `veto_table` in the same script, after Ole Miss +3.5 lost to Georgia by
+  35 on the week's biggest gap, 33): fifteen candidates on the 232 rule bets of 2021-25, shown as the bets a veto drops |
+  keeps. Bet against a top-5 team 9-15 | 109-99; gap over 20 6-9 | 112-105; implied 14+ from the rating's spread 26-33 |
+  92-81. Rating leaning the other way (56-56), the line's underdog made a favorite (16-16) and the 4-week filter moving
+  the number 7+ (17-13) carry nothing. No veto lifts the kept bets past 53%: they trim the ugliest misses, not the rule.
+  Stacked as layers (top-5 opponent, gap over 20, implied 14+ from the rating, away bets; any one drops the bet): kept
+  50-27 (65%; 6-7, 11-5, 15-6, 9-7, 9-2 by season), dropped 68-87. Judged on 2021-23 (kept 32-18) the stack went 18-9 on
+  2024-25, but the four layers were picked from fifteen with all five seasons in view, and the away layer alone does
+  most of it (home bets 65-49). 2026 week 10: kept 0-2, dropped 2-2. Live from 2026-11-12 as `SPREAD_LAYERS` in
+  `live/cfb_poller.py`; every candidate and the layers that caught it are graded in `docs/layers_cfb_game_spreads.json`.
+
+## Pregame pick layers (Swiss cheese)
+
+Every pregame pick system works the same way: its model proposes each candidate it likes, and a stack of named
+veto layers decides which ones are bet. A candidate any layer catches is not bet, but it is still written to the
+system's ledger with the layers that caught it and graded at the final, so each layer has its own forward record
+(`record` in the ledger: `kept` and one `[wins, losses]` per layer; a pick two layers caught counts for both).
+A layer stays while the picks it drops lose, and comes out when they don't.
+
+| system | model proposes | layers | ledger |
+|---|---|---|---|
+| `cfb_game_spreads` | `shared_pick` in `live/cfb_poller.py`: ranked game, 2+ shared opponents <=4 weeks apart, line 4+ from what they imply | `SPREAD_LAYERS`: top5, gap20, rating14, away | `docs/layers_cfb_game_spreads.json` |
+| `nfl_rb_unders` | `live/poller.py`: RB rushing line 20.5-41.5, usual QB starts, bottom-third scoring team | `RB_UNDER_LAYERS`: explosive | `docs/layers_nfl_rb_unders.json` (caught picks only, ungraded; `docs/rb_skips.json` is still the graded log) |
+
+To add a layer, add a `(key, why, test)` row to the system's list: `test(pick, ctx)` is true when it catches the pick.
+To add a system, give it a list and a `layers.Ledger(name, LAYERS, DOCS)`, call `layers.vetoes` on each candidate,
+`put` it in the ledger and `grade` it at the final (`live/layers.py` has the whole interface and a self-check).
 
 ## Costs (the-odds-api, 100K/mo plan)
 
